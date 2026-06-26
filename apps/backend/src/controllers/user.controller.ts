@@ -1,21 +1,26 @@
-import { asyncHandler } from "../utils/asyncHandler.js"; 
-import { ApiError } from "../utils/ApiError.js";         
-import { User } from "../models/user.models.js";
-import { PendingUser } from "../models/pendingUsers.models.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import twilio from "twilio"; 
+import prisma from "../db/prisma.js";
+import {
+  hashPassword,
+  verifyPassword,
+  signAccessToken,
+  signRefreshToken,
+} from "../utils/auth.js";
+import twilio from "twilio";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import { google } from "googleapis";
-import {uploadOnCloudinary} from "../utils/cloudinary.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 
 dotenv.config();
 
 //Email Configuration
 const oAuth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID, 
-  process.env.GOOGLE_CLIENT_SECRET, 
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
   process.env.GOOGLE_REDIRECT_URI
 );
 oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
@@ -32,19 +37,32 @@ const transporter = nodemailer.createTransport({
   }
 } as any);
 
+const randomAvatars = [
+  "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/rf2tm0acjgmcawzvardw.png",
+  "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/stel0tavrlhrxxvfq0mj.png",
+  "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/fh6ryx53hoc9ioxgzz6n.png",
+  "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/zbwoszxkryveenz5d2am.png",
+  "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/jrcjbhxn0njurj9u71vr.png",
+];
+
+const pickRandomAvatar = () =>
+  randomAvatars[Math.floor(Math.random() * randomAvatars.length)];
+
 // Utility function to generate tokens
-const generateAccessAndRefreshTokens = async (userId: any) => {
+const generateAccessAndRefreshTokens = async (userId: string) => {
   try {
-    const user = await User.findById(userId);
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new ApiError(404, "User not found");
     }
 
-    const accessToken = user.generateAccessToken();  // Ensure this method exists and works
-    const refreshToken = user.generateRefreshToken();  // Ensure this method exists and works
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken(user);
 
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken },
+    });
 
     return { accessToken, refreshToken };
   } catch (error: any) {
@@ -53,66 +71,72 @@ const generateAccessAndRefreshTokens = async (userId: any) => {
   }
 };
 
-const refreshAccessToken = asyncHandler(async(req: any, res: any)=>{
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
+  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
-    if(!incomingRefreshToken){
-        throw new ApiError(401, "Unauthorized Request")
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, "Unauthorized Request");
+  }
+
+  try {
+    const decodedToken: any = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET as string
+    );
+
+    const user = await prisma.user.findUnique({ where: { id: decodedToken?.id } });
+    if (!user) {
+      throw new ApiError(404, "Invalid refresh token");
     }
 
-    try {
-        const decodedToken: any = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET as string)
-    
-        const user= await User.findById(decodedToken?._id)
-        if(!user){
-            throw new ApiError(404, "Invalid refresh token")
-        }
-    
-        if(incomingRefreshToken !== user?.refreshToken){
-            throw new ApiError(401, "Refresh Token is expired or used")
-        }
-        
-        const options = {
-            httpOnly : true,
-            secure : true
-        }
-        const {accessToken, refreshToken: newRefreshToken} = await generateAccessAndRefreshTokens(user._id) as any;
-    
-        return res
-        .status(200)
-        .cookie("accessToken",accessToken , options)
-        .cookie("refreshToken", newRefreshToken, options)
-        .json(
-            new ApiResponse(200,{
-            accessToken, refreshToken :newRefreshToken
-        } as any,"Access Token refreshed successfully")
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, "Refresh Token is expired or used");
+    }
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+    const { accessToken, refreshToken: newRefreshToken } =
+      await generateAccessAndRefreshTokens(user.id);
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", newRefreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken, refreshToken: newRefreshToken } as any,
+          "Access Token refreshed successfully"
         )
-    } catch (error: any) {
-        throw new ApiError(401, error?.message || "Invalid refresh token")
-    }
-})
+      );
+  } catch (error: any) {
+    throw new ApiError(401, error?.message || "Invalid refresh token");
+  }
+});
 
 // User Login
 const loginUser = asyncHandler(async (req: any, res: any) => {
   const { emailOrUsername, password, pin } = req.body;
   console.log("Login Request:", req.body);
-  
+
   if (!emailOrUsername || !password || !pin) {
     throw new ApiError(400, "Email or Username, Password, and PIN are required");
   }
 
-
-  const user = await User.findOne({
-    $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [{ email: emailOrUsername }, { username: emailOrUsername }],
+    },
   });
-
 
   if (!user) {
     res.status(404).json({ message: "User not found" });
     throw new ApiError(404, "User not found");
   }
 
-  const isPasswordValid = await user.isPasswordCorrect(password);
+  const isPasswordValid = await verifyPassword(password, user.password);
 
   if (!isPasswordValid) {
     res.status(401).json({ message: "Invalid credentials" });
@@ -124,40 +148,38 @@ const loginUser = asyncHandler(async (req: any, res: any) => {
     throw new ApiError(403, "Invalid PIN");
   }
 
-  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user.id);
 
-  const loggedInUser = await User.findById(user._id).select("-password -refreshToken -pin");
+  const loggedInUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    omit: { password: true, refreshToken: true, pin: true },
+  });
 
   const options = {
     httpOnly: true,
-  secure: false,
-  sameSite: "none", // Cross-origin cookies
-  path: "/",
-  expires: new Date(Date.now() + 3600000),
+    secure: false,
+    sameSite: "none", // Cross-origin cookies
+    path: "/",
+    expires: new Date(Date.now() + 3600000),
   };
 
-  res.status(200)
+  res
+    .status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json({
       status: 200,
       data: { user: loggedInUser, accessToken, refreshToken },
-      message: "User logged in successfully"
+      message: "User logged in successfully",
     });
-
 });
 
 // User Logout
 const logoutUser = asyncHandler(async (req: any, res: any) => {
-  await User.findByIdAndUpdate(
-    req.user._id,
-    {
-      $unset: {
-        refreshToken: 1,
-      },
-    },
-    { new: true }
-  );
+  await prisma.user.update({
+    where: { id: req.user.id },
+    data: { refreshToken: null },
+  });
 
   const options = {
     httpOnly: true,
@@ -187,7 +209,7 @@ const generateOTP = async (contact: any, otpMethod: any, countryCode: any) => {
     throw new Error("Invalid OTP method");
   }
 
-  return { otp, otpExpiry };
+  return { otp: String(otp), otpExpiry };
 };
 
 // Utility function to send OTP via email or SMS
@@ -213,8 +235,8 @@ const sendOTP = async (email: any, phoneNumber: any, otpMethod: any, otp: any, c
       console.error("Error sending OTP via email:", error);
       throw new ApiError(500, "Error sending OTP via email");
     }
-  } 
-  
+  }
+
   else if (otpMethod === "phone") {
     // Ensure phone number and country code are provided for SMS-based OTP
     if (!phoneNumber || !countryCode) {
@@ -253,12 +275,14 @@ const registerUser = asyncHandler(async (req: any, res: any) => {
   }
 
   // Check if user already exists
-  const existingUser = await User.findOne({ 
-    $or: [
-      { email }, 
-      { phoneNumber, countryCode }, 
-      { username },
-    ] 
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email },
+        { username },
+        { AND: [{ phoneNumber }, { countryCode }] },
+      ],
+    },
   });
 
   if (existingUser) {
@@ -272,36 +296,34 @@ const registerUser = asyncHandler(async (req: any, res: any) => {
     countryCode
   );
 
-  // Assign a random avatar from Cloudinary if no avatar is provided
-  const randomAvatars = [
-    "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/rf2tm0acjgmcawzvardw.png",
-    "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/stel0tavrlhrxxvfq0mj.png",
-    "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/fh6ryx53hoc9ioxgzz6n.png",
-    "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/zbwoszxkryveenz5d2am.png",
-    "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/jrcjbhxn0njurj9u71vr.png"
-  ];
+  // Hash the password up front so plaintext is never stored, even temporarily.
+  const hashedPassword = await hashPassword(password);
 
-  // Select a random avatar from the list
-  const randomAvatar = randomAvatars[Math.floor(Math.random() * randomAvatars.length)];
+  // Assign a random avatar
+  const randomAvatar = pickRandomAvatar();
 
-  // Save PendingUser with the assigned random avatar
-  const pendingUser = new PendingUser({
-    name,
-    username,
-    email,
-    password,
-    dob,
-    phoneNumber,
-    countryCode,
-    otp,
-    otpExpiry,
-    otpMethod,
-    otpVerified: false,
-    pin,
-    avatar: randomAvatar,  // Assign random avatar here
+  // Replace any stale pending registration for this identity, then create fresh.
+  await prisma.pendingUser.deleteMany({
+    where: { OR: [{ email }, { username }, { phoneNumber }] },
   });
 
-  await pendingUser.save();
+  await prisma.pendingUser.create({
+    data: {
+      name,
+      username,
+      email,
+      password: hashedPassword,
+      dob: new Date(dob),
+      phoneNumber,
+      countryCode,
+      otp,
+      otpExpiry,
+      otpMethod,
+      otpVerified: false,
+      pin,
+      avatar: randomAvatar,
+    },
+  });
 
   res.status(200).json({
     message: "User registered successfully. Please verify the OTP.",
@@ -326,58 +348,55 @@ const verifyOTP = asyncHandler(async (req: any, res: any) => {
   // Look for the pending user based on contact method
   let pendingUser;
   if (otpMethod === "email") {
-    pendingUser = await PendingUser.findOne({ email });
+    pendingUser = await prisma.pendingUser.findUnique({ where: { email } });
   } else if (otpMethod === "phone") {
-    pendingUser = await PendingUser.findOne({ phoneNumber });
+    pendingUser = await prisma.pendingUser.findUnique({ where: { phoneNumber } });
   } else {
     throw new ApiError(400, "Invalid OTP method.");
   }
 
-  console.log("Pending User OTP (from DB):", pendingUser.otp);  // Log OTP from DB
-  console.log("Received OTP:", otp);  // Log OTP from request
-
-  console.log("Pending User:", pendingUser);
   if (!pendingUser) {
     throw new ApiError(404, "No pending user found.");
   }
 
   // Check if OTP matches
-  if (pendingUser.otp !== otp) {
+  if (pendingUser.otp !== String(otp)) {
     throw new ApiError(400, "Invalid OTP.");
   }
 
   // Check if OTP has expired
-  if (Date.now() > pendingUser.otpExpiry) {
+  if (Date.now() > pendingUser.otpExpiry.getTime()) {
     throw new ApiError(400, "OTP has expired.");
   }
 
-  // Mark OTP as verified
-  pendingUser.otpVerified = true;
-  await pendingUser.save();
-
-  // Move user to Users collection
-  const user = new User({
-    name: pendingUser.name,
-    username: pendingUser.username,
-    email: pendingUser.email,
-    password: pendingUser.password,
-    dob: pendingUser.dob,
-    phoneNumber: pendingUser.phoneNumber,
-    countryCode: pendingUser.countryCode,
-    otp: pendingUser.otp,
-    otpVerified: true,
-    pin: pendingUser.pin,
+  // Move user to the Users table (password is already hashed in PendingUser)
+  await prisma.user.create({
+    data: {
+      name: pendingUser.name,
+      username: pendingUser.username,
+      email: pendingUser.email,
+      password: pendingUser.password,
+      dob: pendingUser.dob,
+      phoneNumber: pendingUser.phoneNumber,
+      countryCode: pendingUser.countryCode,
+      otp: pendingUser.otp,
+      otpVerified: true,
+      pin: pendingUser.pin,
+      avatar: pendingUser.avatar ?? pickRandomAvatar(),
+    },
   });
 
-  await user.save();
-  await PendingUser.deleteOne({ _id: pendingUser._id });
+  await prisma.pendingUser.delete({ where: { id: pendingUser.id } });
 
   res.status(200).json({ message: "User verified and confirmed successfully. You can now log in." });
 });
 
 const getName = asyncHandler(async (req: any, res: any) => {
   // Fetching only the name field of the user by ID
-  const user = await User.findById(req.user._id).select("name");
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { name: true },
+  });
 
   if (!user) {
     return res.status(404).json({ message: "User not found" });
@@ -387,24 +406,46 @@ const getName = asyncHandler(async (req: any, res: any) => {
 });
 
 const getProfile = asyncHandler(async (req: any, res: any) => {
-  // Fetching the user by ID, excluding the password and refresh token
-  const user = await User.findById(req.user._id).select("-password -refreshToken -pin");
+  // Fetching the user by ID, returning only public profile fields
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: {
+      name: true,
+      email: true,
+      phoneNumber: true,
+      username: true,
+      avatar: true,
+      dob: true,
+    },
+  });
 
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
   // Return the user's profile in the response
-  res.status(200).json({ status: 200, data: {name: user.name, email: user.email, phoneNumber: user.phoneNumber, username: user.username, avatar: user.avatar, dob: user.dob} });
+  res.status(200).json({
+    status: 200,
+    data: {
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      username: user.username,
+      avatar: user.avatar,
+      dob: user.dob,
+    },
+  });
 });
 
-const changeCurrentPasswordAndPin = asyncHandler(async(req: any, res: any)=>{
+const changeCurrentPasswordAndPin = asyncHandler(async (req: any, res: any) => {
   const { oldPassword, newPassword, oldPin, newPin } = req.body;
 
   // Fetch user from the database
-  const user = await User.findById(req.user?._id);
+  const user = await prisma.user.findUnique({ where: { id: req.user?.id } });
   if (!user) {
     throw new ApiError(404, "User not found");
   }
+
+  const updateData: { password?: string; pin?: string } = {};
 
   // Update password if provided
   if (oldPassword || newPassword) {
@@ -412,12 +453,12 @@ const changeCurrentPasswordAndPin = asyncHandler(async(req: any, res: any)=>{
       throw new ApiError(400, "Both oldPassword and newPassword are required to update the password");
     }
 
-    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+    const isPasswordCorrect = await verifyPassword(oldPassword, user.password);
     if (!isPasswordCorrect) {
       throw new ApiError(401, "Invalid old password");
     }
 
-    user.password = newPassword;
+    updateData.password = await hashPassword(newPassword);
   }
 
   // Update PIN if provided
@@ -426,22 +467,20 @@ const changeCurrentPasswordAndPin = asyncHandler(async(req: any, res: any)=>{
       throw new ApiError(400, "Both oldPin and newPin are required to update the PIN");
     }
 
-    const isPinCorrect = await user.isPinCorrect(oldPin); // Ensure you have a method like this in your model
-    if (!isPinCorrect) {
+    if (user.pin !== oldPin) {
       throw new ApiError(401, "Invalid old PIN");
     }
 
-    user.pin = newPin;
+    updateData.pin = newPin;
   }
 
   // Save user with updated fields
-  await user.save({ validateBeforeSave: true });
+  await prisma.user.update({ where: { id: user.id }, data: updateData });
 
   return res.status(200).json(
     new ApiResponse(200, "Password and/or PIN changed successfully", null)
   );
-
-})
+});
 
 const updateUser = asyncHandler(async (req: any, res: any) => {
   const { name, username, email, phoneNumber, dob } = req.body;
@@ -452,7 +491,7 @@ const updateUser = asyncHandler(async (req: any, res: any) => {
   if (username) updateFields.username = username;
   if (email) updateFields.email = email;
   if (phoneNumber) updateFields.phoneNumber = phoneNumber;
-  if (dob) updateFields.dob = dob;
+  if (dob) updateFields.dob = new Date(dob);
 
   try {
     // Check if any fields are provided for update
@@ -461,34 +500,28 @@ const updateUser = asyncHandler(async (req: any, res: any) => {
     }
 
     // Update user
-    const user = await User.findByIdAndUpdate(
-      req.user?._id,
-      {
-        $set: updateFields,
-      },
-      {
-        new: true, // Return the updated document
-        runValidators: true, // Ensure validators are run
-      }
-    ).select("-password");
-
-    // Handle case when user is not found
-    if (!user) {
-      throw new ApiError(404, "User not found");
-    }
+    const user = await prisma.user.update({
+      where: { id: req.user?.id },
+      data: updateFields,
+      omit: { password: true },
+    });
 
     // Respond with success
     return res.status(200).json(
-      new ApiResponse(200, user, "User details updated successfully")
+      new ApiResponse(200, "User details updated successfully", user)
     );
   } catch (error: any) {
+    if (error instanceof ApiError) throw error;
     // Handle unexpected errors
     throw new ApiError(500, error.message || "Internal Server Error");
   }
 });
 
 const getAvatar = asyncHandler(async (req: any, res: any) => {
-  const user = await User.findById(req.user._id); // Assuming you're using authentication middleware to populate req.user
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { avatar: true },
+  });
 
   if (!user) {
     throw new ApiError(404, "User not found");
@@ -521,33 +554,29 @@ const updateAvatar = asyncHandler(async (req: any, res: any) => {
   }
 
   // Find user and update avatar URL
-  const user = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      $set: { avatar: avatar.url },
-    },
-    {
-      new: true, // Return the updated user
-    }
-  ).select("-password"); // Exclude password from the response
+  const user = await prisma.user.update({
+    where: { id: req.user?.id },
+    data: { avatar: avatar.url },
+    omit: { password: true },
+  });
 
   // Return successful response
   return res.status(200).json(
-    new ApiResponse(200, user, "Avatar updated successfully")
+    new ApiResponse(200, "Avatar updated successfully", user)
   );
 });
 
 
-export { 
-  registerUser, 
-  loginUser, 
-  logoutUser, 
-  verifyOTP, 
-  sendOTP, 
-  getName, 
-  updateUser, 
-  getProfile, 
-  changeCurrentPasswordAndPin, 
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  verifyOTP,
+  sendOTP,
+  getName,
+  updateUser,
+  getProfile,
+  changeCurrentPasswordAndPin,
   getAvatar,
   updateAvatar,
   refreshAccessToken };

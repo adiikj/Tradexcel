@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  username     String    @unique
+  avatar       String
+  email        String    @unique
+  password     String
+  phoneNumber  String    @unique
+  countryCode  String
+  otp          String?
+  otpExpiry    DateTime?
+  otpVerified  Boolean   @default(false)
+  dob          DateTime
+  pin          String
+  refreshToken String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model PendingUser {
+  id          String   @id @default(cuid())
+  name        String
+  username    String   @unique
+  email       String   @unique
+  password    String
+  dob         DateTime
+  phoneNumber String   @unique
+  countryCode String
+  otp         String
+  otpExpiry   DateTime
+  otpVerified Boolean  @default(false)
+  pin         String
+  otpMethod   String
+  avatar      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
