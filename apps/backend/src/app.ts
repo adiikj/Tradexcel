@@ -34,6 +34,10 @@ import tradeRouter from './routes/trade.routes.js';
 
 app.use('/api/v1/trade', tradeRouter);
 
+import portfolioRouter from './routes/portfolio.routes.js';
+
+app.use('/api/v1', portfolioRouter);
+
 import { errorHandler } from './middlewares/error.middleware.js';
 
 app.use(errorHandler);
