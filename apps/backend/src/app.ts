@@ -30,6 +30,12 @@ import financeRouter from './routes/finance.routes.js';
 
 app.use('/api/v1/finance', financeRouter);
 
+import tradeRouter from './routes/trade.routes.js';
 
+app.use('/api/v1/trade', tradeRouter);
+
+import { errorHandler } from './middlewares/error.middleware.js';
+
+app.use(errorHandler);
 
 export { app }
