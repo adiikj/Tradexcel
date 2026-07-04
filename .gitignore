@@ -36,3 +36,7 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+#docs
+*.md
+!README.md
