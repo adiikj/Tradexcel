@@ -38,31 +38,37 @@ function Home() {
     <>
       {/* Hero Section */}
       <motion.div
-        className="motion-container w-full pb-12 flex flex-col md:flex-row md:items-center bg-grey relative md:min-h-[calc(100vh-5rem)]"
+        className="motion-container w-full pt-20 pb-16 md:py-12 flex flex-col md:flex-row md:items-center bg-grey relative md:min-h-[calc(100vh-5rem)]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
+        {/* decorative background accents */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 -right-16 w-96 h-96 rounded-full bg-blue-200/40 blur-3xl" />
+          <div className="absolute -bottom-32 -left-20 w-[28rem] h-[28rem] rounded-full bg-blue-100/60 blur-3xl" />
+        </div>
+
         {/* Left Side (Text) */}
         <motion.div
-          className="h-auto w-full md:w-1/2 pl-6 md:pl-12 lg:pl-20 p-6 pt-12 pb-0"
+          className="relative z-10 h-auto w-full md:w-1/2 pl-6 md:pl-12 lg:pl-20 p-6 pt-12 pb-0"
           initial={{ opacity: 0, x: -100 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <div className="text-blue-500 font-pop text-lg">Master Virtual Trading</div>
-          <div className="py-3 font-pop font-semibold text-4xl md:text-5xl lg:text-6xl lg:leading-tight">
+          <div className="text-blue-500 font-pop text-xl">Master Virtual Trading</div>
+          <div className="py-4 font-pop font-semibold text-4xl md:text-4xl lg:text-5xl !leading-[1.3] text-balance">
             Learn, Trade, and Compete in a <span className="text-blue-500">Realistic Stock Market Simulation</span>
           </div>
-          <div className="text-gray-600 text-lg">Experience the thrill of trading without the risk. Build your portfolio, track performance, and rise to the top of the leaderboard!</div>
-          <div className="pt-8 flex flex-col sm:flex-row gap-4 sm:gap-8">
+          <div className="text-gray-600 text-xl">Experience the thrill of trading without the risk. Build your portfolio, track performance, and rise to the top of the leaderboard!</div>
+          <div className="pt-10 flex flex-col sm:flex-row gap-4 sm:gap-8">
             <Link href="/signup">
-              <button className="w-full sm:w-auto border-2 px-10 font-medium py-4 rounded-lg bg-btn-blue border-transparent text-white text-sm">
+              <button className="w-full sm:w-auto border-2 px-12 font-medium py-5 rounded-lg bg-btn-blue border-transparent text-white text-base">
                 Get Started
               </button>
             </Link>
             <Link href="/how-it-works">
-              <button className="w-full sm:w-auto border-2 px-10 py-4 rounded-lg text-btn-blue border-transparent text-sm">
+              <button className="w-full sm:w-auto border-2 px-12 py-5 rounded-lg text-btn-blue border-transparent text-base">
                 How it Works?
               </button>
             </Link>
@@ -71,30 +77,32 @@ function Home() {
 
         {/* Right Side (Dashboard Image) */}
         <motion.div
-          className="h-full w-full md:w-1/2 flex justify-center items-center relative"
+          className="relative z-10 w-full md:w-1/2 flex justify-center items-center py-12 md:py-0 px-4 md:pr-10 lg:pr-16"
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <img
-            src={((dashboard)?.src || (dashboard)) as string}
-            alt="Dashboard"
-            className="hidden sm:block w-full h-auto object-cover md:w-2/3 lg:w-full mt-6 border-2 rounded-2xl mr-48 border-btn-blue transform scale-100"
-          />
-          <img
-            src={((dashboard2)?.src || (dashboard2)) as string}
-            alt="Dashboard Overlay"
-            className="hidden sm:block absolute bottom-[-47%] left-[1%] w-[80%] md:w-[70%] lg:w-full border-2 rounded-2xl border-btn-blue transform scale-95"
-          />
+          <div className="hidden sm:block relative w-full aspect-[1895/905]">
+            <img
+              src={((dashboard)?.src || (dashboard)) as string}
+              alt="Dashboard dark mode"
+              className="absolute top-0 left-0 z-0 hover:z-20 w-[85%] h-auto object-cover border-2 rounded-2xl border-btn-blue shadow-xl transition-transform duration-300 hover:scale-[1.02]"
+            />
+            <img
+              src={((dashboard2)?.src || (dashboard2)) as string}
+              alt="Dashboard light mode"
+              className="absolute bottom-0 right-0 z-10 hover:z-20 w-[85%] h-auto object-cover border-2 rounded-2xl border-btn-blue shadow-xl transition-transform duration-300 hover:scale-[1.02]"
+            />
+          </div>
         </motion.div>
       </motion.div>
 
       {/* Stats Strip */}
       <motion.div
-        className="w-full bg-btn-blue text-white px-6 md:px-16 lg:px-24 py-12"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.3 }}
+        className="w-full bg-btn-blue text-white px-6 md:px-16 lg:px-24 py-12 rounded-t-[2.5rem] relative z-10 shadow-[0_-12px_24px_-12px_rgba(0,0,0,0.15)]"
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0 }}
         transition={{ duration: 0.6 }}
       >
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
@@ -110,9 +118,9 @@ function Home() {
       {/* Why Choose Mocket Section */}
       <motion.div
         className="bg-white w-full h-auto p-6 sm:p-10 md:p-12 lg:p-20 lg:pb-10 text-center"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       >
         <h6 className="text-blue-500 font-pop text-2xl font-semibold">Why You Should Choose Mocket?</h6>
@@ -127,9 +135,9 @@ function Home() {
       {/* How It Works Section */}
       <motion.div
         className="bg-grey w-full px-6 md:px-16 lg:px-24 py-16 md:py-20 text-center"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.15 }}
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0 }}
         transition={{ duration: 0.7 }}
       >
         <h6 className="text-blue-500 font-pop text-lg font-semibold">Getting started</h6>
@@ -144,7 +152,7 @@ function Home() {
                 key={s.title}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
+                viewport={{ once: true, amount: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="bg-white rounded-2xl p-6 text-left relative"
               >
@@ -170,9 +178,9 @@ function Home() {
       {/* Banner Section */}
       <motion.div
         className="w-full bg-white py-0 md:pb-24 px-6 sm:px-12 md:p-0 lg:px-20"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       >
         <Banner
@@ -193,7 +201,7 @@ function Home() {
         className="bg-grey w-full px-6 md:px-16 lg:px-24 py-16 md:py-20 text-center"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.15 }}
+        viewport={{ once: true, amount: 0 }}
         transition={{ duration: 0.7 }}
       >
         <h6 className="text-blue-500 font-pop text-lg font-semibold">Loved by new traders</h6>
@@ -206,7 +214,7 @@ function Home() {
               key={t.name}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
+              viewport={{ once: true, amount: 0 }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               className="bg-white rounded-2xl p-8 text-left flex flex-col"
             >
@@ -232,43 +240,31 @@ function Home() {
 
       {/* Final CTA Section */}
       <motion.div
-        className="relative w-full overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 text-white text-center px-6 md:px-16 lg:px-24 py-20 md:py-28"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
+        className="w-full bg-btn-blue text-white text-center px-6 md:px-16 lg:px-24 py-16 md:py-20"
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0 }}
         transition={{ duration: 0.7 }}
       >
-        {/* decorative dot grid */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.12]"
-          style={{
-            backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)",
-            backgroundSize: "22px 22px",
-          }}
-        />
-        {/* soft glow accents */}
-        <div className="pointer-events-none absolute -top-24 -left-20 w-80 h-80 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-28 -right-10 w-96 h-96 rounded-full bg-cyan-300/20 blur-3xl" />
-
-        <div className="relative z-10 max-w-3xl mx-auto">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/20 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
+        <div className="max-w-3xl mx-auto">
+          <h6 className="text-blue-100 font-pop text-lg font-semibold flex items-center justify-center gap-2">
             <FiTrendingUp /> Start trading in minutes
-          </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold font-pop mt-6 leading-tight">
+          </h6>
+          <p className="text-3xl md:text-4xl pt-2 font-semibold font-pop">
             Ready to build your portfolio?
-          </h2>
+          </p>
           <p className="text-blue-100 text-lg mt-4 max-w-2xl mx-auto">
             Join Mocket today and start trading real stocks with virtual money. No risk, all
             the reward of learning.
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center">
             <Link href="/signup">
-              <button className="w-full sm:w-auto px-10 py-4 rounded-lg bg-white text-btn-blue text-sm font-semibold shadow-lg hover:bg-blue-50 transition-colors">
+              <button className="w-full sm:w-auto border-2 px-10 font-medium py-4 rounded-lg bg-white border-transparent text-btn-blue text-sm">
                 Get Started Free
               </button>
             </Link>
             <Link href="/why-us">
-              <button className="w-full sm:w-auto px-10 py-4 rounded-lg border border-white/50 text-white text-sm font-medium hover:bg-white/10 transition-colors">
+              <button className="w-full sm:w-auto border-2 px-10 py-4 rounded-lg text-white border-white text-sm">
                 Why Mocket?
               </button>
             </Link>
@@ -285,7 +281,7 @@ function Home() {
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0 }}
         transition={{ duration: 0.8, delay: 0.3 }}
       >
         <Newsletter />
