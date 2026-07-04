@@ -11,13 +11,15 @@
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "backfill:wallets": "tsx src/scripts/backfillWallets.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@mocket/shared": "workspace:*",
     "@prisma/client": "^6.0.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",

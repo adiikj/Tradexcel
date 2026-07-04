@@ -48,6 +48,9 @@ const randomAvatars = [
 const pickRandomAvatar = () =>
   randomAvatars[Math.floor(Math.random() * randomAvatars.length)];
 
+// Starting virtual cash every new wallet is seeded with.
+const STARTING_BALANCE = "100000";
+
 // Utility function to generate tokens
 const generateAccessAndRefreshTokens = async (userId: string) => {
   try {
@@ -369,24 +372,31 @@ const verifyOTP = asyncHandler(async (req: any, res: any) => {
     throw new ApiError(400, "OTP has expired.");
   }
 
-  // Move user to the Users table (password is already hashed in PendingUser)
-  await prisma.user.create({
-    data: {
-      name: pendingUser.name,
-      username: pendingUser.username,
-      email: pendingUser.email,
-      password: pendingUser.password,
-      dob: pendingUser.dob,
-      phoneNumber: pendingUser.phoneNumber,
-      countryCode: pendingUser.countryCode,
-      otp: pendingUser.otp,
-      otpVerified: true,
-      pin: pendingUser.pin,
-      avatar: pendingUser.avatar ?? pickRandomAvatar(),
-    },
-  });
+  // Move user to the Users table (password is already hashed in PendingUser),
+  // seeding their wallet with starting virtual cash in the same transaction.
+  await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        name: pendingUser.name,
+        username: pendingUser.username,
+        email: pendingUser.email,
+        password: pendingUser.password,
+        dob: pendingUser.dob,
+        phoneNumber: pendingUser.phoneNumber,
+        countryCode: pendingUser.countryCode,
+        otp: pendingUser.otp,
+        otpVerified: true,
+        pin: pendingUser.pin,
+        avatar: pendingUser.avatar ?? pickRandomAvatar(),
+      },
+    });
 
-  await prisma.pendingUser.delete({ where: { id: pendingUser.id } });
+    await tx.wallet.create({
+      data: { userId: user.id, balance: STARTING_BALANCE },
+    });
+
+    await tx.pendingUser.delete({ where: { id: pendingUser.id } });
+  });
 
   res.status(200).json({ message: "User verified and confirmed successfully. You can now log in." });
 });

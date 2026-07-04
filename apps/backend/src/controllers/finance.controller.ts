@@ -2,6 +2,7 @@ import fetch from 'node-fetch';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { getQuote } from '../services/pricing.js';
 
 import { Request, Response, NextFunction } from 'express';
 
@@ -42,16 +43,19 @@ const getStockData = asyncHandler(async (req: Request, res: Response, next: Next
         const dataLimit = Math.min(timestamps.length, 30);
         const slicedAdjClosePrices = adjClosePrices.slice(-dataLimit);
 
-        // Calculate todayChange and percentageChange
+        // Live price + change come from the shared pricing service (cached),
+        // rather than re-deriving them from this 30-day chart payload.
         let todayChange: number | null = null;
         let percentageChange: number | null = null;
+        let currentPrice: number | null = stockData.meta?.regularMarketPrice ?? null;
 
-        if (slicedAdjClosePrices.length >= 2) {
-            const latestPrice = slicedAdjClosePrices[slicedAdjClosePrices.length - 1];
-            const previousPrice = slicedAdjClosePrices[slicedAdjClosePrices.length - 2];
-
-            todayChange = latestPrice - previousPrice;
-            percentageChange = Number(((todayChange / previousPrice) * 100).toFixed(2)); // Percentage change as a number with 2 decimal places
+        try {
+            const quote = await getQuote(String(symbol));
+            currentPrice = quote.price;
+            todayChange = quote.change;
+            percentageChange = quote.changePercent !== null ? Number(quote.changePercent.toFixed(2)) : null;
+        } catch (quoteError: any) {
+            console.error(`Falling back to chart meta for ${symbol}:`, quoteError.message);
         }
 
        // Format todayChange and percentageChange
@@ -61,7 +65,7 @@ const getStockData = asyncHandler(async (req: Request, res: Response, next: Next
 
         // Prepare the result with the required fields
         const result = {
-            currentPrice: stockData.meta?.regularMarketPrice || null,
+            currentPrice,
             percentageChange: formattedPercentageChange,
             todayChange: formattedTodayChange,
             stockPrices: slicedAdjClosePrices, // Historical adjusted close prices for the last 30 days
