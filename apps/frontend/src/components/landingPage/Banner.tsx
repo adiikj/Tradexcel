@@ -10,7 +10,7 @@ function Banner({ heading, description, img, reverse }: any) {
       } justify-between gap-6`}
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
-      viewport={{ once: false, amount: 0.2 }} // Triggers animation when 20% of the element is in view
+      viewport={{ once: true, amount: 0.2 }} // Triggers animation when 20% of the element is in view
       transition={{ duration: 0.8 }}
     >
       {/* Image Section */}
@@ -18,7 +18,7 @@ function Banner({ heading, description, img, reverse }: any) {
         className="w-full md:w-1/2 flex justify-center"
         initial={{ x: reverse ? 100 : -100 }}
         whileInView={{ x: 0 }}
-        viewport={{ once: false, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8 }}
       >
         <img
@@ -33,7 +33,7 @@ function Banner({ heading, description, img, reverse }: any) {
         className="w-full md:w-1/2 flex flex-col gap-4 justify-center"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       >
         <h6 className="text-blue-500 font-pop text-xl text-left font-semibold">

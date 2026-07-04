@@ -21,9 +21,9 @@ function Header() {
       {/* Left Section: Logo and Navigation Links */}
       <div className="flex items-center gap-12">
         <Link href="/">
-          <div className="flex flex-row gap-3 py-2 text-xl md:text-3xl font-bold text-blue-900">
-            <img className="h-7 w-7 md:w-10 md:h-10" src={((logo)?.src || (logo)) as string} alt="Logo" />
-            <div className="hidden md:flex mt-1">TradeXcel</div>
+          <div className="flex flex-row items-center gap-2.5 py-2 text-lg md:text-2xl font-bold font-pop text-blue-900">
+            <img className="h-8 w-8 md:w-9 md:h-9" src={((logo)?.src || (logo)) as string} alt="Logo" />
+            <div className="hidden md:flex">Mocket</div>
           </div>
         </Link>
 

@@ -175,7 +175,7 @@ This is the heart of the product and currently doesn't exist.
 **Learning / content (strong fit for a sim)**
 - Guided lessons + quizzes ("learn investing"), with a sandbox tied to each lesson.
 - AI assistant: explain a stock, summarize news, critique a portfolio's risk (Claude API).
-- News feed per holding (sentiment-tagged).
+- News feed per holdding (sentiment-tagged).
 
 **Social**
 - Public profiles showing (opt-in) returns, follow top traders, copy-trade their moves in your sim.

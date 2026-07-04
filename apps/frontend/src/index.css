@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* TEMP-CAPTURE-OVERRIDE */
+[style*="opacity"] { opacity: 1 !important; }
+.motion-container { min-height: 0 !important; }
+/* END TEMP-CAPTURE-OVERRIDE */
+
 
 
 @layer base {

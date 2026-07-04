@@ -87,7 +87,7 @@ function EnterOTP() {
         transition={{ duration: 0.6 }}
       >
         <img className="w-8 sm:w-10 h-8 sm:h-10" src={((logo)?.src || (logo)) as string} alt="Logo" />
-        <span>TradeXcel</span>
+        <span>Mocket</span>
       </motion.div>
 
       <motion.div
