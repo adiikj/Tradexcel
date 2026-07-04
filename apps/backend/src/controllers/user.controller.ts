@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -8,34 +9,10 @@ import {
   signAccessToken,
   signRefreshToken,
 } from "../utils/auth.js";
-import twilio from "twilio";
-import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import { google } from "googleapis";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
-
-dotenv.config();
-
-//Email Configuration
-const oAuth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI
-);
-oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
-const { token } = await oAuth2Client.getAccessToken();
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    type: 'OAuth2',
-        user: process.env.GOOGLE_GMAIL_ID,
-        clientId: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-        accessToken: token,
-  }
-} as any);
 
 const randomAvatars = [
   "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/rf2tm0acjgmcawzvardw.png",
@@ -51,7 +28,72 @@ const pickRandomAvatar = () =>
 // Starting virtual cash every new wallet is seeded with.
 const STARTING_BALANCE = "100000";
 
-// Utility function to generate tokens
+const PUBLIC_USER_FIELDS = {
+  id: true,
+  name: true,
+  username: true,
+  email: true,
+  avatar: true,
+  dob: true,
+  otpVerified: true,
+  createdAt: true,
+} as const;
+
+// The Gmail OAuth2 access token is fetched lazily, per send, instead of once
+// at module load — a stale/expired refresh token must not crash the whole
+// server at startup (it used to, since the old code awaited this at import time).
+async function sendOtpEmail(email: string, otp: string) {
+  try {
+    const oAuth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+    oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
+    const { token } = await oAuth2Client.getAccessToken();
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        type: "OAuth2",
+        user: process.env.GOOGLE_GMAIL_ID,
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+        accessToken: token as string,
+      },
+    } as any);
+
+    await transporter.sendMail({
+      from: process.env.GOOGLE_GMAIL_ID,
+      to: email,
+      subject: "Your Mocket verification code",
+      html: `<h3>Your Mocket verification code is <b>${otp}</b>. It is valid for 10 minutes.</h3>`,
+      text: `Your Mocket verification code is ${otp}. It is valid for 10 minutes.`,
+    });
+  } catch (error: any) {
+    console.error("Error sending OTP email:", error.message);
+    throw new ApiError(500, "Error sending verification email");
+  }
+}
+
+function generateOtp() {
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+  return { otp, otpExpiry };
+}
+
+async function generateUniqueUsername(seed: string) {
+  const base = seed.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 15) || "user";
+  let candidate = base;
+  let suffix = 0;
+  while (await prisma.user.findUnique({ where: { username: candidate } })) {
+    suffix += 1;
+    candidate = `${base}${suffix}`;
+  }
+  return candidate;
+}
+
 const generateAccessAndRefreshTokens = async (userId: string) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -69,10 +111,33 @@ const generateAccessAndRefreshTokens = async (userId: string) => {
 
     return { accessToken, refreshToken };
   } catch (error: any) {
+    if (error instanceof ApiError) throw error;
     console.error("Error generating tokens:", error);
     throw new ApiError(500, "Error generating tokens");
   }
 };
+
+const AUTH_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: false,
+  sameSite: "none" as const,
+  path: "/",
+  expires: new Date(Date.now() + 3600000),
+};
+
+async function issueSession(userId: string, res: any, message: string) {
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(userId);
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: PUBLIC_USER_FIELDS,
+  });
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, AUTH_COOKIE_OPTIONS)
+    .cookie("refreshToken", refreshToken, AUTH_COOKIE_OPTIONS)
+    .json(new ApiResponse(200, message, { user, accessToken, refreshToken }));
+}
 
 const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
   const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
@@ -81,100 +146,253 @@ const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
     throw new ApiError(401, "Unauthorized Request");
   }
 
+  let decodedToken: any;
   try {
-    const decodedToken: any = jwt.verify(
-      incomingRefreshToken,
-      process.env.REFRESH_TOKEN_SECRET as string
-    );
-
-    const user = await prisma.user.findUnique({ where: { id: decodedToken?.id } });
-    if (!user) {
-      throw new ApiError(404, "Invalid refresh token");
-    }
-
-    if (incomingRefreshToken !== user?.refreshToken) {
-      throw new ApiError(401, "Refresh Token is expired or used");
-    }
-
-    const options = {
-      httpOnly: true,
-      secure: true,
-    };
-    const { accessToken, refreshToken: newRefreshToken } =
-      await generateAccessAndRefreshTokens(user.id);
-
-    return res
-      .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", newRefreshToken, options)
-      .json(
-        new ApiResponse(
-          200,
-          { accessToken, refreshToken: newRefreshToken } as any,
-          "Access Token refreshed successfully"
-        )
-      );
+    decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET as string);
   } catch (error: any) {
     throw new ApiError(401, error?.message || "Invalid refresh token");
   }
-});
 
-// User Login
-const loginUser = asyncHandler(async (req: any, res: any) => {
-  const { emailOrUsername, password, pin } = req.body;
-  console.log("Login Request:", req.body);
-
-  if (!emailOrUsername || !password || !pin) {
-    throw new ApiError(400, "Email or Username, Password, and PIN are required");
+  const user = await prisma.user.findUnique({ where: { id: decodedToken?.id } });
+  if (!user) {
+    throw new ApiError(404, "Invalid refresh token");
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [{ email: emailOrUsername }, { username: emailOrUsername }],
+  if (incomingRefreshToken !== user?.refreshToken) {
+    throw new ApiError(401, "Refresh Token is expired or used");
+  }
+
+  return issueSession(user.id, res, "Access token refreshed successfully");
+});
+
+// User Registration
+const registerSchema = z.object({
+  name: z.string().trim().min(2, "name is required"),
+  username: z
+    .string()
+    .trim()
+    .min(3, "username must be at least 3 characters")
+    .max(20, "username must be at most 20 characters")
+    .regex(/^[a-zA-Z0-9_]+$/, "username can only contain letters, numbers, and underscores"),
+  email: z.string().trim().toLowerCase().email("invalid email address"),
+  password: z.string().min(8, "password must be at least 8 characters"),
+  pin: z.string().regex(/^\d{4}$/, "pin must be exactly 4 digits"),
+  dob: z.coerce.date().optional(),
+});
+
+const registerUser = asyncHandler(async (req: any, res: any) => {
+  const parsed = registerSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ApiError(400, "Invalid input", parsed.error.issues);
+  }
+  const { name, username, email, password, pin, dob } = parsed.data;
+
+  const existingUser = await prisma.user.findFirst({
+    where: { OR: [{ email }, { username }] },
+  });
+
+  if (existingUser) {
+    if (existingUser.otpVerified) {
+      throw new ApiError(400, "Email or username is already registered.");
+    }
+    // Abandoned/unverified signup with the same identity — clear it and retry fresh.
+    await prisma.user.delete({ where: { id: existingUser.id } });
+  }
+
+  const [hashedPassword, hashedPin] = await Promise.all([
+    hashPassword(password),
+    hashPassword(pin),
+  ]);
+  const { otp, otpExpiry } = generateOtp();
+
+  await prisma.user.create({
+    data: {
+      name,
+      username,
+      email,
+      password: hashedPassword,
+      pin: hashedPin,
+      dob,
+      avatar: pickRandomAvatar(),
+      otp,
+      otpExpiry,
+      otpVerified: false,
     },
   });
 
+  await sendOtpEmail(email, otp);
+
+  res.status(200).json(
+    new ApiResponse(200, "Registered. Check your email for the verification code.", null)
+  );
+});
+
+// One-time email verification — runs once at signup (password or Google),
+// then creates the wallet and logs the user straight in.
+const verifyOtpSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  otp: z.string().trim().length(6, "otp must be 6 digits"),
+});
+
+const verifyOTP = asyncHandler(async (req: any, res: any) => {
+  const parsed = verifyOtpSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ApiError(400, "Invalid input", parsed.error.issues);
+  }
+  const { email, otp } = parsed.data;
+
+  const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    res.status(404).json({ message: "User not found" });
-    throw new ApiError(404, "User not found");
+    throw new ApiError(404, "No pending signup found for this email.");
+  }
+  if (user.otpVerified) {
+    throw new ApiError(400, "This account is already verified.");
+  }
+  if (user.otp !== otp) {
+    throw new ApiError(400, "Invalid verification code.");
+  }
+  if (!user.otpExpiry || Date.now() > user.otpExpiry.getTime()) {
+    throw new ApiError(400, "Verification code has expired.");
   }
 
-  const isPasswordValid = await verifyPassword(password, user.password);
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: user.id },
+      data: { otpVerified: true, otp: null, otpExpiry: null },
+    });
+    await tx.wallet.create({
+      data: { userId: user.id, balance: STARTING_BALANCE },
+    });
+  });
 
-  if (!isPasswordValid) {
-    res.status(401).json({ message: "Invalid credentials" });
+  return issueSession(user.id, res, "Email verified. You're logged in.");
+});
+
+// User Login — emailOrUsername plus either the full password or the 4-digit
+// quick-login PIN set up at registration.
+const loginSchema = z
+  .object({
+    emailOrUsername: z.string().trim().min(1, "email or username is required"),
+    password: z.string().optional(),
+    pin: z.string().optional(),
+  })
+  .refine((data) => Boolean(data.password) !== Boolean(data.pin), {
+    message: "Provide either password or pin, not both",
+    path: ["password"],
+  });
+
+const loginUser = asyncHandler(async (req: any, res: any) => {
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ApiError(400, "Invalid input", parsed.error.issues);
+  }
+  const { emailOrUsername, password, pin } = parsed.data;
+
+  const user = await prisma.user.findFirst({
+    where: { OR: [{ email: emailOrUsername }, { username: emailOrUsername }] },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  if (!user.otpVerified) {
+    throw new ApiError(403, "Please verify your email before logging in.");
+  }
+
+  const credential = password ?? pin!;
+  const storedHash = password ? user.password : user.pin;
+
+  if (!storedHash) {
+    throw new ApiError(
+      400,
+      password ? "This account has no password set — try logging in with your PIN." : "This account has no PIN set."
+    );
+  }
+
+  const isValid = await verifyPassword(credential, storedHash);
+  if (!isValid) {
     throw new ApiError(401, "Invalid credentials");
   }
 
-  if (user.pin !== pin) {
-    res.status(403).json({ message: "Invalid PIN" });
-    throw new ApiError(403, "Invalid PIN");
+  return issueSession(user.id, res, "User logged in successfully");
+});
+
+// Google Sign-In — verifies the ID token server-side, links to an existing
+// account by email if there is one, otherwise creates a new user. New
+// accounts still go through the same one-time OTP-email step as password
+// signups; returning Google users log straight in.
+const googleLoginSchema = z.object({
+  idToken: z.string().min(1, "idToken is required"),
+});
+
+const googleLogin = asyncHandler(async (req: any, res: any) => {
+  const parsed = googleLoginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ApiError(400, "Invalid input", parsed.error.issues);
   }
 
-  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user.id);
+  const client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID);
+  let payload;
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: parsed.data.idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    payload = ticket.getPayload();
+  } catch (error: any) {
+    throw new ApiError(401, "Invalid Google ID token");
+  }
 
-  const loggedInUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    omit: { password: true, refreshToken: true, pin: true },
+  if (!payload?.email || !payload.email_verified) {
+    throw new ApiError(401, "Google account email is not verified");
+  }
+
+  const existingByGoogleId = await prisma.user.findUnique({
+    where: { googleId: payload.sub },
+  });
+  if (existingByGoogleId) {
+    return issueSession(existingByGoogleId.id, res, "User logged in successfully");
+  }
+
+  const existingByEmail = await prisma.user.findUnique({ where: { email: payload.email } });
+  if (existingByEmail) {
+    const linked = await prisma.user.update({
+      where: { id: existingByEmail.id },
+      data: { googleId: payload.sub },
+    });
+    if (linked.otpVerified) {
+      return issueSession(linked.id, res, "User logged in successfully");
+    }
+    // Had signed up before but never finished verifying — re-send the code.
+    const { otp, otpExpiry } = generateOtp();
+    await prisma.user.update({ where: { id: linked.id }, data: { otp, otpExpiry } });
+    await sendOtpEmail(linked.email, otp);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Verify the code we emailed you to finish signing in.", null));
+  }
+
+  const username = await generateUniqueUsername(payload.email.split("@")[0]);
+  const { otp, otpExpiry } = generateOtp();
+
+  await prisma.user.create({
+    data: {
+      name: payload.name ?? username,
+      username,
+      email: payload.email,
+      googleId: payload.sub,
+      avatar: payload.picture ?? pickRandomAvatar(),
+      otp,
+      otpExpiry,
+      otpVerified: false,
+    },
   });
 
-  const options = {
-    httpOnly: true,
-    secure: false,
-    sameSite: "none", // Cross-origin cookies
-    path: "/",
-    expires: new Date(Date.now() + 3600000),
-  };
+  await sendOtpEmail(payload.email, otp);
 
   res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json({
-      status: 200,
-      data: { user: loggedInUser, accessToken, refreshToken },
-      message: "User logged in successfully",
-    });
+    .json(new ApiResponse(200, "Almost there — verify the code we emailed you.", null));
 });
 
 // User Logout
@@ -186,8 +404,8 @@ const logoutUser = asyncHandler(async (req: any, res: any) => {
 
   const options = {
     httpOnly: true,
-    secure: true, // Set to true in production
-    sameSite: "strict",
+    secure: true,
+    sameSite: "strict" as const,
   };
 
   return res
@@ -197,259 +415,51 @@ const logoutUser = asyncHandler(async (req: any, res: any) => {
     .json(new ApiResponse(200, "User logged out successfully", null));
 });
 
-// Generate OTP and expiry
-const generateOTP = async (contact: any, otpMethod: any, countryCode: any) => {
-  const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
-  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // OTP expiry: 10 minutes
-
-  if (otpMethod === "email") {
-    // Send OTP via email
-    await sendOTP(contact, null, otpMethod, otp, null); // Pass email as the first parameter
-  } else if (otpMethod === "phone") {
-    // Send OTP via phone
-    await sendOTP(null, contact, otpMethod, otp, countryCode); // Pass phoneNumber and countryCode
-  } else {
-    throw new Error("Invalid OTP method");
-  }
-
-  return { otp: String(otp), otpExpiry };
-};
-
-// Utility function to send OTP via email or SMS
-const sendOTP = async (email: any, phoneNumber: any, otpMethod: any, otp: any, countryCode: any) => {
-  if (otpMethod === "email") {
-    // Ensure email is provided for email-based OTP
-    if (!email) {
-      throw new ApiError(400, "Email is required for OTP method 'email'");
-    }
-
-    const mailOptions = {
-      from: process.env.GOOGLE_GMAIL_ID,
-      to: email, // Use email directly
-      subject: "Welcome to TradeXcel",
-      html : `<h3>Your OTP Code for TradeXcel Registration is <b>${otp}</b>. It is valid for 10 minutes.</h3>`,
-      text: `Your OTP Code for TradeXcel Registration is ${otp}. It is valid for 10 minutes.`,
-    };
-
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log("Email sent: ", info.response);
-    } catch (error: any) {
-      console.error("Error sending OTP via email:", error);
-      throw new ApiError(500, "Error sending OTP via email");
-    }
-  }
-
-  else if (otpMethod === "phone") {
-    // Ensure phone number and country code are provided for SMS-based OTP
-    if (!phoneNumber || !countryCode) {
-      throw new ApiError(400, "Phone number and country code are required for OTP method 'phone'");
-    }
-
-    const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-
-    try {
-      await client.messages.create({
-        body: `Your OTP for TradeXcel Registration is ${otp}. It is valid for 10 minutes.`,
-        to: `${countryCode}${phoneNumber}`, // Format phone number with country code
-        from: process.env.TWILIO_PHONE_NUMBER,
-      });
-    } catch (error: any) {
-      console.error("Error sending OTP via SMS:", error);
-      throw new ApiError(500, "Error sending OTP via SMS");
-    }
-  } else {
-    throw new ApiError(400, "Invalid OTP method");
-  }
-};
-
-// User Registration
-const registerUser = asyncHandler(async (req: any, res: any) => {
-  const { name, username, email, password, dob, phoneNumber, countryCode, pin, otpMethod } = req.body;
-
-  // Validate required fields
-  if (!name || !username || !email || !password || !dob || !phoneNumber || !countryCode || !pin || !otpMethod) {
-    throw new ApiError(400, "All fields are required.");
-  }
-
-  // Validate OTP method
-  if (!["email", "phone"].includes(otpMethod)) {
-    throw new ApiError(400, "Invalid OTP method.");
-  }
-
-  // Check if user already exists
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { email },
-        { username },
-        { AND: [{ phoneNumber }, { countryCode }] },
-      ],
-    },
-  });
-
-  if (existingUser) {
-    throw new ApiError(400, "Email, phone number, or username is already registered.");
-  }
-
-  // Generate OTP
-  const { otp, otpExpiry } = await generateOTP(
-    otpMethod === "email" ? email : phoneNumber,
-    otpMethod,
-    countryCode
-  );
-
-  // Hash the password up front so plaintext is never stored, even temporarily.
-  const hashedPassword = await hashPassword(password);
-
-  // Assign a random avatar
-  const randomAvatar = pickRandomAvatar();
-
-  // Replace any stale pending registration for this identity, then create fresh.
-  await prisma.pendingUser.deleteMany({
-    where: { OR: [{ email }, { username }, { phoneNumber }] },
-  });
-
-  await prisma.pendingUser.create({
-    data: {
-      name,
-      username,
-      email,
-      password: hashedPassword,
-      dob: new Date(dob),
-      phoneNumber,
-      countryCode,
-      otp,
-      otpExpiry,
-      otpMethod,
-      otpVerified: false,
-      pin,
-      avatar: randomAvatar,
-    },
-  });
-
-  res.status(200).json({
-    message: "User registered successfully. Please verify the OTP.",
-  });
-});
-
-const verifyOTP = asyncHandler(async (req: any, res: any) => {
-  const { email, phoneNumber, otp, otpMethod } = req.body;
-
-  // Ensure required fields are present
-  if (!otpMethod || !otp) {
-    throw new ApiError(400, "OTP method and OTP are required.");
-  }
-
-  if (otpMethod === "email" && !email) {
-    throw new ApiError(400, "Email is required for email OTP method.");
-  }
-  if (otpMethod === "phone" && !phoneNumber) {
-    throw new ApiError(400, "Phone number is required for phone OTP method.");
-  }
-
-  // Look for the pending user based on contact method
-  let pendingUser;
-  if (otpMethod === "email") {
-    pendingUser = await prisma.pendingUser.findUnique({ where: { email } });
-  } else if (otpMethod === "phone") {
-    pendingUser = await prisma.pendingUser.findUnique({ where: { phoneNumber } });
-  } else {
-    throw new ApiError(400, "Invalid OTP method.");
-  }
-
-  if (!pendingUser) {
-    throw new ApiError(404, "No pending user found.");
-  }
-
-  // Check if OTP matches
-  if (pendingUser.otp !== String(otp)) {
-    throw new ApiError(400, "Invalid OTP.");
-  }
-
-  // Check if OTP has expired
-  if (Date.now() > pendingUser.otpExpiry.getTime()) {
-    throw new ApiError(400, "OTP has expired.");
-  }
-
-  // Move user to the Users table (password is already hashed in PendingUser),
-  // seeding their wallet with starting virtual cash in the same transaction.
-  await prisma.$transaction(async (tx) => {
-    const user = await tx.user.create({
-      data: {
-        name: pendingUser.name,
-        username: pendingUser.username,
-        email: pendingUser.email,
-        password: pendingUser.password,
-        dob: pendingUser.dob,
-        phoneNumber: pendingUser.phoneNumber,
-        countryCode: pendingUser.countryCode,
-        otp: pendingUser.otp,
-        otpVerified: true,
-        pin: pendingUser.pin,
-        avatar: pendingUser.avatar ?? pickRandomAvatar(),
-      },
-    });
-
-    await tx.wallet.create({
-      data: { userId: user.id, balance: STARTING_BALANCE },
-    });
-
-    await tx.pendingUser.delete({ where: { id: pendingUser.id } });
-  });
-
-  res.status(200).json({ message: "User verified and confirmed successfully. You can now log in." });
-});
-
 const getName = asyncHandler(async (req: any, res: any) => {
-  // Fetching only the name field of the user by ID
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
     select: { name: true },
   });
 
   if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    throw new ApiError(404, "User not found");
   }
-  // Return the user's name in the response
-  res.status(200).json({ status: 200, data: { name: user.name } });
+  res.status(200).json(new ApiResponse(200, "Name fetched successfully", { name: user.name }));
 });
 
 const getProfile = asyncHandler(async (req: any, res: any) => {
-  // Fetching the user by ID, returning only public profile fields
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
-    select: {
-      name: true,
-      email: true,
-      phoneNumber: true,
-      username: true,
-      avatar: true,
-      dob: true,
-    },
+    select: PUBLIC_USER_FIELDS,
   });
 
   if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    throw new ApiError(404, "User not found");
   }
-  // Return the user's profile in the response
-  res.status(200).json({
-    status: 200,
-    data: {
-      name: user.name,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      username: user.username,
-      avatar: user.avatar,
-      dob: user.dob,
-    },
-  });
+  res.status(200).json(new ApiResponse(200, "Profile fetched successfully", user));
 });
 
-const changeCurrentPasswordAndPin = asyncHandler(async (req: any, res: any) => {
-  const { oldPassword, newPassword, oldPin, newPin } = req.body;
+const changePasswordPinSchema = z
+  .object({
+    oldPassword: z.string().optional(),
+    newPassword: z.string().min(8).optional(),
+    oldPin: z.string().optional(),
+    newPin: z.string().regex(/^\d{4}$/).optional(),
+  })
+  .refine((d) => Boolean(d.oldPassword) === Boolean(d.newPassword), {
+    message: "Both oldPassword and newPassword are required together",
+  })
+  .refine((d) => Boolean(d.oldPin) === Boolean(d.newPin), {
+    message: "Both oldPin and newPin are required together",
+  });
 
-  // Fetch user from the database
+const changeCurrentPasswordAndPin = asyncHandler(async (req: any, res: any) => {
+  const parsed = changePasswordPinSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ApiError(400, "Invalid input", parsed.error.issues);
+  }
+  const { oldPassword, newPassword, oldPin, newPin } = parsed.data;
+
   const user = await prisma.user.findUnique({ where: { id: req.user?.id } });
   if (!user) {
     throw new ApiError(404, "User not found");
@@ -457,74 +467,59 @@ const changeCurrentPasswordAndPin = asyncHandler(async (req: any, res: any) => {
 
   const updateData: { password?: string; pin?: string } = {};
 
-  // Update password if provided
-  if (oldPassword || newPassword) {
-    if (!oldPassword || !newPassword) {
-      throw new ApiError(400, "Both oldPassword and newPassword are required to update the password");
-    }
-
-    const isPasswordCorrect = await verifyPassword(oldPassword, user.password);
-    if (!isPasswordCorrect) {
+  if (newPassword) {
+    if (!user.password || !(await verifyPassword(oldPassword!, user.password))) {
       throw new ApiError(401, "Invalid old password");
     }
-
     updateData.password = await hashPassword(newPassword);
   }
 
-  // Update PIN if provided
-  if (oldPin || newPin) {
-    if (!oldPin || !newPin) {
-      throw new ApiError(400, "Both oldPin and newPin are required to update the PIN");
-    }
-
-    if (user.pin !== oldPin) {
+  if (newPin) {
+    if (!user.pin || !(await verifyPassword(oldPin!, user.pin))) {
       throw new ApiError(401, "Invalid old PIN");
     }
-
-    updateData.pin = newPin;
+    updateData.pin = await hashPassword(newPin);
   }
 
-  // Save user with updated fields
+  if (Object.keys(updateData).length === 0) {
+    throw new ApiError(400, "Nothing to update");
+  }
+
   await prisma.user.update({ where: { id: user.id }, data: updateData });
 
-  return res.status(200).json(
-    new ApiResponse(200, "Password and/or PIN changed successfully", null)
-  );
+  return res.status(200).json(new ApiResponse(200, "Password and/or PIN changed successfully", null));
+});
+
+const updateUserSchema = z.object({
+  name: z.string().trim().min(2).optional(),
+  username: z
+    .string()
+    .trim()
+    .min(3)
+    .max(20)
+    .regex(/^[a-zA-Z0-9_]+$/)
+    .optional(),
+  email: z.string().trim().toLowerCase().email().optional(),
+  dob: z.coerce.date().optional(),
 });
 
 const updateUser = asyncHandler(async (req: any, res: any) => {
-  const { name, username, email, phoneNumber, dob } = req.body;
-
-  // Create a dynamic update object
-  const updateFields: any = {};
-  if (name) updateFields.name = name;
-  if (username) updateFields.username = username;
-  if (email) updateFields.email = email;
-  if (phoneNumber) updateFields.phoneNumber = phoneNumber;
-  if (dob) updateFields.dob = new Date(dob);
-
-  try {
-    // Check if any fields are provided for update
-    if (Object.keys(updateFields).length === 0) {
-      throw new ApiError(400, "No fields provided for update");
-    }
-
-    // Update user
-    const user = await prisma.user.update({
-      where: { id: req.user?.id },
-      data: updateFields,
-      omit: { password: true },
-    });
-
-    // Respond with success
-    return res.status(200).json(
-      new ApiResponse(200, "User details updated successfully", user)
-    );
-  } catch (error: any) {
-    if (error instanceof ApiError) throw error;
-    // Handle unexpected errors
-    throw new ApiError(500, error.message || "Internal Server Error");
+  const parsed = updateUserSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ApiError(400, "Invalid input", parsed.error.issues);
   }
+
+  if (Object.keys(parsed.data).length === 0) {
+    throw new ApiError(400, "No fields provided for update");
+  }
+
+  const user = await prisma.user.update({
+    where: { id: req.user?.id },
+    data: parsed.data,
+    select: PUBLIC_USER_FIELDS,
+  });
+
+  return res.status(200).json(new ApiResponse(200, "User details updated successfully", user));
 });
 
 const getAvatar = asyncHandler(async (req: any, res: any) => {
@@ -536,57 +531,46 @@ const getAvatar = asyncHandler(async (req: any, res: any) => {
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-
-  // Check if the user has an avatar
   if (!user.avatar) {
     throw new ApiError(404, "Avatar not found");
   }
 
-  res.status(200).json({
-    avatar: user.avatar, // Return the avatar URL
-  });
+  res.status(200).json(new ApiResponse(200, "Avatar fetched successfully", { avatar: user.avatar }));
 });
 
 const updateAvatar = asyncHandler(async (req: any, res: any) => {
   const avatarLocalPath = req.file?.path;
 
-  // Check if avatar file exists
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar is required");
   }
 
-  // Upload avatar to Cloudinary
   const avatar = await uploadOnCloudinary(avatarLocalPath);
 
-  // Check if avatar was uploaded successfully
   if (!avatar?.url) {
     throw new ApiError(500, "Error uploading avatar");
   }
 
-  // Find user and update avatar URL
   const user = await prisma.user.update({
     where: { id: req.user?.id },
     data: { avatar: avatar.url },
-    omit: { password: true },
+    select: PUBLIC_USER_FIELDS,
   });
 
-  // Return successful response
-  return res.status(200).json(
-    new ApiResponse(200, "Avatar updated successfully", user)
-  );
+  return res.status(200).json(new ApiResponse(200, "Avatar updated successfully", user));
 });
-
 
 export {
   registerUser,
   loginUser,
+  googleLogin,
   logoutUser,
   verifyOTP,
-  sendOTP,
+  refreshAccessToken,
   getName,
   updateUser,
   getProfile,
   changeCurrentPasswordAndPin,
   getAvatar,
   updateAvatar,
-  refreshAccessToken };
+};

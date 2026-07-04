@@ -2,8 +2,10 @@ import { Router } from "express";
 import {
   registerUser,
   loginUser,
+  googleLogin,
   logoutUser,
   verifyOTP,
+  refreshAccessToken,
   getName,
   updateUser,
   getProfile,
@@ -18,8 +20,10 @@ const router = Router();
 
 // Public Routes
 router.post("/register", registerUser); // User registration
-router.post("/login", loginUser); // User login
-router.post("/verify-otp", verifyOTP); // OTP verification
+router.post("/login", loginUser); // User login (password or pin)
+router.post("/google", googleLogin); // Google Sign-In
+router.post("/verify-otp", verifyOTP); // One-time email verification (signup only)
+router.post("/refresh-token", refreshAccessToken); // Refresh access token
 
 // Protected Routes (Require Authentication)
 router.patch("/update", verifyJWT, updateUser); // Update user profile (JWT-protected)

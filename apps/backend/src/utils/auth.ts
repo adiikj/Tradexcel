@@ -14,7 +14,6 @@ type TokenUser = {
   username?: string;
   email?: string;
   name?: string;
-  phoneNumber?: string;
 };
 
 export const signAccessToken = (user: TokenUser): string =>
@@ -24,7 +23,6 @@ export const signAccessToken = (user: TokenUser): string =>
       username: user.username,
       email: user.email,
       name: user.name,
-      phoneNumber: user.phoneNumber,
     },
     process.env.ACCESS_TOKEN_SECRET as string,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY } as jwt.SignOptions
