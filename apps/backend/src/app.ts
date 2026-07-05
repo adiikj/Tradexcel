@@ -38,6 +38,10 @@ import portfolioRouter from './routes/portfolio.routes.js';
 
 app.use('/api/v1', portfolioRouter);
 
+import leaderboardRouter from './routes/leaderboard.routes.js';
+
+app.use('/api/v1', leaderboardRouter);
+
 import { errorHandler } from './middlewares/error.middleware.js';
 
 app.use(errorHandler);
