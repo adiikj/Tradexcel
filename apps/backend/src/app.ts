@@ -15,7 +15,22 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(pinoHttp({ logger }));
+app.use(
+  pinoHttp({
+    logger,
+    // Default pino-http serializers dump the full req (all headers, query,
+    // params, remoteAddress) and res objects — one request became a huge
+    // JSON blob per line. Trim to what's actually useful for a dev console.
+    serializers: {
+      req(req) {
+        return { method: req.method, url: req.url };
+      },
+      res(res) {
+        return { statusCode: res.statusCode };
+      },
+    },
+  })
+);
 
 
 app.use(express.json({limit : "16kb"}))

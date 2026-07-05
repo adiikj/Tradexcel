@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Helmet } from "react-helmet";
 import { adminCreateContest, adminGetContests } from "../../api/adminApi";
+import wordmark from "../../assets/tradexcel-wordmark-dark.png";
 
 const STATUS_STYLES: Record<string, string> = {
   UPCOMING: "bg-yellow-500",
@@ -89,7 +90,10 @@ function AdminContests() {
       </Helmet>
       <div className="bg-gray-900 text-white min-h-screen font-pop">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
-          <h1 className="text-lg font-bold">Mocket Admin</h1>
+          <div className="flex items-center gap-2">
+            <img className="h-5 w-auto" src={((wordmark)?.src || (wordmark)) as string} alt="Tradexcel" />
+            <span className="text-sm text-gray-400">Admin</span>
+          </div>
           <button onClick={handleLogout} className="text-sm text-gray-400 hover:text-white underline">
             Log out
           </button>

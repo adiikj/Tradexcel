@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import logo from "../../assets/logo-full-bg.png";
+import logo from "../../assets/logo-icon-transparent.png";
+import wordmark from "../../assets/tradexcel-wordmark-light.png";
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState<any>(false);
@@ -21,9 +22,9 @@ function Header() {
       {/* Left Section: Logo and Navigation Links */}
       <div className="flex items-center gap-12">
         <Link href="/">
-          <div className="flex flex-row items-center gap-2.5 py-2 text-lg md:text-2xl font-bold font-pop text-blue-900">
-            <img className="h-8 w-8 md:w-9 md:h-9" src={((logo)?.src || (logo)) as string} alt="Logo" />
-            <div className="hidden md:flex">Mocket</div>
+          <div className="flex flex-row items-center gap-2.5 py-2">
+            <img className="h-8 w-8 md:w-9 md:h-9" src={((logo)?.src || (logo)) as string} alt="" />
+            <img className="hidden md:block h-5 w-auto" src={((wordmark)?.src || (wordmark)) as string} alt="Tradexcel" />
           </div>
         </Link>
 
@@ -45,18 +46,19 @@ function Header() {
       </div>
 
       {/* Right Section: Sign Up and Sign In Buttons */}
-      <div className="hidden lg:flex gap-6 items-center">
+      <div className="hidden lg:flex gap-3 items-center">
         <Link
           href="/signup"
-          className="border-2 px-7 py-2 rounded-lg text-btn-blue border-transparent hover:bg-gray-100 text-sm text-center"
+          className="px-8 py-2.5 rounded-lg font-medium text-sm text-gray-700 border border-gray-200 hover:border-blue-300 hover:text-blue-600 transition-colors duration-200"
         >
           Sign Up
         </Link>
 
-        <Link href="/signin">
-          <button className="border-2 py-2 px-7 rounded-lg bg-btn-blue border-transparent hover:bg-blue-500 text-white text-sm">
-            Sign In
-          </button>
+        <Link
+          href="/signin"
+          className="px-8 py-2.5 rounded-lg font-medium text-sm text-white bg-btn-blue hover:bg-blue-600 transition-colors duration-200"
+        >
+          Sign In
         </Link>
       </div>
 
@@ -134,17 +136,19 @@ function Header() {
           <li className="my-2">
             <Link
               href="/signup"
-              className="border-2 px-7 py-2 rounded-lg text-btn-blue border-transparent text-sm text-center"
+              className="px-6 py-2.5 rounded-lg font-semibold text-sm text-gray-700 border-2 border-gray-200 hover:border-blue-300 hover:text-blue-600 transition-colors duration-200 active:scale-95"
               onClick={closeMenu}
             >
               Sign Up
             </Link>
           </li>
           <li className="my-2">
-            <Link href="/signin" onClick={closeMenu}>
-              <button className="border-2 py-2 px-7 rounded-lg bg-btn-blue border-transparent text-white text-sm">
-                Sign In
-              </button>
+            <Link
+              href="/signin"
+              className="px-6 py-2.5 rounded-lg font-semibold text-sm text-white bg-btn-blue hover:bg-blue-600 transition-colors duration-200 active:scale-95"
+              onClick={closeMenu}
+            >
+              Sign In
             </Link>
           </li>
         </ul>

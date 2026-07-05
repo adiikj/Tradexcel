@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { FiMail, FiMapPin, FiPhone, FiCheckCircle } from "react-icons/fi";
 
 const details = [
-  { icon: FiMail, label: "Email", value: "contact@mocket.app" },
+  { icon: FiMail, label: "Email", value: "contact@tradexcel.app" },
   { icon: FiMapPin, label: "Office", value: "New Delhi, India" },
   { icon: FiPhone, label: "Phone", value: "+91 9876 543 210" },
 ];
@@ -56,7 +56,7 @@ function Contact() {
           >
             <h2 className="text-2xl font-semibold font-pop">Get in touch</h2>
             <p className="text-gray-600 mt-3 leading-relaxed">
-              Mocket is a portfolio project built to showcase a real trading engine. Reach
+              Tradexcel is a portfolio project built to showcase a real trading engine. Reach
               out through any of the channels below.
             </p>
             <div className="space-y-6 mt-8">

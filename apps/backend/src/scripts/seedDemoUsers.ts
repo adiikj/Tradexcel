@@ -5,7 +5,7 @@
 // Idempotent — safe to re-run; each demo user (and their wallet/holdings/
 // transactions) is deleted and recreated fresh every time.
 //
-// Run with: pnpm --filter @mocket/backend seed:demo
+// Run with: pnpm --filter @tradexcel/backend seed:demo
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 import prisma from "../db/prisma.js";
@@ -40,7 +40,7 @@ const DEMO_USERS: DemoUser[] = [
   {
     name: "Priya Sharma",
     username: "priya_sharma",
-    email: "priya.sharma@mocket.demo",
+    email: "priya.sharma@tradexcel.demo",
     costBasisFactor: 0.92,
     holdings: [
       { symbol: "RELIANCE.NS", quantity: 10 },
@@ -50,7 +50,7 @@ const DEMO_USERS: DemoUser[] = [
   {
     name: "Rahul Verma",
     username: "rahul_verma",
-    email: "rahul.verma@mocket.demo",
+    email: "rahul.verma@tradexcel.demo",
     costBasisFactor: 1.05,
     holdings: [
       { symbol: "HDFCBANK.NS", quantity: 15 },
@@ -61,7 +61,7 @@ const DEMO_USERS: DemoUser[] = [
   {
     name: "Ananya Iyer",
     username: "ananya_iyer",
-    email: "ananya.iyer@mocket.demo",
+    email: "ananya.iyer@tradexcel.demo",
     costBasisFactor: 0.85,
     holdings: [
       { symbol: "TITAN.NS", quantity: 8 },
@@ -71,7 +71,7 @@ const DEMO_USERS: DemoUser[] = [
   {
     name: "Vikram Mehta",
     username: "vikram_mehta",
-    email: "vikram.mehta@mocket.demo",
+    email: "vikram.mehta@tradexcel.demo",
     costBasisFactor: 1.1,
     holdings: [
       { symbol: "BAJFINANCE.NS", quantity: 6 },
@@ -81,7 +81,7 @@ const DEMO_USERS: DemoUser[] = [
   {
     name: "Sneha Kapoor",
     username: "sneha_kapoor",
-    email: "sneha.kapoor@mocket.demo",
+    email: "sneha.kapoor@tradexcel.demo",
     costBasisFactor: 0.97,
     holdings: [
       { symbol: "WIPRO.NS", quantity: 25 },
@@ -91,7 +91,7 @@ const DEMO_USERS: DemoUser[] = [
   {
     name: "Arjun Nair",
     username: "arjun_nair",
-    email: "arjun.nair@mocket.demo",
+    email: "arjun.nair@tradexcel.demo",
     costBasisFactor: 1.02,
     holdings: [
       { symbol: "ADANIPORTS.NS", quantity: 12 },
@@ -102,7 +102,7 @@ const DEMO_USERS: DemoUser[] = [
   {
     name: "Divya Rao",
     username: "divya_rao",
-    email: "divya.rao@mocket.demo",
+    email: "divya.rao@tradexcel.demo",
     costBasisFactor: 0.9,
     holdings: [
       { symbol: "TCS.NS", quantity: 15 },
@@ -112,7 +112,7 @@ const DEMO_USERS: DemoUser[] = [
   {
     name: "Karan Singh",
     username: "karan_singh",
-    email: "karan.singh@mocket.demo",
+    email: "karan.singh@tradexcel.demo",
     costBasisFactor: 1.15,
     holdings: [
       { symbol: "SBIN.NS", quantity: 40 },

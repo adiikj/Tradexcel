@@ -12,7 +12,7 @@ import { persistSession } from "../../utils/authSession";
 function SignIn() {
   const [emailOrUsername, setEmailOrUsername] = useState<any>("");
   const [credential, setCredential] = useState<any>("");
-  const [mode, setMode] = useState<"password" | "pin">("password");
+  const [mode, setMode] = useState<"password" | "pin">("pin");
   const [error, setError] = useState<any>(null);
   const [showCredential, setShowCredential] = useState<any>(false);
   const [isLoading, setIsLoading] = useState<any>(false);

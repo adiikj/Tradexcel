@@ -36,13 +36,13 @@ const sections: LegalSection[] = [
   {
     heading: "Your choices",
     body: [
-      "You can update your profile details at any time, and you may request deletion of your account by contacting us. Because Mocket uses only virtual money, deleting your account removes your simulated portfolio with no financial impact.",
+      "You can update your profile details at any time, and you may request deletion of your account by contacting us. Because Tradexcel uses only virtual money, deleting your account removes your simulated portfolio with no financial impact.",
     ],
   },
   {
     heading: "Contact",
     body: [
-      "For privacy questions or data requests, email contact@mocket.app.",
+      "For privacy questions or data requests, email contact@tradexcel.app.",
     ],
   },
 ];
@@ -52,7 +52,7 @@ function Privacy() {
     <LegalPage
       title="Privacy Policy"
       updated="June 27, 2026"
-      intro="Your privacy matters. This policy explains what information Mocket collects, how we use it, and the choices you have. Mocket is a virtual trading simulator and never handles real money."
+      intro="Your privacy matters. This policy explains what information Tradexcel collects, how we use it, and the choices you have. Tradexcel is a virtual trading simulator and never handles real money."
       sections={sections}
     />
   );

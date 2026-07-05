@@ -11,7 +11,7 @@ import banner2 from '../../assets/banner2.png';
 import dashboard from "../../assets/dashboard.png";
 import dashboard2 from "../../assets/dashboard2.png";
 import { motion } from 'framer-motion';
-import { FiUserPlus, FiDollarSign, FiActivity, FiAward, FiStar, FiCheck, FiTrendingUp } from "react-icons/fi";
+import { FiUserPlus, FiDollarSign, FiActivity, FiAward, FiStar, FiCheck, FiTrendingUp, FiArrowRight, FiPlayCircle } from "react-icons/fi";
 
 const stats = [
   { value: "₹1,00,000", label: "Virtual cash to start" },
@@ -24,12 +24,12 @@ const steps = [
   { icon: FiUserPlus, title: "Sign up free", desc: "Create your account in under a minute, no payment details needed." },
   { icon: FiDollarSign, title: "Get virtual cash", desc: "Your wallet is instantly funded with ₹1,00,000 to invest." },
   { icon: FiActivity, title: "Trade live stocks", desc: "Buy and sell at real market prices and track your portfolio." },
-  { icon: FiAward, title: "Climb the ranks", desc: "Compete in contests and rise up the Mocket leaderboard." },
+  { icon: FiAward, title: "Climb the ranks", desc: "Compete in contests and rise up the Tradexcel leaderboard." },
 ];
 
 const testimonials = [
   { quote: "I finally understand how the market moves without risking my savings. The leaderboard makes it addictive.", name: "Aarav Sharma", role: "Student investor" },
-  { quote: "Mocket is the easiest way I've found to practise trading. Clean, fast, and the real-time prices feel legit.", name: "Priya Nair", role: "First-time trader" },
+  { quote: "Tradexcel is the easiest way I've found to practise trading. Clean, fast, and the real-time prices feel legit.", name: "Priya Nair", role: "First-time trader" },
   { quote: "The contests turned my casual practice into a real competition. I check my portfolio every morning now.", name: "Rohan Mehta", role: "Hobby trader" },
 ];
 
@@ -61,16 +61,26 @@ function Home() {
             Learn, Trade, and Compete in a <span className="text-blue-500">Realistic Stock Market Simulation</span>
           </div>
           <div className="text-gray-600 text-xl">Experience the thrill of trading without the risk. Build your portfolio, track performance, and rise to the top of the leaderboard!</div>
-          <div className="pt-10 flex flex-col sm:flex-row gap-4 sm:gap-8">
-            <Link href="/signup">
-              <button className="w-full sm:w-auto border-2 px-12 font-medium py-5 rounded-lg bg-btn-blue border-transparent text-white text-base">
+          <div className="pt-10 flex flex-col sm:flex-row gap-4 sm:gap-5">
+            <Link href="/signup" className="w-full sm:w-auto">
+              <motion.button
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.97 }}
+                className="group w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-4 rounded-xl font-semibold text-white text-base bg-btn-blue hover:bg-blue-600 transition-colors duration-200"
+              >
                 Get Started
-              </button>
+                <FiArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
+              </motion.button>
             </Link>
-            <Link href="/how-it-works">
-              <button className="w-full sm:w-auto border-2 px-12 py-5 rounded-lg text-btn-blue border-transparent text-base">
+            <Link href="/how-it-works" className="w-full sm:w-auto">
+              <motion.button
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.97 }}
+                className="group w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-4 rounded-xl font-semibold text-base border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-600 transition-colors duration-200"
+              >
+                <FiPlayCircle className="text-lg text-blue-500" />
                 How it Works?
-              </button>
+              </motion.button>
             </Link>
           </div>
         </motion.div>
@@ -115,7 +125,7 @@ function Home() {
         </div>
       </motion.div>
 
-      {/* Why Choose Mocket Section */}
+      {/* Why Choose Tradexcel Section */}
       <motion.div
         className="bg-white w-full h-auto p-6 sm:p-10 md:p-12 lg:p-20 lg:pb-10 text-center"
         initial={{ opacity: 0, y: 24 }}
@@ -123,10 +133,10 @@ function Home() {
         viewport={{ once: true, amount: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       >
-        <h6 className="text-blue-500 font-pop text-2xl font-semibold">Why You Should Choose Mocket?</h6>
+        <h6 className="text-blue-500 font-pop text-2xl font-semibold">Why You Should Choose Tradexcel?</h6>
         <p className="text-3xl md:text-3xl pt-4 font-semibold font-pop">Master trading with real-time insights!</p>
         <div className="gap-6 md:gap-10 mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          <Card img={card1} heading="Risk-Free Learning" description="Mocket offers a safe environment for learning to trade. Practice without real money while developing confidence and refining your trading skills effectively." />
+          <Card img={card1} heading="Risk-Free Learning" description="Tradexcel offers a safe environment for learning to trade. Practice without real money while developing confidence and refining your trading skills effectively." />
           <Card img={card2} heading="Engaging Experience" description="Our platform combines competition and gamification. With leaderboards, achievements, and real-time updates, trading becomes exciting and rewarding for every participant." />
           <Card img={card3} heading="User-Friendly Design" description="We prioritize simplicity and efficiency. Navigate seamlessly, access real-time data, and utilize interactive tools tailored to both beginners and seasoned traders." />
         </div>
@@ -206,7 +216,7 @@ function Home() {
       >
         <h6 className="text-blue-500 font-pop text-lg font-semibold">Loved by new traders</h6>
         <p className="text-3xl md:text-4xl pt-2 font-semibold font-pop">
-          People are learning faster with Mocket
+          People are learning faster with Tradexcel
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-6xl mx-auto">
           {testimonials.map((t, i) => (
@@ -254,7 +264,7 @@ function Home() {
             Ready to build your portfolio?
           </p>
           <p className="text-blue-100 text-lg mt-4 max-w-2xl mx-auto">
-            Join Mocket today and start trading real stocks with virtual money. No risk, all
+            Join Tradexcel today and start trading real stocks with virtual money. No risk, all
             the reward of learning.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center">
@@ -265,7 +275,7 @@ function Home() {
             </Link>
             <Link href="/why-us">
               <button className="w-full sm:w-auto border-2 px-10 py-4 rounded-lg text-white border-white text-sm">
-                Why Mocket?
+                Why Tradexcel?
               </button>
             </Link>
           </div>

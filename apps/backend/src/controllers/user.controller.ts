@@ -43,9 +43,9 @@ async function sendOtpEmail(email: string, otp: string) {
   try {
     await sendEmail({
       to: email,
-      subject: "Your Mocket verification code",
-      html: `<h3>Your Mocket verification code is <b>${otp}</b>. It is valid for 10 minutes.</h3>`,
-      text: `Your Mocket verification code is ${otp}. It is valid for 10 minutes.`,
+      subject: "Your Tradexcel verification code",
+      html: `<h3>Your Tradexcel verification code is <b>${otp}</b>. It is valid for 10 minutes.</h3>`,
+      text: `Your Tradexcel verification code is ${otp}. It is valid for 10 minutes.`,
     });
   } catch (error: any) {
     console.error("Error sending OTP email:", error.message);

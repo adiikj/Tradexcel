@@ -9,7 +9,7 @@ const values = [
   {
     icon: FiShield,
     title: "Risk-Free by Design",
-    desc: "Every rupee on Mocket is virtual. Learn how markets move, make mistakes, and build conviction without ever risking real money.",
+    desc: "Every rupee on Tradexcel is virtual. Learn how markets move, make mistakes, and build conviction without ever risking real money.",
   },
   {
     icon: FiTrendingUp,
@@ -45,12 +45,12 @@ function About() {
           transition={{ duration: 0.7 }}
           className="max-w-3xl mx-auto"
         >
-          <p className="text-blue-500 font-pop text-lg font-semibold">About Mocket</p>
+          <p className="text-blue-500 font-pop text-lg font-semibold">About Tradexcel</p>
           <h1 className="py-4 font-pop font-semibold text-4xl md:text-5xl lg:leading-tight">
             Learn to trade by <span className="text-blue-500">actually trading</span>
           </h1>
           <p className="text-gray-600 text-lg">
-            Mocket is a gamified stock-trading simulator. Buy and sell real stocks with
+            Tradexcel is a gamified stock-trading simulator. Buy and sell real stocks with
             virtual money, track your portfolio, and compete on the leaderboard, all the
             thrill of the market with none of the financial risk.
           </p>
@@ -72,7 +72,7 @@ function About() {
             </h2>
             <p className="text-gray-600 leading-relaxed">
               Most people never start investing because the first trade feels intimidating
-              and expensive. Mocket removes that barrier. You get a virtual portfolio, live
+              and expensive. Tradexcel removes that barrier. You get a virtual portfolio, live
               market conditions, and a playful, competitive environment to sharpen your
               instincts. By the time you trade for real, the mechanics are second nature.
             </p>

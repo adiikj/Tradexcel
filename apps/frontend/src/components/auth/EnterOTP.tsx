@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { motion } from "framer-motion";
-import logo from "../../assets/logo-full-bg.png";
+import logo from "../../assets/logo-icon-transparent.png";
+import wordmark from "../../assets/tradexcel-wordmark-light.png";
 import { verifyOTP } from "../../api/api";
 import { persistSession } from "../../utils/authSession";
 
@@ -78,13 +79,13 @@ function EnterOTP() {
       transition={{ duration: 0.8 }}
     >
       <motion.div
-        className="flex flex-row gap-3 justify-center items-center text-xl sm:text-2xl font-bold text-blue-900 text-center pb-6"
+        className="flex flex-row gap-3 justify-center items-center text-center pb-6"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
       >
-        <img className="w-8 sm:w-10 h-8 sm:h-10" src={((logo)?.src || (logo)) as string} alt="Logo" />
-        <span>Mocket</span>
+        <img className="w-8 sm:w-10 h-8 sm:h-10" src={((logo)?.src || (logo)) as string} alt="" />
+        <img className="h-6 sm:h-7 w-auto" src={((wordmark)?.src || (wordmark)) as string} alt="Tradexcel" />
       </motion.div>
 
       <motion.div

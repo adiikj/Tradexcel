@@ -1,5 +1,5 @@
 {
-  "name": "@mocket/backend",
+  "name": "@tradexcel/backend",
   "version": "1.0.0",
   "main": "src/index.js",
   "type": "module",
@@ -21,7 +21,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@mocket/shared": "workspace:*",
+    "@tradexcel/shared": "workspace:*",
     "@prisma/client": "^6.0.0",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.5.1",

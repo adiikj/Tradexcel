@@ -8,11 +8,7 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Neither <html> nor <body> had a background color, so page navigation
-   (Next.js briefly unmounts the old route before mounting the new one)
-   exposed the browser's default white for a frame — visible as a flash,
-   especially jarring in dark mode. Keying the root background to the same
-   data-theme attribute ThemeContext already sets closes that gap. */
+
 html[data-theme="dark"] {
   background-color: #1f2937; /* gray-800, matches every page's dark background */
   color-scheme: dark;
@@ -100,9 +96,6 @@ body {
   }
 }
 
-/* Heading underline bars draw in on mount. transform (not width) so it
-   doesn't fight the element's own Tailwind width class and stays off the
-   layout thread. */
 .animate-line {
   transform-origin: left;
   animation: lineGrow 0.6s ease-out forwards;

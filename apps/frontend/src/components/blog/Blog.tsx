@@ -6,7 +6,7 @@ import Newsletter from "../landingPage/Newsletter";
 
 const featured = {
   category: "Getting Started",
-  title: "Your first week on Mocket: a simple plan",
+  title: "Your first week on Tradexcel: a simple plan",
   excerpt:
     "New to trading? Here's a day-by-day plan to go from your first virtual trade to a diversified portfolio, without the overwhelm.",
   date: "June 24, 2026",
@@ -40,7 +40,7 @@ const posts = [
   },
   {
     category: "Product",
-    title: "Contests are coming to Mocket",
+    title: "Contests are coming to Tradexcel",
     excerpt:
       "A first look at leaderboards and timed trading contests, and how they'll make practice a lot more fun.",
     date: "June 2, 2026",
@@ -75,7 +75,7 @@ function Blog() {
           transition={{ duration: 0.7 }}
           className="max-w-3xl mx-auto"
         >
-          <p className="text-blue-500 font-pop text-lg font-semibold">The Mocket Blog</p>
+          <p className="text-blue-500 font-pop text-lg font-semibold">The Tradexcel Blog</p>
           <h1 className="py-4 font-pop font-semibold text-4xl md:text-5xl lg:leading-tight">
             Insights to make you a <span className="text-blue-500">sharper trader</span>
           </h1>

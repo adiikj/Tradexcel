@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import type { Quote } from "@mocket/shared";
+import type { Quote } from "@tradexcel/shared";
 
 const CACHE_TTL_MS = 12_000;
 const cache = new Map<string, { quote: Quote; expiresAt: number }>();

@@ -47,12 +47,12 @@ const features = [
 ];
 
 const compareRows = [
-  { label: "Real money at risk", mocket: false, real: true, paper: false },
-  { label: "Live market prices", mocket: true, real: true, paper: false },
-  { label: "Portfolio analytics", mocket: true, real: true, paper: false },
-  { label: "Leaderboards & contests", mocket: true, real: false, paper: false },
-  { label: "Free to use", mocket: true, real: false, paper: true },
-  { label: "Beginner friendly", mocket: true, real: false, paper: true },
+  { label: "Real money at risk", tradexcel: false, real: true, paper: false },
+  { label: "Live market prices", tradexcel: true, real: true, paper: false },
+  { label: "Portfolio analytics", tradexcel: true, real: true, paper: false },
+  { label: "Leaderboards & contests", tradexcel: true, real: false, paper: false },
+  { label: "Free to use", tradexcel: true, real: false, paper: true },
+  { label: "Beginner friendly", tradexcel: true, real: false, paper: true },
 ];
 
 function Cell({ on }: { on: boolean }) {
@@ -74,13 +74,13 @@ function WhyUs() {
           transition={{ duration: 0.7 }}
           className="max-w-3xl mx-auto"
         >
-          <p className="text-blue-500 font-pop text-lg font-semibold">Why Mocket</p>
+          <p className="text-blue-500 font-pop text-lg font-semibold">Why Tradexcel</p>
           <h1 className="py-4 font-pop font-semibold text-4xl md:text-5xl lg:leading-tight">
             The smartest way to <span className="text-blue-500">practice the market</span>
           </h1>
           <p className="text-gray-600 text-lg">
             All the realism of live trading, none of the risk. Here's why thousands choose
-            Mocket to build their confidence.
+            Tradexcel to build their confidence.
           </p>
         </motion.div>
       </section>
@@ -114,7 +114,7 @@ function WhyUs() {
       <section className="bg-grey w-full px-6 md:px-16 lg:px-24 py-16 md:py-20">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-semibold font-pop text-center">
-            How Mocket compares
+            How Tradexcel compares
           </h2>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -125,7 +125,7 @@ function WhyUs() {
           >
             <div className="grid grid-cols-4 bg-blue-500 text-white font-pop text-sm md:text-base">
               <div className="p-4 font-semibold">Feature</div>
-              <div className="p-4 font-semibold text-center">Mocket</div>
+              <div className="p-4 font-semibold text-center">Tradexcel</div>
               <div className="p-4 font-semibold text-center">Real-money app</div>
               <div className="p-4 font-semibold text-center">Pen &amp; paper</div>
             </div>
@@ -138,7 +138,7 @@ function WhyUs() {
               >
                 <div className="p-4 text-gray-700">{row.label}</div>
                 <div className="p-4">
-                  <Cell on={row.mocket} />
+                  <Cell on={row.tradexcel} />
                 </div>
                 <div className="p-4">
                   <Cell on={row.real} />

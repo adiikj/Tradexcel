@@ -23,7 +23,7 @@ const steps = [
   {
     icon: FiAward,
     title: "Climb the leaderboard",
-    desc: "Watch your portfolio grow, enter contests, and compete with traders across Mocket to reach the top.",
+    desc: "Watch your portfolio grow, enter contests, and compete with traders across Tradexcel to reach the top.",
   },
 ];
 

@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { logout } from "../../redux/authSlice";
 import Cookies from "js-cookie";
-import logo from "../../assets/logo-full-bg.png";
+import logo from "../../assets/logo-icon-transparent.png";
+import wordmarkLight from "../../assets/tradexcel-wordmark-light.png";
+import wordmarkDark from "../../assets/tradexcel-wordmark-dark.png";
 import profile from "../../assets/profile.png";
 import wallet from "../../assets/wallet.png";
 import wallet_w from "../../assets/wallet-w.png";
@@ -65,13 +67,13 @@ const Header = ({ darkMode, toggleDarkMode }) => {
     >
       {/* Logo */}
       <Link href="/dashboard">
-        <div
-          className={`flex flex-row items-center gap-2.5 py-2 text-base md:text-xl font-bold font-pop ${
-            darkMode ? "text-blue-400" : "text-blue-900"
-          }`}
-        >
-          <img className="h-8 w-8 md:w-9 md:h-9" src={((logo)?.src || (logo)) as string} alt="Logo" />
-          <div className="hidden md:flex">Mocket</div>
+        <div className="flex flex-row items-center gap-2.5 py-2">
+          <img className="h-8 w-8 md:w-9 md:h-9" src={((logo)?.src || (logo)) as string} alt="" />
+          <img
+            className="hidden md:block h-5 w-auto"
+            src={((darkMode ? wordmarkDark : wordmarkLight)?.src || (darkMode ? wordmarkDark : wordmarkLight)) as string}
+            alt="Tradexcel"
+          />
         </div>
       </Link>
 

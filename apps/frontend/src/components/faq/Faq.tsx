@@ -17,24 +17,24 @@ function Faq() {
 
   const faqs = [
     {
-      question: "What is Mocket?",
-      answer: "Mocket is a virtual stock market game where users can simulate stock trading in real-time market conditions without any financial risk."
+      question: "What is Tradexcel?",
+      answer: "Tradexcel is a virtual stock market game where users can simulate stock trading in real-time market conditions without any financial risk."
     },
     {
-      question: "How do I get started with Mocket?",
+      question: "How do I get started with Tradexcel?",
       answer: "Simply sign up on the platform, create a portfolio, and start trading with virtual currency."
     },
     {
-      question: "Is Mocket free to use?",
-      answer: "Yes, Mocket is completely free to use and is designed to help users learn and practice trading."
+      question: "Is Tradexcel free to use?",
+      answer: "Yes, Tradexcel is completely free to use and is designed to help users learn and practice trading."
     },
     {
       question: "Can I track my trading performance?",
-      answer: "Absolutely! Mocket provides detailed performance analytics, including profit/loss tracking and portfolio insights."
+      answer: "Absolutely! Tradexcel provides detailed performance analytics, including profit/loss tracking and portfolio insights."
     },
     {
-      question: "Is Mocket suitable for beginners?",
-      answer: "Yes, Mocket is ideal for beginners looking to learn trading strategies and understand market trends without financial risks."
+      question: "Is Tradexcel suitable for beginners?",
+      answer: "Yes, Tradexcel is ideal for beginners looking to learn trading strategies and understand market trends without financial risks."
     }
   ];
 
