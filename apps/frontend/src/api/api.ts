@@ -415,6 +415,54 @@ export const getLeaderboard = async (limit = 20) => {
   }
 };
 
+const authHeaders = () => {
+  const token = (typeof window !== 'undefined' ? localStorage.getItem("authToken") : null);
+  if (!token) {
+    throw new Error("Authentication token is missing. Please log in again.");
+  }
+  return { Authorization: `Bearer ${token}` };
+};
+
+export const getContests = async () => {
+  try {
+    const response = await axios.get(`${BASE_TRADE_URL}/contests`, { headers: authHeaders() });
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to fetch contests";
+    throw new Error(message);
+  }
+};
+
+export const getContest = async (contestId: string) => {
+  try {
+    const response = await axios.get(`${BASE_TRADE_URL}/contests/${contestId}`, { headers: authHeaders() });
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to fetch contest";
+    throw new Error(message);
+  }
+};
+
+export const joinContest = async (contestId: string) => {
+  try {
+    const response = await axios.post(`${BASE_TRADE_URL}/contests/${contestId}/join`, {}, { headers: authHeaders() });
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to join contest";
+    throw new Error(message);
+  }
+};
+
+export const getContestStandings = async (contestId: string) => {
+  try {
+    const response = await axios.get(`${BASE_TRADE_URL}/contests/${contestId}/standings`, { headers: authHeaders() });
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to fetch standings";
+    throw new Error(message);
+  }
+};
+
 
 
 

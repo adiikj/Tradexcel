@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import connectDB from './db/index.js';
 import { app } from './app.js';
+import { startContestSettlementJob } from './jobs/contestSettlement.js';
 
 if (process.env.NODE_ENV !== 'production') {
     const dotenv = await import('dotenv');
@@ -18,6 +19,8 @@ connectDB()
         console.log('Error:', error);
         throw error;
     });
+
+    startContestSettlementJob();
 
 })
 .catch((error)=>{
