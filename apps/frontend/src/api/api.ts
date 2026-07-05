@@ -8,6 +8,8 @@ const BASE_FINANCE_URL = process.env.NEXT_PUBLIC_API_FINANCE_URL; // Import the 
 console.log(process.env.NEXT_PUBLIC_API_FINANCE_URL);
 console.log("Finance API URL:", BASE_FINANCE_URL); // Log the finance API URL
 
+const BASE_TRADE_URL = process.env.NEXT_PUBLIC_API_TRADE_URL; // Wallet/portfolio/transactions/trade API root
+
 // Function to log in the user with either a password or a 4-digit PIN
 export const loginUser = async (emailOrUsername: string, credential: string, mode: "password" | "pin") => {
   try {
@@ -282,6 +284,72 @@ export const getStockData = async (symbol) => {
   } catch (error) {
     console.error("Error fetching stock data:", error);
     throw new Error("Failed to fetch stock data");
+  }
+};
+
+// Wallet / portfolio / transactions — the real trading-engine read endpoints.
+
+export const getWallet = async () => {
+  try {
+    const token = (typeof window !== 'undefined' ? localStorage.getItem("authToken") : null);
+
+    if (!token) {
+      throw new Error("Authentication token is missing. Please log in again.");
+    }
+
+    const response = await axios.get(`${BASE_TRADE_URL}/wallet`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to fetch wallet";
+    throw new Error(message);
+  }
+};
+
+export const getPortfolio = async () => {
+  try {
+    const token = (typeof window !== 'undefined' ? localStorage.getItem("authToken") : null);
+
+    if (!token) {
+      throw new Error("Authentication token is missing. Please log in again.");
+    }
+
+    const response = await axios.get(`${BASE_TRADE_URL}/portfolio`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to fetch portfolio";
+    throw new Error(message);
+  }
+};
+
+export const getTransactions = async (page = 1, limit = 20) => {
+  try {
+    const token = (typeof window !== 'undefined' ? localStorage.getItem("authToken") : null);
+
+    if (!token) {
+      throw new Error("Authentication token is missing. Please log in again.");
+    }
+
+    const response = await axios.get(`${BASE_TRADE_URL}/transactions`, {
+      params: { page, limit },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to fetch transactions";
+    throw new Error(message);
   }
 };
 

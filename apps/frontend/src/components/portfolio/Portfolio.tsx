@@ -1,25 +1,38 @@
-import React from 'react';
+"use client";
+import React, { useContext, useEffect, useState } from 'react';
 import Header from '../dashboard/Header';
 import Vheader from '../dashboard/Vheader';
-import { useContext } from "react";
 import ThemeContext from "../../context/ThemeContext";
 import { Helmet } from 'react-helmet';
+import { getPortfolio } from '../../api/api';
+
+const formatInr = (value: number) =>
+  `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 function Portfolio() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
-  // Dummy data for the portfolio (Indian stocks in INR)
-  const portfolioData = {
-    investedAmount: 0, // Example value in INR
-    cashBalance: 100000, // Example value in INR
-    totalPortfolioValue: 100000, // Example value in INR
-    stockHoldings: [
-      { symbol: "TCS", shares: 10, value: 35000 },
-      { symbol: "RELIANCE", shares: 15, value: 42000 },
-      { symbol: "HDFC", shares: 20, value: 30000 },
-      { symbol: "INFY", shares: 12, value: 45000 },
-    ],
-  };
+  const [holdings, setHoldings] = useState<any[]>([]);
+  const [summary, setSummary] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getPortfolio();
+        setHoldings(response?.data?.holdings || []);
+        setSummary(response?.data?.summary || null);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load portfolio.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPortfolio();
+  }, []);
 
   return (
     <>
@@ -34,64 +47,114 @@ function Portfolio() {
             <h1 className="text-3xl md:text-4xl font-bold">Your Portfolio</h1>
             <div className="h-2 w-44 bg-blue-500 rounded-full mb-6"></div>
 
-            {/* Portfolio Summary Section */}
-            <section className={`p-6 rounded-lg w-full shadow-lg ${darkMode ? "bg-gray-900" : "bg-gray-50"} transition-all duration-300`}>
-              <h2 className="text-xl md:text-2xl font-semibold mb-6">Portfolio Overview</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div
-                  className={`p-3 md:p-5 rounded-lg border-2 ${
-                    darkMode ? "border-blue-500 bg-gray-700" : "border-blue-300 bg-white"
-                  } shadow-lg hover:scale-105 transform transition-all duration-300`}
-                >
-                  <h3 className="text-md md:text-lg font-medium mb-2">Total Portfolio Value</h3>
-                  <p className="text-2xl md:text-3xl font-bold">₹{portfolioData.totalPortfolioValue.toLocaleString('en-IN')}</p>
-                </div>
-                <div
-                  className={`p-3 md:p-5 rounded-lg border-2 ${
-                    darkMode ? "border-blue-500 bg-gray-700" : "border-blue-300 bg-white"
-                  } shadow-lg hover:scale-105 transform transition-all duration-300`}
-                >
-                  <h3 className="text-md md:text-lg font-medium mb-2">Invested Amount</h3>
-                  <p className="text-2xl md:text-3xl font-bold">₹{portfolioData.investedAmount.toLocaleString('en-IN')}</p>
-                </div>
-                <div
-                  className={`p-3 md:p-5 rounded-lg border-2 ${
-                    darkMode ? "border-blue-500 bg-gray-700" : "border-blue-300 bg-white"
-                  } shadow-lg hover:scale-105 transform transition-all duration-300`}
-                >
-                  <h3 className="text-md md:text-lg font-medium mb-2">Cash Balance</h3>
-                  <p className="text-2xl md:text-3xl font-bold ">₹{portfolioData.cashBalance.toLocaleString('en-IN')}</p>
-                </div>
-              </div>
-            </section>
+            {error && (
+              <p className="text-red-500 mb-4">{error}</p>
+            )}
 
-            {/* Stock Holdings Section */}
-            <section className={`mt-8 w-full p-6 rounded-lg shadow-lg ${darkMode ? "bg-gray-900" : "bg-gray-50"} transition-all duration-300`}>
-              <h2 className="text-xl md:text-2xl font-semibold mb-6">Stock Holdings</h2>
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-gray-300 dark:border-gray-700">
-                    <th className="py-3 px-4 text-sm md:text-lg font-medium">Stock Symbol</th>
-                    <th className="py-3 px-4 text-sm md:text-lg font-medium">Shares</th>
-                    <th className="py-3 px-4 text-sm md:text-lg font-medium">Value (INR)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {portfolioData.stockHoldings.map((stock, index) => (
-                    <tr
-                      key={index}
-                      className={`border-b ${
-                        darkMode ? "dark:border-gray-700 hover:bg-gray-700" : "border-gray-200 hover:bg-gray-100"
-                      } `}
+            {isLoading ? (
+              <p className="text-gray-400">Loading portfolio...</p>
+            ) : (
+              <>
+                {/* Portfolio Summary Section */}
+                <section className={`p-6 rounded-lg w-full shadow-lg ${darkMode ? "bg-gray-900" : "bg-gray-50"} transition-all duration-300`}>
+                  <h2 className="text-xl md:text-2xl font-semibold mb-6">Portfolio Overview</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div
+                      className={`p-3 md:p-5 rounded-lg border-2 ${
+                        darkMode ? "border-blue-500 bg-gray-700" : "border-blue-300 bg-white"
+                      } shadow-lg hover:scale-105 transform transition-all duration-300`}
                     >
-                      <td className="py-3 px-4 text-xs md:text-lg font-medium">{stock.symbol}</td>
-                      <td className="py-3 px-4 text-xs md:text-lg ">{stock.shares}</td>
-                      <td className="py-3 px-4 text-xs md:text-lg ">₹{stock.value.toLocaleString('en-IN')}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
+                      <h3 className="text-md md:text-lg font-medium mb-2">Net Worth</h3>
+                      <p className="text-2xl md:text-3xl font-bold">{formatInr(Number(summary?.netWorth ?? 0))}</p>
+                    </div>
+                    <div
+                      className={`p-3 md:p-5 rounded-lg border-2 ${
+                        darkMode ? "border-blue-500 bg-gray-700" : "border-blue-300 bg-white"
+                      } shadow-lg hover:scale-105 transform transition-all duration-300`}
+                    >
+                      <h3 className="text-md md:text-lg font-medium mb-2">Invested Amount</h3>
+                      <p className="text-2xl md:text-3xl font-bold">{formatInr(Number(summary?.totalInvested ?? 0))}</p>
+                    </div>
+                    <div
+                      className={`p-3 md:p-5 rounded-lg border-2 ${
+                        darkMode ? "border-blue-500 bg-gray-700" : "border-blue-300 bg-white"
+                      } shadow-lg hover:scale-105 transform transition-all duration-300`}
+                    >
+                      <h3 className="text-md md:text-lg font-medium mb-2">Cash Balance</h3>
+                      <p className="text-2xl md:text-3xl font-bold ">{formatInr(Number(summary?.walletBalance ?? 0))}</p>
+                    </div>
+                    <div
+                      className={`p-3 md:p-5 rounded-lg border-2 ${
+                        darkMode ? "border-blue-500 bg-gray-700" : "border-blue-300 bg-white"
+                      } shadow-lg hover:scale-105 transform transition-all duration-300`}
+                    >
+                      <h3 className="text-md md:text-lg font-medium mb-2">Total P&amp;L</h3>
+                      <p className={`text-2xl md:text-3xl font-bold ${Number(summary?.totalPnl ?? 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
+                        {Number(summary?.totalPnl ?? 0) >= 0 ? "+" : ""}{formatInr(Number(summary?.totalPnl ?? 0))}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Stock Holdings Section */}
+                <section className={`mt-8 w-full p-6 rounded-lg shadow-lg ${darkMode ? "bg-gray-900" : "bg-gray-50"} transition-all duration-300`}>
+                  <h2 className="text-xl md:text-2xl font-semibold mb-6">Stock Holdings</h2>
+                  {holdings.length === 0 ? (
+                    <p className="text-gray-400">No holdings yet — head to Market to make your first trade.</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-gray-300 dark:border-gray-700">
+                            <th className="py-3 px-4 text-sm md:text-lg font-medium">Symbol</th>
+                            <th className="py-3 px-4 text-sm md:text-lg font-medium">Qty</th>
+                            <th className="py-3 px-4 text-sm md:text-lg font-medium">Avg Cost</th>
+                            <th className="py-3 px-4 text-sm md:text-lg font-medium">Current Price</th>
+                            <th className="py-3 px-4 text-sm md:text-lg font-medium">Current Value</th>
+                            <th className="py-3 px-4 text-sm md:text-lg font-medium">P&amp;L</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {holdings.map((holding) => {
+                            const pnl = holding.unrealizedPnl !== null ? Number(holding.unrealizedPnl) : null;
+                            const pnlPercent = holding.unrealizedPnlPercent !== null ? Number(holding.unrealizedPnlPercent) : null;
+                            const pnlPositive = pnl !== null && pnl >= 0;
+                            return (
+                              <tr
+                                key={holding.id}
+                                className={`border-b ${
+                                  darkMode ? "dark:border-gray-700 hover:bg-gray-700" : "border-gray-200 hover:bg-gray-100"
+                                } `}
+                              >
+                                <td className="py-3 px-4 text-xs md:text-lg font-medium">
+                                  {holding.symbol}
+                                  {holding.priceStale && (
+                                    <span className="ml-2 text-xs text-yellow-500">(stale price)</span>
+                                  )}
+                                </td>
+                                <td className="py-3 px-4 text-xs md:text-lg">{holding.quantity}</td>
+                                <td className="py-3 px-4 text-xs md:text-lg">{formatInr(Number(holding.avgBuyPrice))}</td>
+                                <td className="py-3 px-4 text-xs md:text-lg">
+                                  {holding.currentPrice !== null ? formatInr(Number(holding.currentPrice)) : '—'}
+                                </td>
+                                <td className="py-3 px-4 text-xs md:text-lg">
+                                  {holding.currentValue !== null ? formatInr(Number(holding.currentValue)) : '—'}
+                                </td>
+                                <td className={`py-3 px-4 text-xs md:text-lg font-semibold ${pnl === null ? "" : pnlPositive ? "text-green-500" : "text-red-500"}`}>
+                                  {pnl === null
+                                    ? '—'
+                                    : `${pnlPositive ? '+' : ''}${formatInr(pnl)} (${pnlPositive ? '+' : ''}${pnlPercent?.toFixed(2)}%)`}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </section>
+              </>
+            )}
           </main>
         </div>
       </div>
