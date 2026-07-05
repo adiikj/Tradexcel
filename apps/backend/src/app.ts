@@ -42,6 +42,10 @@ import leaderboardRouter from './routes/leaderboard.routes.js';
 
 app.use('/api/v1', leaderboardRouter);
 
+import contestRouter from './routes/contest.routes.js';
+
+app.use('/api/v1', contestRouter);
+
 import { errorHandler } from './middlewares/error.middleware.js';
 
 app.use(errorHandler);

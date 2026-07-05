@@ -1,11 +1,10 @@
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
-import { getQuotes } from "../services/pricing.js";
+import { computeNetWorths } from "../services/netWorth.js";
 
 interface AuthRequest {
   user?: { id: string };
@@ -29,43 +28,24 @@ interface RankedUser {
 
 let cache: { rankings: RankedUser[]; expiresAt: number } | null = null;
 
-// Recomputes net worth for every verified user in one pass: a single batched
-// quote fetch across every symbol anyone holds, rather than N+1 price calls.
 async function computeRankings(): Promise<RankedUser[]> {
   const users = await prisma.user.findMany({
     where: { otpVerified: true, wallet: { isNot: null } },
-    select: {
-      id: true,
-      name: true,
-      username: true,
-      avatar: true,
-      wallet: { select: { balance: true } },
-      holdings: { select: { symbol: true, quantity: true, avgBuyPrice: true } },
-    },
+    select: { id: true, name: true, username: true, avatar: true },
   });
 
-  const allSymbols = [...new Set(users.flatMap((u) => u.holdings.map((h) => h.symbol)))];
-  const quotes = allSymbols.length > 0 ? await getQuotes(allSymbols) : {};
+  const netWorths = await computeNetWorths(users.map((u) => u.id));
 
   const unranked = users.map((user) => {
-    const holdingsValue = user.holdings.reduce((sum, holding) => {
-      const quote = quotes[holding.symbol];
-      // A failed quote falls back to the position's cost basis (zero P&L
-      // for that holding) rather than dropping it or 500ing the endpoint —
-      // same hardening rule as the portfolio endpoint.
-      const price = quote ? new Prisma.Decimal(quote.price) : holding.avgBuyPrice;
-      return sum.add(price.mul(holding.quantity));
-    }, new Prisma.Decimal(0));
-
-    const netWorth = user.wallet!.balance.add(holdingsValue);
-    const totalPnlPercent = ((netWorth.toNumber() - STARTING_BALANCE) / STARTING_BALANCE) * 100;
+    const netWorth = netWorths.get(user.id)!.toNumber();
+    const totalPnlPercent = ((netWorth - STARTING_BALANCE) / STARTING_BALANCE) * 100;
 
     return {
       userId: user.id,
       name: user.name,
       username: user.username,
       avatar: user.avatar,
-      netWorth: netWorth.toNumber(),
+      netWorth,
       totalPnlPercent,
     };
   });

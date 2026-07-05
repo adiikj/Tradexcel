@@ -24,9 +24,10 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  wallet       Wallet?
-  holdings     Holding[]
-  transactions Transaction[]
+  wallet         Wallet?
+  holdings       Holding[]
+  transactions   Transaction[]
+  contestEntries ContestEntry[]
 }
 
 enum Side {
@@ -67,4 +68,41 @@ model Transaction {
   price     Decimal  @db.Decimal(18, 4)
   total     Decimal  @db.Decimal(18, 2)
   createdAt DateTime @default(now())
+}
+
+enum ContestStatus {
+  UPCOMING
+  LIVE
+  ENDED
+}
+
+// v1 contests rank participants by their existing main-portfolio net worth
+// delta since they joined — not an isolated per-contest wallet. Simpler to
+// build and reason about; isolated wallets are a documented stretch goal.
+model Contest {
+  id              String        @id @default(cuid())
+  name            String
+  startAt         DateTime
+  endAt           DateTime
+  startingBalance Decimal       @default(100000) @db.Decimal(18, 2)
+  status          ContestStatus @default(UPCOMING)
+  prize           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  entries ContestEntry[]
+}
+
+model ContestEntry {
+  id            String    @id @default(cuid())
+  contestId     String
+  contest       Contest   @relation(fields: [contestId], references: [id])
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  joinedAt      DateTime  @default(now())
+  joinNetWorth  Decimal   @db.Decimal(18, 2)
+  finalRank     Int?
+  finalNetWorth Decimal?  @db.Decimal(18, 2)
+
+  @@unique([contestId, userId])
 }
