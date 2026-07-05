@@ -36,7 +36,7 @@ export const loginUser = async (emailOrUsername: string, credential: string, mod
 
 // Function to register a user — creates the account directly and emails a
 // one-time verification code (see verifyOTP).
-export const registerUser = async ({ name, username, email, password, pin, dob }) => {
+export const registerUser = async ({ name, username, email, password, pin }) => {
   try {
     const response = await axios.post(`${BASE_URL}/register`, {
       name,
@@ -44,7 +44,6 @@ export const registerUser = async ({ name, username, email, password, pin, dob }
       email,
       password,
       pin,
-      dob,
     });
     return response.data; // Return success message for OTP sent
   } catch (error) {

@@ -11,7 +11,6 @@ function SignUp() {
   const navigate = useRouter();
 
   const [showPassword, setShowPassword] = useState<any>(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState<any>(false);
   const [showPin, setShowPin] = useState<any>(false);
   const [isLoading, setIsLoading] = useState<any>(false);
 
@@ -20,10 +19,6 @@ function SignUp() {
     username: "",
     email: "",
     password: "",
-    cpassword: "",
-    day: "",
-    month: "",
-    year: "",
     pin: "",
   });
 
@@ -37,14 +32,10 @@ function SignUp() {
     e.preventDefault();
     setError("");
 
-    const { name, username, email, password, cpassword, day, month, year, pin } = formData;
+    const { name, username, email, password, pin } = formData;
 
-    if (!name || !username || !email || !password || !cpassword || !pin) {
+    if (!name || !username || !email || !password || !pin) {
       return setError("Name, username, email, password, and PIN are required.");
-    }
-
-    if (password !== cpassword) {
-      return setError("Password and Confirm Password do not match.");
     }
 
     if (password.length < 8) {
@@ -60,15 +51,12 @@ function SignUp() {
       return;
     }
 
-    const dob = day && month && year ? new Date(`${year}-${month}-${day}`).toISOString().split("T")[0] : undefined;
-
     const payload = {
       name,
       username,
       email,
       password,
       pin,
-      dob,
     };
 
     try {
@@ -92,7 +80,6 @@ function SignUp() {
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const togglePinVisibility = () => setShowPin(!showPin);
-  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
 
   return (
     <>
@@ -221,28 +208,6 @@ function SignUp() {
                 transition={{ duration: 0.5, delay: 0.6 }}
                 className="relative"
               >
-                <label className="text-gray-800 text-sm mb-2 block">Confirm Password</label>
-                <input
-                  name="cpassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
-                  placeholder="Enter confirm password"
-                  value={formData.cpassword}
-                  onChange={handleChange}
-                />
-                <span
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer pt-6"
-                  onClick={toggleConfirmPasswordVisibility}
-                >
-                  {showConfirmPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-                </span>
-              </motion.div>
-              <motion.div
-                initial={{ x: -50, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.7 }}
-                className="relative"
-              >
                 <label className="text-gray-800 text-sm mb-2 block">4-Digit PIN</label>
                 <p className="text-gray-500 text-xs mb-2">
                   A quick way to log in later, instead of your password.
@@ -263,68 +228,6 @@ function SignUp() {
                 >
                   {showPin ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                 </span>
-              </motion.div>
-
-              <motion.div
-                initial={{ x: -50, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.9 }}
-              >
-                <label className="text-gray-800 text-sm mb-2 block">Date of Birth (optional)</label>
-                <div className="flex gap-4">
-                  <select
-                    name="day"
-                    className="text-gray-800 bg-white border border-gray-300 w-24 text-sm px-2 md:px-4 py-3 rounded-md"
-                    value={formData.day}
-                    onChange={handleChange}
-                  >
-                    <option value="">Day</option>
-                    {[...Array(31)].map((_, i) => (
-                      <option key={i} value={i + 1}>
-                        {i + 1}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    name="month"
-                    className="text-gray-800 bg-white border border-gray-300 w-36 text-sm px-1 md:px-4 py-3 rounded-md"
-                    value={formData.month}
-                    onChange={handleChange}
-                  >
-                    <option value="">Month</option>
-                    {[
-                      "January",
-                      "February",
-                      "March",
-                      "April",
-                      "May",
-                      "June",
-                      "July",
-                      "August",
-                      "September",
-                      "October",
-                      "November",
-                      "December",
-                    ].map((month, i) => (
-                      <option key={i} value={i + 1}>
-                        {month}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    name="year"
-                    className="text-gray-800 bg-white border border-gray-300 w-28 text-sm px-2 md:px-4 py-3 rounded-md"
-                    value={formData.year}
-                    onChange={handleChange}
-                  >
-                    <option value="">Year</option>
-                    {Array.from({ length: 100 }, (_, i) => 2024 - i).map((year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </motion.div>
 
               <motion.button
