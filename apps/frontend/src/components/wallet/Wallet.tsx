@@ -81,16 +81,16 @@ function Wallet() {
       <div
         className={`${
           darkMode
-            ? "bg-gray-900 text-white"
+            ? "bg-gray-800 text-white"
             : "bg-white text-black"
-        } min-h-screen transition-all duration-300`}
+        } min-h-screen transition-colors duration-300`}
       >
         <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <div className="flex flex-col font-pop md:flex-row">
           <Vheader darkMode={darkMode} />
           <main className="flex-grow p-4 md:p-6 m-4 pb-24 md:m-10">
-            <h1 className="text-3xl md:text-4xl font-bold">Wallet</h1>
-            <div className="h-2 w-20 md:w-32 bg-blue-500 rounded-full mb-6"></div>
+            <h1 className="text-2xl md:text-3xl font-bold">Wallet</h1>
+            <div className="h-2 w-20 md:w-32 bg-blue-500 rounded-full mb-6 animate-line"></div>
 
             {error && (
               <div className="mb-4 flex items-center gap-3">
@@ -104,34 +104,39 @@ function Wallet() {
             {/* Profile Section */}
             <div
               className={`rounded-lg p-4 mb-6 transition-colors duration-300 ${
-                darkMode ? "bg-gray-800" : "bg-gray-100 shadow"
+                darkMode ? "bg-gray-900" : "bg-gray-100 shadow"
               }`}
             >
               <div className="flex items-center">
-                <div
-                  className={`transition-all duration-300 rounded-full ${
+                <Link
+                  href="/your-profile"
+                  className={`shrink-0 rounded-full transition-transform duration-200 hover:scale-105 ${
                     darkMode ? "bg-blue-500 text-gray-100" : "bg-blue-100 text-blue-700"
                   }`}
                 >
-                  <img className=" w-10 h-10 md:w-16 md:h-16 cursor-pointer rounded-full overflow-hidden" src={((avatar || "https://via.placeholder.com/120x120.png?text=No+Avatar")?.src || (avatar || "https://via.placeholder.com/120x120.png?text=No+Avatar")) as string} alt="" />
-                </div>
+                  <img className="w-10 h-10 md:w-16 md:h-16 cursor-pointer rounded-full overflow-hidden object-cover" src={((avatar || "https://via.placeholder.com/120x120.png?text=No+Avatar")?.src || (avatar || "https://via.placeholder.com/120x120.png?text=No+Avatar")) as string} alt="" />
+                </Link>
                 <div className="ml-4">
-                  <h2 className="text-2xl font-bold">{userName || 'User'}</h2>
+                  <h2 className="text-xl font-bold">{userName || 'User'}</h2>
                   <p className="text-sm text-gray-400">Virtual trading account</p>
                 </div>
               </div>
             </div>
 
             {/* Cash Balance */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            <div className="mb-6">
               <div
-                className={`p-4 rounded-lg transition-colors duration-300 ${
-                  darkMode ? "bg-gray-700" : "bg-gray-100 shadow"
+                className={`p-4 rounded-lg transition-colors duration-300 max-w-xs ${
+                  darkMode ? "bg-gray-900" : "bg-gray-100 shadow"
                 }`}
               >
-                <h3 className="text-md md:text-xl font-semibold">Cash Balance</h3>
-                <p className="text-lg md:text-2xl my-2 font-bold">
-                  {isLoading ? '...' : formatInr(balance)}
+                <h3 className="text-sm md:text-lg font-semibold">Cash Balance</h3>
+                <p className="text-base md:text-xl my-2 font-bold tabular-nums">
+                  {isLoading ? (
+                    <span className={`inline-block h-7 w-28 rounded animate-pulse ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
+                  ) : (
+                    formatInr(balance)
+                  )}
                 </p>
                 <p className="text-xs text-gray-400">{currency}</p>
               </div>
@@ -143,7 +148,7 @@ function Wallet() {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 text-xs md:text-lg rounded transition-colors duration-300 ${
+                  className={`px-4 py-2 text-xs md:text-base rounded transition-colors duration-300 ${
                     activeTab === tab
                       ? "bg-blue-500 text-white"
                       : darkMode
@@ -159,18 +164,22 @@ function Wallet() {
             {/* Transactions List */}
             <div
               className={`rounded-lg p-4 transition-colors duration-300 ${
-                darkMode ? "bg-gray-800" : "bg-white shadow"
+                darkMode ? "bg-gray-900" : "bg-white shadow"
               }`}
             >
-              <h2 className="text-lg md:text-2xl font-semibold mb-4">Transactions</h2>
+              <h2 className="text-base md:text-xl font-semibold mb-4">Transactions</h2>
               {isLoading ? (
-                <p className="text-gray-400">Loading transactions...</p>
+                <div className="space-y-4">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className={`h-16 rounded-lg animate-pulse ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`} />
+                  ))}
+                </div>
               ) : filteredTransactions.length === 0 ? (
                 <div className="text-center py-10">
                   <p className="text-gray-400 mb-4">No transactions yet — make your first trade to see it here.</p>
                   <Link
                     href="/market"
-                    className="inline-block px-6 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300"
+                    className="inline-block px-6 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
                   >
                     Go to Market
                   </Link>
@@ -180,20 +189,20 @@ function Wallet() {
                   {filteredTransactions.map((transaction) => (
                     <div
                       key={transaction.id}
-                      className={`flex flex-col md:flex-row justify-between items-start md:items-center p-4 rounded-lg transition-colors duration-300 ${
-                        darkMode ? "bg-gray-900 hover:bg-gray-700" : "bg-gray-100 hover:bg-gray-300"
+                      className={`flex flex-col md:flex-row justify-between items-start md:items-center p-4 rounded-lg transition-colors duration-200 ${
+                        darkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-100 hover:bg-gray-300"
                       }`}
                     >
                       <div>
-                        <h3 className="text-sm md:text-lg font-bold">
+                        <h3 className="text-sm md:text-base font-bold">
                           {transaction.side === 'BUY' ? 'Bought' : 'Sold'} {transaction.quantity} {transaction.symbol}
                         </h3>
-                        <p className="text-xs md:text-sm text-gray-400">
+                        <p className="text-xs md:text-sm text-gray-400 tabular-nums">
                           {new Date(transaction.createdAt).toLocaleString('en-IN')} · @ {formatInr(transaction.price)}
                         </p>
                       </div>
                       <div
-                        className={`text-sm md:text-lg font-bold mt-2 md:mt-0 ${
+                        className={`text-sm md:text-base font-bold mt-2 md:mt-0 tabular-nums ${
                           transaction.side === 'BUY' ? "text-red-400" : "text-green-400"
                         }`}
                       >

@@ -8,6 +8,21 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Neither <html> nor <body> had a background color, so page navigation
+   (Next.js briefly unmounts the old route before mounting the new one)
+   exposed the browser's default white for a frame — visible as a flash,
+   especially jarring in dark mode. Keying the root background to the same
+   data-theme attribute ThemeContext already sets closes that gap. */
+html[data-theme="dark"] {
+  background-color: #1f2937; /* gray-800, matches every page's dark background */
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  background-color: #ffffff;
+  color-scheme: light;
+}
+
 @layer base {
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
@@ -41,6 +56,7 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden; /* Prevent horizontal scrolling */
+  background-color: inherit; /* pick up the data-theme background set on <html> above */
 }
 
 
@@ -75,17 +91,25 @@ body {
   background: #FF0000;
 }
 
-@keyframes lineAnimation {
-  0% {
-    width: 0%;
+@keyframes lineGrow {
+  from {
+    transform: scaleX(0);
   }
-  100% {
-    width: 100%;
+  to {
+    transform: scaleX(1);
   }
 }
 
-/* Global styles for all animated lines */
+/* Heading underline bars draw in on mount. transform (not width) so it
+   doesn't fight the element's own Tailwind width class and stays off the
+   layout thread. */
 .animate-line {
-  width: 0%;
-  animation: lineAnimation 1s ease-out forwards;
+  transform-origin: left;
+  animation: lineGrow 0.6s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-line {
+    animation: none;
+  }
 }

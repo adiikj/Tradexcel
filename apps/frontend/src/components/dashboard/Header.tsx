@@ -66,7 +66,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
       {/* Logo */}
       <Link href="/dashboard">
         <div
-          className={`flex flex-row items-center gap-2.5 py-2 text-lg md:text-2xl font-bold font-pop ${
+          className={`flex flex-row items-center gap-2.5 py-2 text-base md:text-xl font-bold font-pop ${
             darkMode ? "text-blue-400" : "text-blue-900"
           }`}
         >
@@ -80,7 +80,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
         {/* Dark Mode Toggle */}
         <button
           onClick={toggleDarkMode}
-          className="text-xl bg-transparent border-0 cursor-pointer md:mr-4"
+          className="text-lg bg-transparent border-0 cursor-pointer md:mr-4"
         >
           <img
             src={((darkMode ? lighty : dark)?.src || (darkMode ? lighty : dark)) as string}

@@ -60,9 +60,13 @@ function TopGainers({ darkMode  }: any) {
 
   return (
     <div>
-      <div className="text-xl font-medium mb-4">Today's Gainers</div>
+      <div className="text-lg font-medium mb-4">Today's Gainers</div>
       {loading ? (
-        <div>Loading...</div>
+        <div className="space-y-2 md:space-y-4">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className={`h-14 rounded-lg animate-pulse ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`} />
+          ))}
+        </div>
       ) : (
         gainers.map((stock, index) => (
           <Stock

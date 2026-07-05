@@ -45,25 +45,34 @@ function AllStocks({ setSelectedStock, darkMode, filteredStocks  }: any) {
   const stocksToDisplay = filteredStocks || allstocks;
 
   return (
-    <div className={`transition-all duration-300`}>
+    <div>
       {loading ? (
-        <div>Loading...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className={`h-24 rounded-lg animate-pulse ${darkMode ? 'bg-gray-800' : 'bg-white'}`} />
+          ))}
+        </div>
+      ) : stocksToDisplay.length === 0 ? (
+        <p className={`text-center py-10 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          No stocks match your search.
+        </p>
       ) : (
-        stocksToDisplay.map((stock, index) => (
-          <div key={index} className="cursor-pointer" onClick={() => setSelectedStock(stock)}>
-            <ShortStock
-              key={index}
-              shortName={stock.shortName}
-              fullName={stock.fullName}
-              price={stock.price}
-              stockPrices={stock.stockPrices}
-              percentageChange={stock.percentageChange}
-              todayChange={stock.todayChange}
-              labels={stock.labels}
-              darkMode={darkMode}
-            />
-          </div>
-        ))
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {stocksToDisplay.map((stock, index) => (
+            <div key={index} className="cursor-pointer [&>div]:mb-0 [&>div]:h-full" onClick={() => setSelectedStock(stock)}>
+              <ShortStock
+                shortName={stock.shortName}
+                fullName={stock.fullName}
+                price={stock.price}
+                stockPrices={stock.stockPrices}
+                percentageChange={stock.percentageChange}
+                todayChange={stock.todayChange}
+                labels={stock.labels}
+                darkMode={darkMode}
+              />
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

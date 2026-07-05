@@ -20,10 +20,12 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
       chartInstance.current.destroy();
     }
 
-    // Determine color based on today's change
+    // Fade toward transparent rather than a hardcoded white — fading to a
+    // literal white washed out into an ugly bright patch against dark-mode
+    // cards; transparent reads correctly on either theme.
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, isPositive ? 'green' : 'red');
-    gradient.addColorStop(1, 'white');
+    gradient.addColorStop(0, isPositive ? '#22c55e' : '#ef4444');
+    gradient.addColorStop(1, isPositive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)');
 
     // Create a new chart with sharp edges and no fill
     chartInstance.current = new Chart(ctx, {
@@ -100,15 +102,15 @@ const formattedTodayChange = todayChange && todayChange !== 'NA' ? `${todayChang
 const formattedPercentageChange = percentageChange && percentageChange !== 'NA' ? `${percentageChange}` : 'NA';
 
   return (
-    <div className={`p-3 w-full flex flex-row sm:flex-row items-center rounded-lg shadow-md mb-2 md:mb-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} transition-all duration-300`}>
+    <div className={`p-3 w-full flex flex-row sm:flex-row items-center rounded-lg shadow-md hover:shadow-lg mb-2 md:mb-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} transition-[background-color,box-shadow] duration-300`}>
       {/* Stock details (name, full name, price, and change) */}
       <div className="flex flex-col items-center w-full sm:w-1/3 mb-4 sm:mb-0">
         {/* Stock short name */}
-        <div className="text-md md:text-lg font-semibold">{shortName}</div>
+        <div className="text-sm md:text-base font-semibold">{shortName}</div>
 
         {/* Full stock name with truncation */}
         <div
-          className={`text-xs md:text-sm ${darkMode ?  'text-gray-200' : ' text-gray-600'} transition-all duration-300 overflow-hidden whitespace-nowrap text-ellipsis`}
+          className={`text-xs md:text-sm ${darkMode ?  'text-gray-200' : ' text-gray-600'} transition-colors duration-300 overflow-hidden whitespace-nowrap text-ellipsis`}
           title={fullName} // Show full name on hover
         >
           {fullName.length > 15 ? `${fullName.substring(0, 15)}...` : fullName}
@@ -122,10 +124,10 @@ const formattedPercentageChange = percentageChange && percentageChange !== 'NA' 
 
       {/* Stock price and today's change */}
       <div className="flex flex-col items-center justify-end w-full sm:w-1/3">
-        <div className="text-sm md:text-lg font-medium">{price}</div>
+        <div className="text-sm md:text-base font-medium tabular-nums">{price}</div>
 
         {/* Display today's change and percentage */}
-        <div className={`text-xs md:text-sm ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+        <div className={`text-xs md:text-sm tabular-nums ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
           {formattedTodayChange} ({formattedPercentageChange})
         </div>
       </div>

@@ -112,8 +112,8 @@ function Contest() {
         <div className="flex flex-col lg:flex-row">
           <Vheader darkMode={darkMode} />
           <main className="flex-1 pb-24 md:pb-0 p-6 m-2 md:m-12">
-            <h1 className="text-3xl md:text-4xl font-bold">Contests</h1>
-            <div className="h-2 w-32 md:w-36 bg-blue-500 rounded-full mb-6"></div>
+            <h1 className="text-2xl md:text-3xl font-bold">Contests</h1>
+            <div className="h-2 w-32 md:w-36 bg-blue-500 rounded-full mb-6 animate-line"></div>
 
             {error && (
               <div className="mb-4 flex items-center gap-3">
@@ -131,7 +131,7 @@ function Contest() {
                   {(["ALL", "UPCOMING", "LIVE", "ENDED"] as const).map((tab) => (
                     <button
                       key={tab}
-                      className={`px-4 md:px-6 py-2 text-sm md:text-lg rounded-md ${
+                      className={`px-4 md:px-6 py-2 text-sm md:text-base rounded-md ${
                         statusFilter === tab
                           ? "bg-blue-500 text-white"
                           : darkMode
@@ -154,7 +154,7 @@ function Contest() {
                     {filteredContests.map((contest) => (
                       <div key={contest.id} className={`p-6 md:w-96 rounded-2xl shadow-lg ${cardBg}`}>
                         <div className="flex justify-between items-start mb-2">
-                          <h2 className="text-xl font-bold">{contest.name}</h2>
+                          <h2 className="text-lg font-bold">{contest.name}</h2>
                           <span
                             className={`text-xs px-2 py-1 rounded-full text-white ${STATUS_STYLES[contest.status]}`}
                           >
@@ -209,7 +209,7 @@ function Contest() {
                   <>
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h2 className="text-2xl font-bold">{selectedContest.name}</h2>
+                        <h2 className="text-xl font-bold">{selectedContest.name}</h2>
                         {selectedContest.prize && (
                           <p className="text-sm text-blue-400">{selectedContest.prize}</p>
                         )}
@@ -247,7 +247,7 @@ function Contest() {
                         ))}
                     </div>
 
-                    <h3 className="text-lg font-semibold mb-3">Standings</h3>
+                    <h3 className="text-base font-semibold mb-3">Standings</h3>
                     {standings.length === 0 ? (
                       <p className="text-gray-400">No one has joined yet — be the first.</p>
                     ) : (

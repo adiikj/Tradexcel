@@ -45,11 +45,11 @@ function TopLosers({ darkMode  }: any) {
           const data = await getStockData(stock.symbol);
 
           // Use fallback values if data fetching fails
-          const stockData = data || { 
-            currentPrice: 1000, 
-            percentageChange: "N/A", 
-            todayChange: "N/A", 
-            stockPrices: Array(30).fill(1000) 
+          const stockData = data || {
+            currentPrice: 1000,
+            percentageChange: "N/A",
+            todayChange: "N/A",
+            stockPrices: Array(30).fill(1000)
           };
 
           return {
@@ -72,18 +72,22 @@ function TopLosers({ darkMode  }: any) {
 
   return (
     <div>
-      <div className="text-xl font-medium mb-4">Today's Losers</div>
+      <div className="text-lg font-medium mb-4">Today's Losers</div>
       {loading ? (
-        <div>Loading...</div>
+        <div className="space-y-2 md:space-y-4">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className={`h-14 rounded-lg animate-pulse ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`} />
+          ))}
+        </div>
       ) : (
         losers.map((stock, index) => (
-          <Stock 
-            key={index} 
-            shortName={stock.shortName} 
-            fullName={stock.fullName} 
-            price={stock.price} 
-            stockPrices={stock.stockPrices} 
-            percentageChange={stock.percentageChange} 
+          <Stock
+            key={index}
+            shortName={stock.shortName}
+            fullName={stock.fullName}
+            price={stock.price}
+            stockPrices={stock.stockPrices}
+            percentageChange={stock.percentageChange}
             todayChange={stock.todayChange}
             labels={stock.labels} // Pass labels here for chart X-axis
             darkMode={darkMode}

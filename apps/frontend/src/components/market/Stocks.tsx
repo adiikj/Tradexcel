@@ -5,12 +5,18 @@ import { Chart, CategoryScale, LinearScale, LineElement, LineController, PointEl
 // Register necessary components and Filler plugin
 Chart.register(CategoryScale, LinearScale, LineElement, LineController, PointElement, Tooltip, Filler);
 
-function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, price, todayChange, darkMode  }: any) {
+function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, price, todayChange, darkMode, ownedQuantity, onBuy, onSell }: any) {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
 
   // Determine if today's change is positive or negative
   const isPositive = parseFloat(todayChange) >= 0;
+
+  // Real, already-available data (the 30-day price series we already fetch
+  // for the chart) rather than empty decoration — no backend change needed.
+  const validPrices = (stockPrices || []).filter((p: number) => typeof p === 'number' && !Number.isNaN(p));
+  const thirtyDayHigh = validPrices.length ? Math.max(...validPrices) : null;
+  const thirtyDayLow = validPrices.length ? Math.min(...validPrices) : null;
 
   useEffect(() => {
     const ctx = chartRef.current.getContext('2d');
@@ -117,20 +123,81 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
   const formattedPercentageChange = percentageChange && percentageChange !== 'NA' ? `${percentageChange}` : 'NA';
 
   return (
-    <div className={darkMode ? "bg-gray-800 text-white transition-all duration-300" : "bg-white text-black transition-all duration-300"}>
-      {/* Line chart canvas for stock price */}
+    <div
+      className={`rounded-2xl p-5 md:p-8 shadow-lg transition-colors duration-300 ${
+        darkMode ? "bg-gray-900 text-white" : "bg-grey text-black"
+      }`}
+    >
       <div className="flex flex-col p-2 sm:p-4">
-        <h1 className={`text-xl sm:text-2xl transition-all duration-300 ${darkMode ? "text-white" : "text-black"}`}>{fullName}</h1>
-        <div className="h-1 w-44 bg-blue-500 rounded-full"></div>
+        <div className="flex items-center gap-2">
+          <span
+            className={`text-xs font-bold px-2 py-1 rounded-md tracking-wide ${
+              darkMode ? "bg-blue-500/20 text-blue-400" : "bg-blue-100 text-blue-700"
+            }`}
+          >
+            {shortName}
+          </span>
+        </div>
+        <h1 className={`text-lg sm:text-xl mt-2 transition-colors duration-300 ${darkMode ? "text-white" : "text-black"}`}>{fullName}</h1>
+        <div className="h-1 w-44 bg-blue-500 rounded-full animate-line"></div>
         <div className="flex flex-col sm:flex-row sm:gap-3 mt-3">
-          <p className={` text-3xl sm:text-4xl mt-1 md:mt-3 transition-all duration-300 ${darkMode ? "text-white" : "text-black"}`}> {price}</p>
-          <p className={isPositive ? (darkMode ? "text-green-400 mt-0 md:mt-6" : "text-green-500 mt-2 md:mt-6") : (darkMode ? "text-red-400 mt-0 md:mt-6" : "text-red-500 mt-0 md:mt-6")}>
+          <p className={`tabular-nums text-2xl sm:text-3xl mt-1 md:mt-3 transition-colors duration-300 ${darkMode ? "text-white" : "text-black"}`}> {price}</p>
+          <p className={`tabular-nums ${isPositive ? (darkMode ? "text-green-400 mt-0 md:mt-6" : "text-green-500 mt-2 md:mt-6") : (darkMode ? "text-red-400 mt-0 md:mt-6" : "text-red-500 mt-0 md:mt-6")}`}>
             {formattedTodayChange} ({formattedPercentageChange})
           </p>
         </div>
+
+        {(thirtyDayHigh !== null || thirtyDayLow !== null || ownedQuantity > 0) && (
+          <div className={`flex flex-wrap items-center gap-x-6 gap-y-1 mt-3 pt-3 border-t ${darkMode ? "border-gray-700" : "border-gray-300"}`}>
+            {thirtyDayHigh !== null && (
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs uppercase tracking-wide text-gray-400">30D High</span>
+                <span className="tabular-nums text-sm font-semibold">₹{thirtyDayHigh?.toFixed(2)}</span>
+              </div>
+            )}
+            {thirtyDayLow !== null && (
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs uppercase tracking-wide text-gray-400">30D Low</span>
+                <span className="tabular-nums text-sm font-semibold">₹{thirtyDayLow?.toFixed(2)}</span>
+              </div>
+            )}
+            {ownedQuantity > 0 && (
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs uppercase tracking-wide text-gray-400">You own</span>
+                <span className="tabular-nums text-sm font-semibold">{ownedQuantity} shares</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {(onBuy || onSell) && (
+          <div className="flex flex-row gap-2 mt-4">
+            <button
+              className={`${
+                darkMode ? "bg-green-600 hover:bg-green-500" : "bg-green-500 hover:bg-green-400"
+              } text-white px-7 py-2 rounded transition-colors duration-200 active:scale-95 flex-1 sm:flex-none`}
+              onClick={onBuy}
+            >
+              Buy
+            </button>
+            <button
+              className={`${
+                darkMode ? "bg-red-600 hover:bg-red-500" : "bg-red-500 hover:bg-red-400"
+              } text-white px-7 py-2 rounded transition-colors duration-200 active:scale-95 flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600`}
+              onClick={onSell}
+              disabled={!ownedQuantity}
+            >
+              Sell
+            </button>
+          </div>
+        )}
       </div>
-      <div className="flex justify-center w-full h-full">
-        <canvas ref={chartRef} className={`w-full h-72 sm:h-96 lg:h-[400px] px-0 pt-0 md:px-8 md:pt-8 border-dashed border-b-2 ${darkMode ? "border-white" : "border-black"}`}></canvas> {/* Graph width and height */}
+      <div
+        className={`flex justify-center w-full h-full mt-4 rounded-xl p-2 md:p-4 ${
+          darkMode ? "bg-gray-800" : "bg-white"
+        }`}
+      >
+        <canvas ref={chartRef} className="w-full h-72 sm:h-96 lg:h-[400px]"></canvas>
       </div>
     </div>
   );

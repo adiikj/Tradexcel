@@ -1,1 +1,1 @@
-export const DB_NAME = "TradeXcel"
+export const DB_NAME = "Mocket"

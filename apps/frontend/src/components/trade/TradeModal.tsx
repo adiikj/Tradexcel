@@ -79,10 +79,10 @@ function TradeModal({
       >
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h2 className="text-xl font-bold">{isBuy ? "Buy" : "Sell"} {symbol}</h2>
+            <h2 className="text-lg font-bold">{isBuy ? "Buy" : "Sell"} {symbol}</h2>
             {fullName && <p className="text-sm text-gray-400">{fullName}</p>}
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-200 text-2xl leading-none">&times;</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-200 text-xl leading-none">&times;</button>
         </div>
 
         <div className="flex justify-between text-sm mb-4">
@@ -103,7 +103,7 @@ function TradeModal({
           {isBuy ? `Available cash: ${formatInr(availableCash)}` : `Available quantity: ${availableQty}`}
         </p>
 
-        <div className="flex justify-between text-lg font-bold mb-2">
+        <div className="flex justify-between text-base font-bold mb-2">
           <span>Total</span>
           <span>{formatInr(total)}</span>
         </div>

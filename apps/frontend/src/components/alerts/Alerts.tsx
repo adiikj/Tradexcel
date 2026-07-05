@@ -83,7 +83,7 @@ const Alerts = ({ darkMode }) => {
             darkMode ? "bg-gray-800 text-white" : "bg-white text-black"
           } rounded-md shadow-lg z-10 p-4 max-h-80 overflow-y-auto top-10 sm:top-12 md:left-0 left-1/2 transform -translate-x-1/2`}
         >
-          <h4 className="font-bold text-lg md:text-xl mb-4">Notifications</h4>
+          <h4 className="font-bold text-base md:text-lg mb-4">Notifications</h4>
           <ul className="space-y-4">
             {notifications.length > 0 ? (
               notifications.map((notification) => (
@@ -96,12 +96,12 @@ const Alerts = ({ darkMode }) => {
                   } transition-all duration-300`}
                 >
                   <div className="flex-1">
-                    <p className="font-medium text-md md:text-lg">{notification.message}</p>
+                    <p className="font-medium text-sm md:text-base">{notification.message}</p>
                     <small className="text-gray-400 text-xs md:text-sm">{notification.time}</small>
                   </div>
                   <button
                     onClick={() => handleClearNotification(notification.id)}
-                    className={`text-sm md:text-md px-3 py-1 rounded ${
+                    className={`text-sm md:text-sm px-3 py-1 rounded ${
                       darkMode
                         ? "bg-red-500 hover:bg-red-400 text-white"
                         : "bg-red-100 hover:bg-red-200 text-red-600"

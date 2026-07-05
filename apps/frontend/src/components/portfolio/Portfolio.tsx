@@ -9,6 +9,13 @@ import { getPortfolio } from '../../api/api';
 import TradeModal from '../trade/TradeModal';
 import { formatInr, formatSignedInr, formatPercent } from '../../utils/format';
 
+// Cycled across holdings for the allocation bar + row avatars — cash always
+// renders in neutral gray so it reads as "not a position."
+const ALLOCATION_COLORS = [
+  "bg-blue-500", "bg-purple-500", "bg-teal-500", "bg-amber-500",
+  "bg-pink-500", "bg-indigo-500", "bg-cyan-500", "bg-rose-500",
+];
+
 function Portfolio() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
@@ -35,18 +42,34 @@ function Portfolio() {
     fetchPortfolio();
   }, [fetchPortfolio]);
 
+  const netWorth = Number(summary?.netWorth ?? 0);
+  const walletBalance = Number(summary?.walletBalance ?? 0);
+  const totalPnl = Number(summary?.totalPnl ?? 0);
+  const isPnlPositive = totalPnl >= 0;
+
+  const allocation = [
+    ...holdings.map((h, i) => ({
+      label: h.symbol,
+      value: Number(h.currentValue ?? h.avgBuyPrice * h.quantity),
+      color: ALLOCATION_COLORS[i % ALLOCATION_COLORS.length],
+    })),
+    { label: "Cash", value: walletBalance, color: darkMode ? "bg-gray-600" : "bg-gray-300" },
+  ].filter((slice) => slice.value > 0);
+
+  const cardBg = darkMode ? "bg-gray-900" : "bg-gray-50";
+
   return (
     <>
       <Helmet>
         <title>Portfolio</title>
       </Helmet>
-      <div className={`${darkMode ? "bg-gray-800 text-white" : "bg-white text-black"} font-pop mb-16 md:mb-0  transition-all duration-300`}>
+      <div className={`${darkMode ? "bg-gray-800 text-white" : "bg-white text-black"} font-pop mb-16 md:mb-0 transition-colors duration-300`}>
         <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <div className="flex">
           <Vheader darkMode={darkMode} />
           <main className="flex-1 p-6 m-0 md:m-10">
-            <h1 className="text-3xl md:text-4xl font-bold">Your Portfolio</h1>
-            <div className="h-2 w-44 bg-blue-500 rounded-full mb-6"></div>
+            <h1 className="text-2xl md:text-3xl font-bold">Your Portfolio</h1>
+            <div className="h-2 w-44 bg-blue-500 rounded-full mb-6 animate-line"></div>
 
             {error && (
               <div className="mb-4 flex items-center gap-3">
@@ -58,59 +81,78 @@ function Portfolio() {
             )}
 
             {isLoading ? (
-              <p className="text-gray-400">Loading portfolio...</p>
+              <div className="space-y-6">
+                <div className={`h-40 rounded-2xl animate-pulse ${cardBg}`} />
+                <div className={`h-24 rounded-2xl animate-pulse ${cardBg}`} />
+              </div>
             ) : (
               <>
-                {/* Portfolio Summary Section */}
-                <section className={`p-6 rounded-lg w-full shadow-lg ${darkMode ? "bg-gray-900" : "bg-gray-50"} transition-all duration-300`}>
-                  <h2 className="text-xl md:text-2xl font-semibold mb-6">Portfolio Overview</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div
-                      className={`p-3 md:p-5 rounded-lg border-2 ${
-                        darkMode ? "border-blue-500 bg-gray-700" : "border-blue-300 bg-white"
-                      } shadow-lg hover:scale-105 transform transition-all duration-300`}
+                {/* Net worth hero */}
+                <section className={`p-6 md:p-8 rounded-2xl w-full shadow-lg ${cardBg} transition-colors duration-300`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs md:text-sm uppercase tracking-widest text-gray-400">Net Worth</span>
+                  </div>
+                  <div className="flex flex-wrap items-baseline gap-3 mb-6">
+                    <span className="text-2xl md:text-4xl font-bold tabular-nums">{formatInr(netWorth)}</span>
+                    <span
+                      className={`text-xs md:text-sm px-2.5 py-1 rounded-full font-semibold tabular-nums ${
+                        isPnlPositive ? "bg-green-500/15 text-green-500" : "bg-red-500/15 text-red-500"
+                      }`}
                     >
-                      <h3 className="text-md md:text-lg font-medium mb-2">Net Worth</h3>
-                      <p className="text-2xl md:text-3xl font-bold">{formatInr(summary?.netWorth)}</p>
+                      {formatSignedInr(totalPnl)}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-x-10 gap-y-4 pt-5 border-t border-gray-500/20">
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Invested</div>
+                      <div className="text-base font-semibold tabular-nums">{formatInr(summary?.totalInvested)}</div>
                     </div>
-                    <div
-                      className={`p-3 md:p-5 rounded-lg border-2 ${
-                        darkMode ? "border-blue-500 bg-gray-700" : "border-blue-300 bg-white"
-                      } shadow-lg hover:scale-105 transform transition-all duration-300`}
-                    >
-                      <h3 className="text-md md:text-lg font-medium mb-2">Invested Amount</h3>
-                      <p className="text-2xl md:text-3xl font-bold">{formatInr(summary?.totalInvested)}</p>
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Cash</div>
+                      <div className="text-base font-semibold tabular-nums">{formatInr(walletBalance)}</div>
                     </div>
-                    <div
-                      className={`p-3 md:p-5 rounded-lg border-2 ${
-                        darkMode ? "border-blue-500 bg-gray-700" : "border-blue-300 bg-white"
-                      } shadow-lg hover:scale-105 transform transition-all duration-300`}
-                    >
-                      <h3 className="text-md md:text-lg font-medium mb-2">Cash Balance</h3>
-                      <p className="text-2xl md:text-3xl font-bold ">{formatInr(summary?.walletBalance)}</p>
-                    </div>
-                    <div
-                      className={`p-3 md:p-5 rounded-lg border-2 ${
-                        darkMode ? "border-blue-500 bg-gray-700" : "border-blue-300 bg-white"
-                      } shadow-lg hover:scale-105 transform transition-all duration-300`}
-                    >
-                      <h3 className="text-md md:text-lg font-medium mb-2">Total P&amp;L</h3>
-                      <p className={`text-2xl md:text-3xl font-bold ${Number(summary?.totalPnl ?? 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
-                        {formatSignedInr(summary?.totalPnl)}
-                      </p>
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Holdings</div>
+                      <div className="text-base font-semibold tabular-nums">{holdings.length}</div>
                     </div>
                   </div>
+
+                  {/* Allocation bar — real data (holding value vs cash), not decoration */}
+                  {allocation.length > 0 && netWorth > 0 && (
+                    <div className="mt-6 pt-5 border-t border-gray-500/20">
+                      <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Allocation</div>
+                      <div className="w-full h-3 rounded-full overflow-hidden flex">
+                        {allocation.map((slice) => (
+                          <div
+                            key={slice.label}
+                            className={slice.color}
+                            style={{ width: `${(slice.value / netWorth) * 100}%` }}
+                            title={`${slice.label}: ${((slice.value / netWorth) * 100).toFixed(1)}%`}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+                        {allocation.map((slice) => (
+                          <div key={slice.label} className="flex items-center gap-1.5 text-xs text-gray-400">
+                            <span className={`w-2 h-2 rounded-full ${slice.color}`} />
+                            {slice.label} · {((slice.value / netWorth) * 100).toFixed(1)}%
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </section>
 
                 {/* Stock Holdings Section */}
-                <section className={`mt-8 w-full p-6 rounded-lg shadow-lg ${darkMode ? "bg-gray-900" : "bg-gray-50"} transition-all duration-300`}>
-                  <h2 className="text-xl md:text-2xl font-semibold mb-6">Stock Holdings</h2>
+                <section className={`mt-8 w-full p-6 rounded-2xl shadow-lg ${cardBg} transition-colors duration-300`}>
+                  <h2 className="text-lg md:text-xl font-semibold mb-6">Stock Holdings</h2>
                   {holdings.length === 0 ? (
                     <div className="text-center py-10">
                       <p className="text-gray-400 mb-4">No holdings yet — make your first trade to see it here.</p>
                       <Link
                         href="/market"
-                        className="inline-block px-6 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300"
+                        className="inline-block px-6 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
                       >
                         Go to Market
                       </Link>
@@ -120,48 +162,60 @@ function Portfolio() {
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="border-b border-gray-300 dark:border-gray-700">
-                            <th className="py-3 px-4 text-sm md:text-lg font-medium">Symbol</th>
-                            <th className="py-3 px-4 text-sm md:text-lg font-medium">Qty</th>
-                            <th className="py-3 px-4 text-sm md:text-lg font-medium">Avg Cost</th>
-                            <th className="py-3 px-4 text-sm md:text-lg font-medium">Current Price</th>
-                            <th className="py-3 px-4 text-sm md:text-lg font-medium">Current Value</th>
-                            <th className="py-3 px-4 text-sm md:text-lg font-medium">P&amp;L</th>
-                            <th className="py-3 px-4 text-sm md:text-lg font-medium"></th>
+                            <th className="py-3 px-4 text-sm md:text-base font-medium">Symbol</th>
+                            <th className="py-3 px-4 text-sm md:text-base font-medium">Qty</th>
+                            <th className="py-3 px-4 text-sm md:text-base font-medium">Avg Cost</th>
+                            <th className="py-3 px-4 text-sm md:text-base font-medium">Current Price</th>
+                            <th className="py-3 px-4 text-sm md:text-base font-medium">Current Value</th>
+                            <th className="py-3 px-4 text-sm md:text-base font-medium">P&amp;L</th>
+                            <th className="py-3 px-4 text-sm md:text-base font-medium"></th>
                           </tr>
                         </thead>
                         <tbody>
-                          {holdings.map((holding) => {
+                          {holdings.map((holding, index) => {
                             const pnl = holding.unrealizedPnl !== null ? Number(holding.unrealizedPnl) : null;
                             const pnlPercent = holding.unrealizedPnlPercent !== null ? Number(holding.unrealizedPnlPercent) : null;
                             const pnlPositive = pnl !== null && pnl >= 0;
+                            const accentColor = ALLOCATION_COLORS[index % ALLOCATION_COLORS.length];
                             return (
                               <tr
                                 key={holding.id}
-                                className={`border-b ${
-                                  darkMode ? "dark:border-gray-700 hover:bg-gray-700" : "border-gray-200 hover:bg-gray-100"
-                                } `}
+                                className={`border-b border-l-4 ${
+                                  pnl === null
+                                    ? "border-l-transparent"
+                                    : pnlPositive
+                                    ? "border-l-green-500"
+                                    : "border-l-red-500"
+                                } ${
+                                  darkMode ? "dark:border-gray-700 hover:bg-gray-800" : "border-gray-200 hover:bg-gray-100"
+                                } transition-colors duration-150`}
                               >
-                                <td className="py-3 px-4 text-xs md:text-lg font-medium">
-                                  {holding.symbol}
-                                  {holding.priceStale && (
-                                    <span className="ml-2 text-xs text-yellow-500">(stale price)</span>
-                                  )}
+                                <td className="py-3 px-4 text-xs md:text-base font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`w-6 h-6 rounded-full ${accentColor} text-white text-[10px] font-bold flex items-center justify-center shrink-0`}>
+                                      {holding.symbol.slice(0, 1)}
+                                    </span>
+                                    {holding.symbol}
+                                    {holding.priceStale && (
+                                      <span className="text-xs text-yellow-500">(stale)</span>
+                                    )}
+                                  </div>
                                 </td>
-                                <td className="py-3 px-4 text-xs md:text-lg">{holding.quantity}</td>
-                                <td className="py-3 px-4 text-xs md:text-lg">{formatInr(holding.avgBuyPrice)}</td>
-                                <td className="py-3 px-4 text-xs md:text-lg">
+                                <td className="py-3 px-4 text-xs md:text-base tabular-nums">{holding.quantity}</td>
+                                <td className="py-3 px-4 text-xs md:text-base tabular-nums">{formatInr(holding.avgBuyPrice)}</td>
+                                <td className="py-3 px-4 text-xs md:text-base tabular-nums">
                                   {holding.currentPrice !== null ? formatInr(holding.currentPrice) : '—'}
                                 </td>
-                                <td className="py-3 px-4 text-xs md:text-lg">
+                                <td className="py-3 px-4 text-xs md:text-base tabular-nums">
                                   {holding.currentValue !== null ? formatInr(holding.currentValue) : '—'}
                                 </td>
-                                <td className={`py-3 px-4 text-xs md:text-lg font-semibold ${pnl === null ? "" : pnlPositive ? "text-green-500" : "text-red-500"}`}>
+                                <td className={`py-3 px-4 text-xs md:text-base font-semibold tabular-nums ${pnl === null ? "" : pnlPositive ? "text-green-500" : "text-red-500"}`}>
                                   {pnl === null ? '—' : `${formatSignedInr(pnl)} (${formatPercent(pnlPercent)})`}
                                 </td>
-                                <td className="py-3 px-4 text-xs md:text-lg">
+                                <td className="py-3 px-4 text-xs md:text-base">
                                   <button
                                     onClick={() => setSellTarget(holding)}
-                                    className={`px-4 py-1.5 rounded text-white text-xs md:text-sm ${darkMode ? "bg-red-600 hover:bg-red-500" : "bg-red-500 hover:bg-red-400"}`}
+                                    className={`px-4 py-1.5 rounded text-white text-xs md:text-sm transition-colors duration-200 active:scale-95 ${darkMode ? "bg-red-600 hover:bg-red-500" : "bg-red-500 hover:bg-red-400"}`}
                                   >
                                     Sell
                                   </button>

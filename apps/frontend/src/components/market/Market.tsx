@@ -9,6 +9,7 @@ import AllStocks from "./AllStocks";
 import stockList from "./StockData.json";
 import { Helmet } from 'react-helmet';
 import TradeModal from "../trade/TradeModal";
+import { formatInr } from "../../utils/format";
 
 function Market() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
@@ -17,6 +18,7 @@ function Market() {
   const [selectedStock, setSelectedStock] = useState<any>(null);
   const [stocks, setStocks] = useState<any>([]);
   const [searchQuery, setSearchQuery] = useState<any>(""); // Track the search query
+  const [filterMode, setFilterMode] = useState<"all" | "gainers" | "losers" | "holdings">("all");
   const [tradeModal, setTradeModal] = useState<{ side: "BUY" | "SELL" } | null>(null);
 
   const refreshAccountState = useCallback(async () => {
@@ -68,10 +70,17 @@ function Market() {
     fetchData();
   }, []);
 
-  const filteredStocks = stocks.filter((stock) =>
-    stock.shortName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    stock.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredStocks = stocks
+    .filter((stock) =>
+      stock.shortName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      stock.fullName.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((stock) => {
+      if (filterMode === "gainers") return parseFloat(stock.todayChange) >= 0;
+      if (filterMode === "losers") return parseFloat(stock.todayChange) < 0;
+      if (filterMode === "holdings") return Boolean(holdings[stock.symbol]);
+      return true;
+    });
 
   const ownedQuantity = selectedStock ? holdings[selectedStock.symbol] || 0 : 0;
 
@@ -83,20 +92,20 @@ function Market() {
     <div
       className={`${
         darkMode ? "bg-gray-800 text-white" : "bg-white text-black"
-      } min-h-screen transition-all duration-300 font-pop`}
+      } min-h-screen transition-colors duration-300 font-pop`}
     >
       <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       <div className="flex flex-col md:flex-row">
         <Vheader darkMode={darkMode} />
         <div className="p-6 flex-1 mx-0 mb-20 md:mb-0 m-2 lg:m-10">
-            <h1 className="text-3xl md:text-4xl font-bold">Market</h1>
-          <div className="h-2 w-28 bg-blue-500 rounded-full mb-6"></div>
+            <h1 className="text-2xl md:text-3xl font-bold">Market</h1>
+          <div className="h-2 w-28 bg-blue-500 rounded-full mb-6 animate-line"></div>
           <div className="flex justify-between items-center mt-6">
-          <p className="mb-4 text-lg md:text-2xl">Balance: ₹ {balance.toFixed(2)}</p>
+          <p className="mb-4 text-base md:text-xl tabular-nums">Balance: {formatInr(balance)}</p>
           {selectedStock && (
               <button
                 onClick={() => setSelectedStock(null)}
-                className="px-4 py-2 text-xs md:text-lg bg-blue-500 text-white rounded transition-all duration-300"
+                className="px-4 py-2 text-xs md:text-base bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 active:scale-95"
               >
                 Back to Stocks
               </button>
@@ -114,35 +123,16 @@ function Market() {
                 todayChange={selectedStock.todayChange}
                 labels={selectedStock.labels}
                 darkMode={darkMode}
+                ownedQuantity={ownedQuantity}
+                onBuy={() => setTradeModal({ side: "BUY" })}
+                onSell={() => setTradeModal({ side: "SELL" })}
               />
-              {ownedQuantity > 0 && (
-                <p className="mt-3 text-sm text-gray-400">You own {ownedQuantity} shares</p>
-              )}
-              <div className="flex flex-col sm:flex-row mt-6 gap-2">
-                <button
-                  className={`${
-                    darkMode ? "bg-green-600" : "bg-green-500"
-                  } text-white px-7 py-2 rounded mr-2 transition-all duration-300 w-full sm:w-auto`}
-                  onClick={() => setTradeModal({ side: "BUY" })}
-                >
-                  Buy
-                </button>
-                <button
-                  className={`${
-                    darkMode ? "bg-red-600" : "bg-red-500"
-                  } text-white px-7 py-2 mr-2 rounded transition-all duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed`}
-                  onClick={() => setTradeModal({ side: "SELL" })}
-                  disabled={ownedQuantity === 0}
-                >
-                  Sell
-                </button>
-              </div>
             </div>
           ) : (
             <div
               className={`${
                 darkMode ? "bg-gray-900" : "bg-gray-100"
-              } w-full sm:w-3/5 p-5 lg:p-8 rounded-xl transition-all duration-300`}
+              } w-full p-5 lg:p-8 rounded-xl transition-colors duration-300`}
             >
               <input
                 type="text"
@@ -150,12 +140,42 @@ function Market() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={`${
                   darkMode ? "bg-gray-700 text-white" : "bg-white text-black"
-                } w-full mb-6 p-2 border-2 rounded-lg transition-all duration-300`}
+                } w-full md:max-w-md mb-4 p-2 border-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                 placeholder="Search for a stock..."
               />
+
+              <div className="flex flex-wrap gap-2 mb-6">
+                {(
+                  [
+                    { key: "all", label: "All" },
+                    { key: "gainers", label: "Gainers" },
+                    { key: "losers", label: "Losers" },
+                    { key: "holdings", label: "My Holdings" },
+                  ] as const
+                ).map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setFilterMode(tab.key)}
+                    className={`px-4 py-1.5 text-xs md:text-sm rounded-full transition-colors duration-200 active:scale-95 ${
+                      filterMode === tab.key
+                        ? tab.key === "gainers"
+                          ? "bg-green-500 text-white"
+                          : tab.key === "losers"
+                          ? "bg-red-500 text-white"
+                          : "bg-blue-500 text-white"
+                        : darkMode
+                        ? "bg-gray-700 text-white hover:bg-gray-600"
+                        : "bg-gray-200 text-black hover:bg-gray-300"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
               <div
-                className="flex flex-col overflow-y-auto scrollable-area"
-                style={{ maxHeight: "500px" }} // Set max-height for the scrollable area
+                className="overflow-y-auto scrollable-area"
+                style={{ maxHeight: "640px" }} // Set max-height for the scrollable area
               >
                 <AllStocks
                   setSelectedStock={setSelectedStock}

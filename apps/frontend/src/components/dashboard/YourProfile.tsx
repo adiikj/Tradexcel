@@ -233,10 +233,10 @@ function YourProfile() {
         <div className="flex flex-col lg:flex-row mb-16 md:mb-0">
           <Vheader darkMode={darkMode} />
           <main className="flex-1 p-6 md:m-10">
-            <h1 className={`text-3xl md:text-4xl font-bold transition-all duration-300 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
+            <h1 className={`text-2xl md:text-3xl font-bold transition-all duration-300 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
               Your Profile
             </h1>
-            <div className="h-2 w-32 md:w-44 bg-blue-500 rounded-full mb-7"></div>
+            <div className="h-2 w-32 md:w-44 bg-blue-500 rounded-full mb-7 animate-line"></div>
             <div className={`max-w-4xl mx-auto transition-all duration-300 shadow-lg rounded-lg overflow-hidden ${darkMode ? "bg-gray-900 text-gray-200" : "bg-gray-100 text-gray-800"}`}>
               <div className={`p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
                 <div className="flex space-x-4">

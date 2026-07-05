@@ -29,8 +29,11 @@ function Vheader({ darkMode, ...props }: any) {
     { name: "FAQ", path: "/faq", icon: faq, activeIcon: faq_w },
   ];
 
-  // Filter out FAQ for mobile screens
-  const filteredMenuItems = menuItems.filter(item => !(item.name === 'FAQ' && window.innerWidth < 1024));
+  // The mobile bar below is itself only ever rendered under the `lg`
+  // breakpoint (see `lg:hidden` on its wrapper), so excluding FAQ from it
+  // is a flat filter, not a width check — a direct `window.innerWidth`
+  // read here would crash during server-side rendering.
+  const filteredMenuItems = menuItems.filter((item) => item.name !== "FAQ");
 
   return (
     <div
@@ -79,13 +82,14 @@ function Vheader({ darkMode, ...props }: any) {
         </div>
       </div>
 
-      {/* For Desktop (Vertical Menu) */}
+      {/* For Desktop (Vertical Menu) — sticky so it stays in view instead of
+          scrolling away with the page content */}
       <div
-        className={`hidden md:block h-full text-center transition-all duration-500 ${
+        className={`hidden md:block sticky top-0 h-screen self-start text-center transition-all duration-500 ${
           menuOpen ? 'w-48' : 'w-16'
         } overflow-hidden`}
       >
-        <div className="flex flex-col items-center pb-6 font-bold text-2xl">
+        <div className="flex flex-col items-center pb-6 font-bold text-xl">
           <button
             className="focus:outline-none p-2 self-start"
             onClick={() => setMenuOpen(!menuOpen)} // Toggle menu
@@ -109,11 +113,11 @@ function Vheader({ darkMode, ...props }: any) {
           <ul>
             <li className={`p-2 pt-6 ${menuOpen ? '' : 'flex justify-center'}`}>
               {menuOpen ? (
-                <div className="flex flex-col justify-center text-center gap-6 text-lg">
+                <div className="flex flex-col justify-center text-center gap-6 text-base">
                   {menuItems.map((item) => (
                     <Link href={item.path} key={item.name}>
                       <span
-                        className={`text-lg font-medium text-center flex items-center gap-2 p-2 rounded-lg transition-all duration-500 ease-in-out ${
+                        className={`text-base font-medium text-center flex items-center gap-2 p-2 rounded-lg transition-all duration-500 ease-in-out ${
                           location === item.path
                             ? 'bg-blue-500 text-white'
                             : darkMode
