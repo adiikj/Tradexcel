@@ -1,10 +1,11 @@
 "use client";
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import Header from '../dashboard/Header';
 import Vheader from '../dashboard/Vheader';
 import ThemeContext from "../../context/ThemeContext";
 import { Helmet } from 'react-helmet';
 import { getPortfolio } from '../../api/api';
+import TradeModal from '../trade/TradeModal';
 
 const formatInr = (value: number) =>
   `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -16,23 +17,24 @@ function Portfolio() {
   const [summary, setSummary] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [sellTarget, setSellTarget] = useState<any>(null);
+
+  const fetchPortfolio = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await getPortfolio();
+      setHoldings(response?.data?.holdings || []);
+      setSummary(response?.data?.summary || null);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load portfolio.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchPortfolio = async () => {
-      try {
-        setIsLoading(true);
-        const response = await getPortfolio();
-        setHoldings(response?.data?.holdings || []);
-        setSummary(response?.data?.summary || null);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load portfolio.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchPortfolio();
-  }, []);
+  }, [fetchPortfolio]);
 
   return (
     <>
@@ -112,6 +114,7 @@ function Portfolio() {
                             <th className="py-3 px-4 text-sm md:text-lg font-medium">Current Price</th>
                             <th className="py-3 px-4 text-sm md:text-lg font-medium">Current Value</th>
                             <th className="py-3 px-4 text-sm md:text-lg font-medium">P&amp;L</th>
+                            <th className="py-3 px-4 text-sm md:text-lg font-medium"></th>
                           </tr>
                         </thead>
                         <tbody>
@@ -145,6 +148,14 @@ function Portfolio() {
                                     ? '—'
                                     : `${pnlPositive ? '+' : ''}${formatInr(pnl)} (${pnlPositive ? '+' : ''}${pnlPercent?.toFixed(2)}%)`}
                                 </td>
+                                <td className="py-3 px-4 text-xs md:text-lg">
+                                  <button
+                                    onClick={() => setSellTarget(holding)}
+                                    className={`px-4 py-1.5 rounded text-white text-xs md:text-sm ${darkMode ? "bg-red-600 hover:bg-red-500" : "bg-red-500 hover:bg-red-400"}`}
+                                  >
+                                    Sell
+                                  </button>
+                                </td>
                               </tr>
                             );
                           })}
@@ -158,6 +169,17 @@ function Portfolio() {
           </main>
         </div>
       </div>
+      {sellTarget && (
+        <TradeModal
+          symbol={sellTarget.symbol}
+          side="SELL"
+          initialPrice={Number(sellTarget.currentPrice ?? sellTarget.avgBuyPrice)}
+          availableQty={sellTarget.quantity}
+          darkMode={darkMode}
+          onClose={() => setSellTarget(null)}
+          onSuccess={fetchPortfolio}
+        />
+      )}
     </>
   );
 }

@@ -353,6 +353,48 @@ export const getTransactions = async (page = 1, limit = 20) => {
   }
 };
 
+export const buyStock = async (symbol: string, quantity: number) => {
+  try {
+    const token = (typeof window !== 'undefined' ? localStorage.getItem("authToken") : null);
+
+    if (!token) {
+      throw new Error("Authentication token is missing. Please log in again.");
+    }
+
+    const response = await axios.post(
+      `${BASE_TRADE_URL}/trade/buy`,
+      { symbol, quantity },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to buy stock";
+    throw new Error(message);
+  }
+};
+
+export const sellStock = async (symbol: string, quantity: number) => {
+  try {
+    const token = (typeof window !== 'undefined' ? localStorage.getItem("authToken") : null);
+
+    if (!token) {
+      throw new Error("Authentication token is missing. Please log in again.");
+    }
+
+    const response = await axios.post(
+      `${BASE_TRADE_URL}/trade/sell`,
+      { symbol, quantity },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to sell stock";
+    throw new Error(message);
+  }
+};
+
 
 
 

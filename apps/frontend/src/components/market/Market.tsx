@@ -1,20 +1,41 @@
 "use client";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import Stock from "../market/Stocks";
 import ThemeContext from "../../context/ThemeContext";
-import { getStockData } from "../../api/api";
+import { getStockData, getWallet, getPortfolio } from "../../api/api";
 import AllStocks from "./AllStocks";
 import stockList from "./StockData.json";
 import { Helmet } from 'react-helmet';
+import TradeModal from "../trade/TradeModal";
 
 function Market() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
-  const [balance, setBalance] = useState<any>(100000);
+  const [balance, setBalance] = useState(0);
+  const [holdings, setHoldings] = useState<Record<string, number>>({});
   const [selectedStock, setSelectedStock] = useState<any>(null);
   const [stocks, setStocks] = useState<any>([]);
   const [searchQuery, setSearchQuery] = useState<any>(""); // Track the search query
+  const [tradeModal, setTradeModal] = useState<{ side: "BUY" | "SELL" } | null>(null);
+
+  const refreshAccountState = useCallback(async () => {
+    try {
+      const [walletResponse, portfolioResponse] = await Promise.all([getWallet(), getPortfolio()]);
+      setBalance(Number(walletResponse?.data?.balance ?? 0));
+      const holdingsMap: Record<string, number> = {};
+      for (const holding of portfolioResponse?.data?.holdings || []) {
+        holdingsMap[holding.symbol] = holding.quantity;
+      }
+      setHoldings(holdingsMap);
+    } catch (err) {
+      console.error("Failed to load wallet/portfolio:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshAccountState();
+  }, [refreshAccountState]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,19 +45,19 @@ function Market() {
 
           const stockData = data || {
             currentPrice: 1000,
-            percentageChange: "N/A", 
-            todayChange: "N/A", 
+            percentageChange: "N/A",
+            todayChange: "N/A",
             stockPrices: Array(30).fill(1000),
           };
 
           return {
             ...stock,
+            rawPrice: stockData.currentPrice,
             price: `₹ ${stockData.currentPrice.toFixed(2)}`,
             percentageChange: `${stockData.percentageChange || 0}%`, // Format as percentage
             todayChange: `${stockData.todayChange || 0}`, // Format as ₹ with 2 decimal places
             stockPrices: stockData.stockPrices,
             labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
-            quantity: 0, // Initialize quantity
           };
         })
       );
@@ -47,34 +68,12 @@ function Market() {
     fetchData();
   }, []);
 
-  const handleBuy = (stockName) => {
-    setStocks((prevStocks) =>
-      prevStocks.map((stock) => {
-        if (stock.shortName === stockName && balance >= stock.price) {
-          setBalance((prevBalance) => prevBalance - stock.price);
-          return { ...stock, quantity: stock.quantity + 1 };
-        }
-        return stock;
-      })
-    );
-  };
-
-  const handleSell = (stockName) => {
-    setStocks((prevStocks) =>
-      prevStocks.map((stock) => {
-        if (stock.shortName === stockName && stock.quantity > 0) {
-          setBalance((prevBalance) => prevBalance + stock.price);
-          return { ...stock, quantity: stock.quantity - 1 };
-        }
-        return stock;
-      })
-    );
-  };
-
   const filteredStocks = stocks.filter((stock) =>
     stock.shortName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     stock.fullName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const ownedQuantity = selectedStock ? holdings[selectedStock.symbol] || 0 : 0;
 
   return (
     <>
@@ -116,20 +115,24 @@ function Market() {
                 labels={selectedStock.labels}
                 darkMode={darkMode}
               />
+              {ownedQuantity > 0 && (
+                <p className="mt-3 text-sm text-gray-400">You own {ownedQuantity} shares</p>
+              )}
               <div className="flex flex-col sm:flex-row mt-6 gap-2">
                 <button
                   className={`${
                     darkMode ? "bg-green-600" : "bg-green-500"
                   } text-white px-7 py-2 rounded mr-2 transition-all duration-300 w-full sm:w-auto`}
-                  onClick={() => handleBuy(selectedStock.shortName)}
+                  onClick={() => setTradeModal({ side: "BUY" })}
                 >
                   Buy
                 </button>
                 <button
                   className={`${
                     darkMode ? "bg-red-600" : "bg-red-500"
-                  } text-white px-7 py-2 mr-2 rounded transition-all duration-300 w-full sm:w-auto`}
-                  onClick={() => handleSell(selectedStock.shortName)}
+                  } text-white px-7 py-2 mr-2 rounded transition-all duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed`}
+                  onClick={() => setTradeModal({ side: "SELL" })}
+                  disabled={ownedQuantity === 0}
                 >
                   Sell
                 </button>
@@ -165,6 +168,19 @@ function Market() {
         </div>
       </div>
     </div>
+    {tradeModal && selectedStock && (
+      <TradeModal
+        symbol={selectedStock.symbol}
+        fullName={selectedStock.fullName}
+        side={tradeModal.side}
+        initialPrice={selectedStock.rawPrice}
+        availableCash={balance}
+        availableQty={ownedQuantity}
+        darkMode={darkMode}
+        onClose={() => setTradeModal(null)}
+        onSuccess={refreshAccountState}
+      />
+    )}
     </>
   );
 }
