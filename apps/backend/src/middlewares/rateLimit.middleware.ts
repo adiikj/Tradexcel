@@ -20,3 +20,15 @@ export const tradeLimiter = rateLimit({
     next(new ApiError(429, "Too many trade requests. Please slow down."));
   },
 });
+
+// A single shared secret is a higher-value brute-force target than any one
+// user's password — much tighter budget than the regular auth routes.
+export const adminLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, _res, next) => {
+    next(new ApiError(429, "Too many attempts. Please try again later."));
+  },
+});

@@ -55,6 +55,10 @@ import alertRouter from './routes/alert.routes.js';
 
 app.use('/api/v1', alertRouter);
 
+import adminRouter from './routes/admin.routes.js';
+
+app.use('/api/v1', adminRouter);
+
 import { errorHandler } from './middlewares/error.middleware.js';
 
 app.use(errorHandler);
