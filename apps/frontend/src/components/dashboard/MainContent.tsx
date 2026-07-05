@@ -2,16 +2,19 @@
 import React, { useState, useEffect } from 'react';
 import TopGainers from './TopGainers';
 import TopLosers from './TopLosers';
-import logo from '../../assets/logo-full-bg.png';
 import rupee from '../../assets/rupee.png';
-import { getUserName } from '../../api/api';
+import { getUserName, getPortfolio } from '../../api/api';
 import Link from "next/link";
 import quotes from './Quote.json';
+import { formatInr, formatPercent } from '../../utils/format';
 
 function MainContent({ darkMode  }: any) {
   const [selectedMarket, setSelectedMarket] = useState<any>('gainers'); // State to track the selected market
   const [userName, setUserName] = useState<any>(''); // State to store user's name
   const [dailyQuote, setDailyQuote] = useState<any>('');
+  const [summary, setSummary] = useState<any>(null);
+  const [holdingsCount, setHoldingsCount] = useState(0);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(true);
 
   const handleToggle = (marketType) => {
     setSelectedMarket(marketType);
@@ -24,10 +27,9 @@ function MainContent({ darkMode  }: any) {
         if (!authToken) {
           throw new Error("Authentication token is missing. Please log in again.");
         }
-  
+
         const name = await getUserName(); // Fetch user profile from API
-        console.log("Fetched User Name:", name); // Log the response for debugging
-  
+
         // Assuming the API returns { data: { name: "User Name" } }
         setUserName(name.data.name);
       } catch (error) {
@@ -35,13 +37,31 @@ function MainContent({ darkMode  }: any) {
         setUserName('User'); // Fallback to 'User' if there's an error
       }
     };
-  
+
+    const fetchSummary = async () => {
+      try {
+        setIsLoadingSummary(true);
+        const response = await getPortfolio();
+        setSummary(response?.data?.summary || null);
+        setHoldingsCount((response?.data?.holdings || []).length);
+      } catch (error: any) {
+        console.error("Failed to fetch portfolio summary:", error.message);
+      } finally {
+        setIsLoadingSummary(false);
+      }
+    };
+
     fetchUserName(); // Fetch user profile when component mounts
+    fetchSummary();
 
     const todayQuote = quotes[new Date().getDate() % quotes.length];
     setDailyQuote(todayQuote);
   }, []); // Empty dependency array to run only once on mount
-  
+
+  const totalInvested = Number(summary?.totalInvested ?? 0);
+  const totalPnl = Number(summary?.totalPnl ?? 0);
+  const returnsPercent = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
+
 
   return (
     <div className={`flex flex-col md:flex-row w-10/12 md:w-10/12 rounded-2xl h-auto font-pop mx-7 md:mx-auto ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} transition-all duration-300`}>
@@ -74,7 +94,9 @@ function MainContent({ darkMode  }: any) {
           <div className="font-pop absolute top-0 left-0 p-5">
             <div className=" p-2 relative">
               <div className="text-md md:text-lg font-normal">Portfolio Value</div>
-              <div className="text-2xl md:text-3xl">₹ 1,00,000</div>
+              <div className="text-2xl md:text-3xl">
+                {isLoadingSummary ? '...' : formatInr(summary?.netWorth)}
+              </div>
               {/* Rupee Icon */}
               <img
                 src={((rupee)?.src || (rupee)) as string}
@@ -85,22 +107,36 @@ function MainContent({ darkMode  }: any) {
           </div>
           <div className="font-pop absolute top-0 right-0 p-5">
             <div className=" p-2">
-              <div className="text-md md:text-lg">Returns</div>
-              <div className="text-2xl md:text-3xl text-green-600">0.00%</div>
+              <div className="text-md md:text-lg">P&amp;L</div>
+              <div className={`text-2xl md:text-3xl ${totalPnl >= 0 ? "text-green-600" : "text-red-500"}`}>
+                {isLoadingSummary ? '...' : formatPercent(returnsPercent)}
+              </div>
             </div>
           </div>
           <div className="font-pop absolute bottom-0 left-0 p-5">
             <div className=" p-2">
               <div className="text-md md:text-lg">Balance</div>
-              <div className="text-2xl md:text-3xl">₹ 1,00,000</div>
+              <div className="text-2xl md:text-3xl">
+                {isLoadingSummary ? '...' : formatInr(summary?.walletBalance)}
+              </div>
             </div>
           </div>
-          <div className="absolute bottom-0 right-0 pr-7">
-            <div className="">
-              <img className="w-28 h-28 md:w-44 md:h-44 opacity-30" src={((logo)?.src || (logo)) as string} alt="" />
+          <div className="font-pop absolute bottom-0 right-0 p-5 text-right">
+            <div className=" p-2">
+              <div className="text-md md:text-lg">Holdings</div>
+              <div className="text-2xl md:text-3xl">{isLoadingSummary ? '...' : holdingsCount}</div>
             </div>
           </div>
         </div>
+        {!isLoadingSummary && holdingsCount === 0 && (
+          <p className="mt-3 text-sm text-gray-400">
+            No holdings yet —{" "}
+            <Link href="/market" className="text-blue-500 underline">
+              make your first trade
+            </Link>
+            .
+          </p>
+        )}
       </div>
 
       {/* Market Section */}

@@ -1,13 +1,12 @@
 "use client";
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useCallback, useContext, useState, useEffect } from 'react';
+import Link from 'next/link';
 import Header from '../dashboard/Header';
 import Vheader from '../dashboard/Vheader';
 import { Helmet } from 'react-helmet';
 import ThemeContext from '../../context/ThemeContext';
 import { getUserName, getAvatar, getWallet, getTransactions } from '../../api/api';
-
-const formatInr = (value: number) =>
-  `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+import { formatInr } from '../../utils/format';
 
 function Wallet() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
@@ -20,6 +19,24 @@ function Wallet() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'All' | 'BUY' | 'SELL'>('All');
+
+  const fetchWalletAndTransactions = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+      const [walletResponse, transactionsResponse] = await Promise.all([
+        getWallet(),
+        getTransactions(),
+      ]);
+      setBalance(Number(walletResponse?.data?.balance ?? 0));
+      setCurrency(walletResponse?.data?.currency ?? 'INR');
+      setTransactions(transactionsResponse?.data?.transactions || []);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load wallet.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUserName = async () => {
@@ -42,31 +59,14 @@ function Wallet() {
         const data = await getAvatar();
         setAvatar(data.avatar);
       } catch (err) {
-        setError(err.message);
-      }
-    };
-
-    const fetchWalletAndTransactions = async () => {
-      try {
-        setIsLoading(true);
-        const [walletResponse, transactionsResponse] = await Promise.all([
-          getWallet(),
-          getTransactions(),
-        ]);
-        setBalance(Number(walletResponse?.data?.balance ?? 0));
-        setCurrency(walletResponse?.data?.currency ?? 'INR');
-        setTransactions(transactionsResponse?.data?.transactions || []);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load wallet.');
-      } finally {
-        setIsLoading(false);
+        console.error("Failed to fetch avatar:", err.message);
       }
     };
 
     fetchAvatar();
     fetchUserName();
     fetchWalletAndTransactions();
-  }, []);
+  }, [fetchWalletAndTransactions]);
 
   const filteredTransactions =
     activeTab === 'All'
@@ -92,7 +92,14 @@ function Wallet() {
             <h1 className="text-3xl md:text-4xl font-bold">Wallet</h1>
             <div className="h-2 w-20 md:w-32 bg-blue-500 rounded-full mb-6"></div>
 
-            {error && <p className="text-red-500 mb-4">{error}</p>}
+            {error && (
+              <div className="mb-4 flex items-center gap-3">
+                <p className="text-red-500">{error}</p>
+                <button onClick={fetchWalletAndTransactions} className="text-sm text-blue-500 underline">
+                  Retry
+                </button>
+              </div>
+            )}
 
             {/* Profile Section */}
             <div
@@ -124,7 +131,7 @@ function Wallet() {
               >
                 <h3 className="text-md md:text-xl font-semibold">Cash Balance</h3>
                 <p className="text-lg md:text-2xl my-2 font-bold">
-                  {isLoading ? '...' : formatInr(balance ?? 0)}
+                  {isLoading ? '...' : formatInr(balance)}
                 </p>
                 <p className="text-xs text-gray-400">{currency}</p>
               </div>
@@ -159,7 +166,15 @@ function Wallet() {
               {isLoading ? (
                 <p className="text-gray-400">Loading transactions...</p>
               ) : filteredTransactions.length === 0 ? (
-                <p className="text-gray-400">No transactions yet — make your first trade from Market.</p>
+                <div className="text-center py-10">
+                  <p className="text-gray-400 mb-4">No transactions yet — make your first trade to see it here.</p>
+                  <Link
+                    href="/market"
+                    className="inline-block px-6 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300"
+                  >
+                    Go to Market
+                  </Link>
+                </div>
               ) : (
                 <div className="space-y-4 overflow-y-auto max-h-80">
                   {filteredTransactions.map((transaction) => (
@@ -174,7 +189,7 @@ function Wallet() {
                           {transaction.side === 'BUY' ? 'Bought' : 'Sold'} {transaction.quantity} {transaction.symbol}
                         </h3>
                         <p className="text-xs md:text-sm text-gray-400">
-                          {new Date(transaction.createdAt).toLocaleString('en-IN')} · @ {formatInr(Number(transaction.price))}
+                          {new Date(transaction.createdAt).toLocaleString('en-IN')} · @ {formatInr(transaction.price)}
                         </p>
                       </div>
                       <div
@@ -182,7 +197,7 @@ function Wallet() {
                           transaction.side === 'BUY' ? "text-red-400" : "text-green-400"
                         }`}
                       >
-                        {transaction.side === 'BUY' ? '-' : '+'}{formatInr(Number(transaction.total))}
+                        {transaction.side === 'BUY' ? '-' : '+'}{formatInr(transaction.total)}
                       </div>
                     </div>
                   ))}

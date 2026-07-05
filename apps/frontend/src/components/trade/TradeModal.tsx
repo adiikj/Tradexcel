@@ -2,11 +2,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { getStockData, buyStock, sellStock } from "../../api/api";
+import { formatInr } from "../../utils/format";
 
 const PRICE_REFRESH_MS = 10_000;
-
-const formatInr = (value: number) =>
-  `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 interface TradeModalProps {
   symbol: string;

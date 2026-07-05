@@ -1,14 +1,13 @@
 "use client";
 import React, { useCallback, useContext, useEffect, useState } from 'react';
+import Link from 'next/link';
 import Header from '../dashboard/Header';
 import Vheader from '../dashboard/Vheader';
 import ThemeContext from "../../context/ThemeContext";
 import { Helmet } from 'react-helmet';
 import { getPortfolio } from '../../api/api';
 import TradeModal from '../trade/TradeModal';
-
-const formatInr = (value: number) =>
-  `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+import { formatInr, formatSignedInr, formatPercent } from '../../utils/format';
 
 function Portfolio() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
@@ -50,7 +49,12 @@ function Portfolio() {
             <div className="h-2 w-44 bg-blue-500 rounded-full mb-6"></div>
 
             {error && (
-              <p className="text-red-500 mb-4">{error}</p>
+              <div className="mb-4 flex items-center gap-3">
+                <p className="text-red-500">{error}</p>
+                <button onClick={fetchPortfolio} className="text-sm text-blue-500 underline">
+                  Retry
+                </button>
+              </div>
             )}
 
             {isLoading ? (
@@ -67,7 +71,7 @@ function Portfolio() {
                       } shadow-lg hover:scale-105 transform transition-all duration-300`}
                     >
                       <h3 className="text-md md:text-lg font-medium mb-2">Net Worth</h3>
-                      <p className="text-2xl md:text-3xl font-bold">{formatInr(Number(summary?.netWorth ?? 0))}</p>
+                      <p className="text-2xl md:text-3xl font-bold">{formatInr(summary?.netWorth)}</p>
                     </div>
                     <div
                       className={`p-3 md:p-5 rounded-lg border-2 ${
@@ -75,7 +79,7 @@ function Portfolio() {
                       } shadow-lg hover:scale-105 transform transition-all duration-300`}
                     >
                       <h3 className="text-md md:text-lg font-medium mb-2">Invested Amount</h3>
-                      <p className="text-2xl md:text-3xl font-bold">{formatInr(Number(summary?.totalInvested ?? 0))}</p>
+                      <p className="text-2xl md:text-3xl font-bold">{formatInr(summary?.totalInvested)}</p>
                     </div>
                     <div
                       className={`p-3 md:p-5 rounded-lg border-2 ${
@@ -83,7 +87,7 @@ function Portfolio() {
                       } shadow-lg hover:scale-105 transform transition-all duration-300`}
                     >
                       <h3 className="text-md md:text-lg font-medium mb-2">Cash Balance</h3>
-                      <p className="text-2xl md:text-3xl font-bold ">{formatInr(Number(summary?.walletBalance ?? 0))}</p>
+                      <p className="text-2xl md:text-3xl font-bold ">{formatInr(summary?.walletBalance)}</p>
                     </div>
                     <div
                       className={`p-3 md:p-5 rounded-lg border-2 ${
@@ -92,7 +96,7 @@ function Portfolio() {
                     >
                       <h3 className="text-md md:text-lg font-medium mb-2">Total P&amp;L</h3>
                       <p className={`text-2xl md:text-3xl font-bold ${Number(summary?.totalPnl ?? 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
-                        {Number(summary?.totalPnl ?? 0) >= 0 ? "+" : ""}{formatInr(Number(summary?.totalPnl ?? 0))}
+                        {formatSignedInr(summary?.totalPnl)}
                       </p>
                     </div>
                   </div>
@@ -102,7 +106,15 @@ function Portfolio() {
                 <section className={`mt-8 w-full p-6 rounded-lg shadow-lg ${darkMode ? "bg-gray-900" : "bg-gray-50"} transition-all duration-300`}>
                   <h2 className="text-xl md:text-2xl font-semibold mb-6">Stock Holdings</h2>
                   {holdings.length === 0 ? (
-                    <p className="text-gray-400">No holdings yet — head to Market to make your first trade.</p>
+                    <div className="text-center py-10">
+                      <p className="text-gray-400 mb-4">No holdings yet — make your first trade to see it here.</p>
+                      <Link
+                        href="/market"
+                        className="inline-block px-6 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300"
+                      >
+                        Go to Market
+                      </Link>
+                    </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
@@ -136,17 +148,15 @@ function Portfolio() {
                                   )}
                                 </td>
                                 <td className="py-3 px-4 text-xs md:text-lg">{holding.quantity}</td>
-                                <td className="py-3 px-4 text-xs md:text-lg">{formatInr(Number(holding.avgBuyPrice))}</td>
+                                <td className="py-3 px-4 text-xs md:text-lg">{formatInr(holding.avgBuyPrice)}</td>
                                 <td className="py-3 px-4 text-xs md:text-lg">
-                                  {holding.currentPrice !== null ? formatInr(Number(holding.currentPrice)) : '—'}
+                                  {holding.currentPrice !== null ? formatInr(holding.currentPrice) : '—'}
                                 </td>
                                 <td className="py-3 px-4 text-xs md:text-lg">
-                                  {holding.currentValue !== null ? formatInr(Number(holding.currentValue)) : '—'}
+                                  {holding.currentValue !== null ? formatInr(holding.currentValue) : '—'}
                                 </td>
                                 <td className={`py-3 px-4 text-xs md:text-lg font-semibold ${pnl === null ? "" : pnlPositive ? "text-green-500" : "text-red-500"}`}>
-                                  {pnl === null
-                                    ? '—'
-                                    : `${pnlPositive ? '+' : ''}${formatInr(pnl)} (${pnlPositive ? '+' : ''}${pnlPercent?.toFixed(2)}%)`}
+                                  {pnl === null ? '—' : `${formatSignedInr(pnl)} (${formatPercent(pnlPercent)})`}
                                 </td>
                                 <td className="py-3 px-4 text-xs md:text-lg">
                                   <button
