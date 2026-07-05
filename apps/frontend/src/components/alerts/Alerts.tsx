@@ -2,28 +2,41 @@
 import React, { useState, useRef, useEffect } from "react";
 import alert from "../../assets/alerts.png";
 import alert_w from "../../assets/alerts-w.png";
+import { getAlerts } from "../../api/api";
 
 const Alerts = ({ darkMode }) => {
   const [alertsOpen, setAlertsOpen] = useState<any>(false);
-  const [notifications, setNotifications] = useState<any>([
-    { id: 1, message: "New trade alert", time: "5 minutes ago" },
-    { id: 2, message: "Balance updated", time: "1 hour ago" },
-    { id: 3, message: "Stock price alert", time: "Yesterday" },
-  ]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const alertsRef = useRef(null);
+
+  useEffect(() => {
+    getAlerts()
+      .then((res) => {
+        const triggered = (res?.data || [])
+          .filter((a: any) => a.triggered)
+          .sort((a: any, b: any) => new Date(b.triggeredAt).getTime() - new Date(a.triggeredAt).getTime())
+          .map((a: any) => ({
+            id: a.id,
+            message: `${a.symbol} went ${a.direction === "ABOVE" ? "above" : "below"} ₹${a.targetPrice}`,
+            time: new Date(a.triggeredAt).toLocaleString("en-IN"),
+          }));
+        setNotifications(triggered);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleAlertsClick = () => {
     setAlertsOpen((prevState) => !prevState);
   };
 
-  // Remove notification by ID
+  // Dismiss from view only — the underlying alert record isn't deleted here;
+  // manage/delete alerts from the Alerts page.
   const handleClearNotification = (id) => {
     setNotifications((prevNotifications) =>
       prevNotifications.filter((notification) => notification.id !== id)
     );
   };
 
-  // Clear all notifications
   const handleClearAllNotifications = () => {
     setNotifications([]);
   };

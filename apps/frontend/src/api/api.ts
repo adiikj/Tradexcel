@@ -463,6 +463,40 @@ export const getContestStandings = async (contestId: string) => {
   }
 };
 
+export const getAlerts = async () => {
+  try {
+    const response = await axios.get(`${BASE_TRADE_URL}/alerts`, { headers: authHeaders() });
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to fetch alerts";
+    throw new Error(message);
+  }
+};
+
+export const createAlert = async (symbol: string, targetPrice: number, direction: "ABOVE" | "BELOW") => {
+  try {
+    const response = await axios.post(
+      `${BASE_TRADE_URL}/alerts`,
+      { symbol, targetPrice, direction },
+      { headers: authHeaders() }
+    );
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to create alert";
+    throw new Error(message);
+  }
+};
+
+export const deleteAlert = async (alertId: string) => {
+  try {
+    const response = await axios.delete(`${BASE_TRADE_URL}/alerts/${alertId}`, { headers: authHeaders() });
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to delete alert";
+    throw new Error(message);
+  }
+};
+
 
 
 

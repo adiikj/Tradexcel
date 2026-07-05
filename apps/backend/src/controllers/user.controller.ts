@@ -9,10 +9,10 @@ import {
   signAccessToken,
   signRefreshToken,
 } from "../utils/auth.js";
-import nodemailer from "nodemailer";
 import { google } from "googleapis";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
+import { sendEmail } from "../services/mailer.js";
 
 const randomAvatars = [
   "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/rf2tm0acjgmcawzvardw.png",
@@ -39,33 +39,9 @@ const PUBLIC_USER_FIELDS = {
   createdAt: true,
 } as const;
 
-// The Gmail OAuth2 access token is fetched lazily, per send, instead of once
-// at module load — a stale/expired refresh token must not crash the whole
-// server at startup (it used to, since the old code awaited this at import time).
 async function sendOtpEmail(email: string, otp: string) {
   try {
-    const oAuth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI
-    );
-    oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
-    const { token } = await oAuth2Client.getAccessToken();
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        type: "OAuth2",
-        user: process.env.GOOGLE_GMAIL_ID,
-        clientId: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-        accessToken: token as string,
-      },
-    } as any);
-
-    await transporter.sendMail({
-      from: process.env.GOOGLE_GMAIL_ID,
+    await sendEmail({
       to: email,
       subject: "Your Mocket verification code",
       html: `<h3>Your Mocket verification code is <b>${otp}</b>. It is valid for 10 minutes.</h3>`,

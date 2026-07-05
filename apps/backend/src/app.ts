@@ -46,6 +46,10 @@ import contestRouter from './routes/contest.routes.js';
 
 app.use('/api/v1', contestRouter);
 
+import alertRouter from './routes/alert.routes.js';
+
+app.use('/api/v1', alertRouter);
+
 import { errorHandler } from './middlewares/error.middleware.js';
 
 app.use(errorHandler);

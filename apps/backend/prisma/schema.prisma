@@ -28,6 +28,7 @@ model User {
   holdings       Holding[]
   transactions   Transaction[]
   contestEntries ContestEntry[]
+  priceAlerts    PriceAlert[]
 }
 
 enum Side {
@@ -105,4 +106,22 @@ model ContestEntry {
   finalNetWorth Decimal?  @db.Decimal(18, 2)
 
   @@unique([contestId, userId])
+}
+
+enum AlertDirection {
+  ABOVE
+  BELOW
+}
+
+model PriceAlert {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  symbol      String
+  targetPrice Decimal        @db.Decimal(18, 4)
+  direction   AlertDirection
+  triggered   Boolean        @default(false)
+  triggeredAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
