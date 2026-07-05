@@ -369,7 +369,7 @@ const googleLogin = asyncHandler(async (req: any, res: any) => {
     await sendOtpEmail(linked.email, otp);
     return res
       .status(200)
-      .json(new ApiResponse(200, "Verify the code we emailed you to finish signing in.", null));
+      .json(new ApiResponse(200, "Verify the code we emailed you to finish signing in.", { email: linked.email }));
   }
 
   const username = await generateUniqueUsername(payload.email.split("@")[0]);
@@ -392,7 +392,7 @@ const googleLogin = asyncHandler(async (req: any, res: any) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, "Almost there — verify the code we emailed you.", null));
+    .json(new ApiResponse(200, "Almost there — verify the code we emailed you.", { email: payload.email }));
 });
 
 // User Logout

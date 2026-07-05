@@ -6,7 +6,7 @@ import cookieparser from 'cookie-parser';
 const app = express();
 
 const corsOptions = {
-  origin: "http://localhost:5173", // Allow only your frontend origin
+  origin: process.env.CORS_ORIGIN || "http://localhost:3000", // Next.js dev server
   credentials: true, // Allow credentials (cookies, authentication headers, etc.)
 };
 

@@ -8,12 +8,12 @@ const BASE_FINANCE_URL = process.env.NEXT_PUBLIC_API_FINANCE_URL; // Import the 
 console.log(process.env.NEXT_PUBLIC_API_FINANCE_URL);
 console.log("Finance API URL:", BASE_FINANCE_URL); // Log the finance API URL
 
-// Function to log in the user
-export const loginUser = async (emailOrUsername, password, pin) => {
+// Function to log in the user with either a password or a 4-digit PIN
+export const loginUser = async (emailOrUsername: string, credential: string, mode: "password" | "pin") => {
   try {
     const response = await axios.post(
-      `${BASE_URL}/login`, // Use the base URL with the login endpoint
-      { emailOrUsername, password, pin },
+      `${BASE_URL}/login`,
+      { emailOrUsername, [mode]: credential },
       {
         withCredentials: true, // Ensure cookies are sent/received for authentication
       }
@@ -34,19 +34,17 @@ export const loginUser = async (emailOrUsername, password, pin) => {
   }
 };
 
-// Function to register a user (now registers in PendingUsers collection)
-export const registerUser = async ({ name, username, email, password, dob, phoneNumber, countryCode, pin, otpMethod }) => {
+// Function to register a user — creates the account directly and emails a
+// one-time verification code (see verifyOTP).
+export const registerUser = async ({ name, username, email, password, pin, dob }) => {
   try {
     const response = await axios.post(`${BASE_URL}/register`, {
       name,
       username,
       email,
       password,
-      dob,
-      phoneNumber,
-      countryCode,
       pin,
-      otpMethod
+      dob,
     });
     return response.data; // Return success message for OTP sent
   } catch (error) {
@@ -55,40 +53,44 @@ export const registerUser = async ({ name, username, email, password, dob, phone
   }
 };
 
-// Function to verify OTP (the OTP verification process should now be on a pending user)
-export const verifyOTP = async (otpMethod, email, phoneNumber, otp) => {
+// Verifies the one-time signup code. On success the backend also creates the
+// wallet and logs the user in, returning accessToken/refreshToken directly.
+export const verifyOTP = async (email: string, otp: string) => {
   try {
-    // Construct the payload dynamically based on otpMethod
-    const payload = {
-      otpMethod, // Specifies whether it's 'email' or 'phone'
-      otp,       // OTP as a string
-      email,
-      phoneNumber
-    };
-
-    console.log("Verifying OTP with data:", payload);
-
-    // Send OTP verification data in the POST request
     const response = await axios.post(
-      `${BASE_URL}/verify-otp`,  // Endpoint for OTP verification
-      payload,                   // Include dynamically constructed payload
+      `${BASE_URL}/verify-otp`,
+      { email, otp },
       {
-        withCredentials: true,    // Include credentials if needed for cookies
+        withCredentials: true,
       }
     );
 
-    // Log the successful response for debugging purposes
-    console.log("OTP verification response:", response.data);
-
-    // Return the response data for use in the frontend
     return response.data;
   } catch (error) {
-    // Handle and log errors consistently
     const message =
       error?.response?.data?.message || error.message || "Error verifying OTP";
     console.error("OTP Verification failed:", message);
+    throw new Error(message);
+  }
+};
 
-    // Throw an error to propagate it to the calling function/component
+// Google Sign-In — idToken comes from the Google Identity Services button on
+// the client. Returning users log straight in; brand-new accounts get the
+// same one-time OTP-email step as password signups (response.data is null
+// and the caller should route to the OTP screen).
+export const googleLogin = async (idToken: string) => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/google`,
+      { idToken },
+      {
+        withCredentials: true,
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Error signing in with Google";
     throw new Error(message);
   }
 };

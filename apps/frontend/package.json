@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.13.5",
     "@reduxjs/toolkit": "^2.4.0",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^25.5.0",

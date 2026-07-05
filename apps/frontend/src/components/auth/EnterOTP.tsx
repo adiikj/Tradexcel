@@ -1,25 +1,25 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useDispatch } from "react-redux";
 import { motion } from "framer-motion";
 import logo from "../../assets/logo-full-bg.png";
 import { verifyOTP } from "../../api/api";
+import { persistSession } from "../../utils/authSession";
 
 function EnterOTP() {
   const [isLoading, setIsLoading] = useState<any>(false);
   const navigate = useRouter();
+  const dispatch = useDispatch();
   const searchParams = useSearchParams();
-  const phoneNumber = searchParams.get("phoneNumber") || "";
-  const countryCode = searchParams.get("countryCode") || "";
   const allowOTP = searchParams.get("allowOTP") === "true";
   const email = searchParams.get("email") || "";
-  const otpMethod = searchParams.get("otpMethod") || "";
 
   useEffect(() => {
-    if (!allowOTP) {
+    if (!allowOTP || !email) {
       navigate.push("/");
     }
-  }, [allowOTP, navigate]);
+  }, [allowOTP, email, navigate]);
 
   const [otp, setOtp] = useState<any>(["", "", "", "", "", ""]);
   const [error, setError] = useState<any>("");
@@ -57,19 +57,16 @@ function EnterOTP() {
 
     try {
       setIsLoading(true);
-      if (otpMethod === "phone" && phoneNumber) {
-        await verifyOTP(otpMethod, "", phoneNumber, enteredOtp);
-      } else if (otpMethod === "email" && email) {
-        await verifyOTP(otpMethod, email, "", enteredOtp);
-      } else {
-        return setError("OTP method mismatch or missing information.");
-      }
-      alert("OTP verified successfully! Please Sign In to continue.");
-      navigate.push("/signin");
+      const response = await verifyOTP(email, enteredOtp);
+      const accessToken = response?.data?.accessToken;
+      if (!accessToken) throw new Error("Verification succeeded but no session was returned.");
+
+      persistSession(dispatch, accessToken);
+      navigate.push("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid OTP. Please try again.");
-    }finally{
-    setIsLoading(false);
+      setError(err.response?.data?.message || err.message || "Invalid OTP. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,6 +93,9 @@ function EnterOTP() {
         animate={{ scale: 1 }}
         transition={{ duration: 0.5 }}
       >
+        <p className="text-gray-600 text-sm text-center mb-4">
+          We emailed a 6-digit code to <span className="font-semibold">{email}</span>
+        </p>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 sm:space-y-6">
             {error && (
@@ -139,12 +139,12 @@ function EnterOTP() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-      {isLoading ? (
-          <div className="loader border-t-2 border-white w-5 h-5 rounded-full animate-spin"></div>
-          ) : (
-          "Submit OTP"
-          )}
-      </motion.button>
+            {isLoading ? (
+              <div className="loader border-t-2 border-white w-5 h-5 rounded-full animate-spin"></div>
+            ) : (
+              "Submit OTP"
+            )}
+          </motion.button>
         </form>
       </motion.div>
     </motion.div>
