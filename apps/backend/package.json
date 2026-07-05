@@ -12,7 +12,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "backfill:wallets": "tsx src/scripts/backfillWallets.ts"
+    "backfill:wallets": "tsx src/scripts/backfillWallets.ts",
+    "seed:demo": "tsx src/scripts/seedDemoUsers.ts"
   },
   "keywords": [],
   "author": "",

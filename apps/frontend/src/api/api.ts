@@ -395,6 +395,26 @@ export const sellStock = async (symbol: string, quantity: number) => {
   }
 };
 
+export const getLeaderboard = async (limit = 20) => {
+  try {
+    const token = (typeof window !== 'undefined' ? localStorage.getItem("authToken") : null);
+
+    if (!token) {
+      throw new Error("Authentication token is missing. Please log in again.");
+    }
+
+    const response = await axios.get(`${BASE_TRADE_URL}/leaderboard`, {
+      params: { limit },
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to fetch leaderboard";
+    throw new Error(message);
+  }
+};
+
 
 
 
