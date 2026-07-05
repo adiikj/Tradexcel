@@ -1,6 +1,7 @@
 "use client";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import ThemeContext from "../../context/ThemeContext";
@@ -14,6 +15,19 @@ const STATUS_STYLES: Record<string, string> = {
   LIVE: "bg-green-500",
   ENDED: "bg-gray-500",
 };
+
+const MEDALS = ["🥇", "🥈", "🥉"];
+
+// A real progress bar, not decorative — % of the contest window that has
+// elapsed, so a LIVE card visually communicates how close it is to ending.
+function contestProgress(contest: { startAt: string; endAt: string; status: string }) {
+  if (contest.status === "ENDED") return 100;
+  if (contest.status === "UPCOMING") return 0;
+  const start = new Date(contest.startAt).getTime();
+  const end = new Date(contest.endAt).getTime();
+  const now = Date.now();
+  return Math.max(0, Math.min(100, ((now - start) / (end - start)) * 100));
+}
 
 function Contest() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
@@ -94,7 +108,8 @@ function Contest() {
   const filteredContests =
     statusFilter === "ALL" ? contests : contests.filter((c) => c.status === statusFilter);
 
-  const cardBg = darkMode ? "bg-gray-900" : "bg-gray-100";
+  const cardBg = darkMode ? "bg-gray-900" : "bg-gray-50";
+  const topStandingNetWorth = standings[0]?.netWorth || 1;
 
   return (
     <>
@@ -104,20 +119,20 @@ function Contest() {
       <div
         className={
           darkMode
-            ? "bg-gray-800 text-white min-h-screen transition-all duration-300 font-pop"
-            : "bg-white text-black min-h-screen transition-all duration-300 font-pop"
+            ? "bg-gray-800 text-white min-h-screen transition-colors duration-300 font-pop"
+            : "bg-white text-black min-h-screen transition-colors duration-300 font-pop"
         }
       >
         <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <div className="flex flex-col lg:flex-row">
           <Vheader darkMode={darkMode} />
           <main className="flex-1 pb-24 md:pb-0 p-6 m-2 md:m-12">
-            <h1 className="text-2xl md:text-3xl font-bold">Contests</h1>
+            <h1 className="text-xl md:text-2xl font-bold">Contests</h1>
             <div className="h-2 w-32 md:w-36 bg-blue-500 rounded-full mb-6 animate-line"></div>
 
             {error && (
               <div className="mb-4 flex items-center gap-3">
-                <p className="text-red-500">{error}</p>
+                <p className="text-red-500 text-sm">{error}</p>
                 <button onClick={fetchContests} className="text-sm text-blue-500 underline">
                   Retry
                 </button>
@@ -131,13 +146,13 @@ function Contest() {
                   {(["ALL", "UPCOMING", "LIVE", "ENDED"] as const).map((tab) => (
                     <button
                       key={tab}
-                      className={`px-4 md:px-6 py-2 text-sm md:text-base rounded-md ${
+                      className={`px-4 py-1.5 text-xs md:text-sm rounded-full transition-colors duration-200 active:scale-95 ${
                         statusFilter === tab
                           ? "bg-blue-500 text-white"
                           : darkMode
-                          ? "bg-gray-700 text-white"
-                          : "bg-gray-200 text-gray-800"
-                      } hover:opacity-90`}
+                          ? "bg-gray-700 text-white hover:bg-gray-600"
+                          : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                      }`}
                       onClick={() => setStatusFilter(tab)}
                     >
                       {tab.charAt(0) + tab.slice(1).toLowerCase()}
@@ -146,82 +161,127 @@ function Contest() {
                 </div>
 
                 {isLoading ? (
-                  <p className="text-gray-400">Loading contests...</p>
-                ) : filteredContests.length === 0 ? (
-                  <p className="text-gray-400">No contests in this category yet.</p>
-                ) : (
-                  <div className="flex flex-col md:flex-row flex-wrap gap-6">
-                    {filteredContests.map((contest) => (
-                      <div key={contest.id} className={`p-6 md:w-96 rounded-2xl shadow-lg ${cardBg}`}>
-                        <div className="flex justify-between items-start mb-2">
-                          <h2 className="text-lg font-bold">{contest.name}</h2>
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full text-white ${STATUS_STYLES[contest.status]}`}
-                          >
-                            {contest.status}
-                          </span>
-                        </div>
-                        {contest.prize && <p className="text-sm text-blue-400 mb-2">{contest.prize}</p>}
-                        <p className="text-sm text-gray-400 mb-2">{contest._count.entries} participants</p>
-                        <p className="text-xs text-gray-400 mb-4">
-                          {contest.status === "UPCOMING" && <Countdown target={contest.startAt} label="Starts in" />}
-                          {contest.status === "LIVE" && <Countdown target={contest.endAt} label="Ends in" />}
-                          {contest.status === "ENDED" && "Contest has ended"}
-                        </p>
-                        <div className="flex gap-2">
-                          <button
-                            className="px-4 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600"
-                            onClick={() => setSelectedContestId(contest.id)}
-                          >
-                            View
-                          </button>
-                          {contest.status !== "ENDED" && (
-                            <button
-                              className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-500 disabled:opacity-50"
-                              disabled={isJoining}
-                              onClick={() => handleJoin(contest.id)}
-                            >
-                              Join
-                            </button>
-                          )}
-                        </div>
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} className={`h-48 rounded-2xl animate-pulse ${cardBg}`} />
                     ))}
+                  </div>
+                ) : filteredContests.length === 0 ? (
+                  <div className="text-center py-16">
+                    <p className="text-gray-400 mb-1">No contests in this category yet.</p>
+                    <p className="text-sm text-gray-500">Check back soon, or try a different filter.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredContests.map((contest) => {
+                      const progress = contestProgress(contest);
+                      const isLive = contest.status === "LIVE";
+                      return (
+                        <motion.div
+                          key={contest.id}
+                          whileHover={{ scale: 1.02 }}
+                          className={`flex flex-col rounded-2xl p-5 shadow-lg transition-shadow duration-200 hover:shadow-xl ${
+                            isLive
+                              ? darkMode
+                                ? "bg-gradient-to-b from-green-900/30 to-gray-900 border border-green-500/30"
+                                : "bg-gradient-to-b from-green-50 to-gray-50 border border-green-300"
+                              : `${cardBg} border ${darkMode ? "border-gray-800" : "border-gray-200"}`
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-2 gap-2">
+                            <h2 className="text-base font-bold truncate">{contest.name}</h2>
+                            <span
+                              className={`shrink-0 text-xs px-2 py-0.5 rounded-full text-white ${STATUS_STYLES[contest.status]}`}
+                            >
+                              {contest.status}
+                            </span>
+                          </div>
+
+                          {contest.prize && (
+                            <p className="text-sm text-blue-400 mb-2 truncate">🏆 {contest.prize}</p>
+                          )}
+
+                          <div className="flex items-center gap-1 text-sm text-gray-400 mb-3 tabular-nums">
+                            <span>👥</span>
+                            <span>{contest._count.entries} participant{contest._count.entries === 1 ? "" : "s"}</span>
+                          </div>
+
+                          <p className="text-xs text-gray-400 mb-3">
+                            {contest.status === "UPCOMING" && <Countdown target={contest.startAt} label="Starts in" />}
+                            {contest.status === "LIVE" && <Countdown target={contest.endAt} label="Ends in" />}
+                            {contest.status === "ENDED" && "Contest has ended"}
+                          </p>
+
+                          {contest.status !== "UPCOMING" && (
+                            <div className={`h-1.5 rounded-full mb-4 ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}>
+                              <div
+                                className={`h-1.5 rounded-full ${isLive ? "bg-green-500" : "bg-gray-400"}`}
+                                style={{ width: `${progress}%` }}
+                              />
+                            </div>
+                          )}
+
+                          <div className="flex gap-2 mt-auto">
+                            <button
+                              className={`flex-1 px-4 py-2 text-sm rounded-md transition-colors duration-150 active:scale-95 ${
+                                darkMode ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                              }`}
+                              onClick={() => setSelectedContestId(contest.id)}
+                            >
+                              View
+                            </button>
+                            {contest.status !== "ENDED" && (
+                              <button
+                                className="flex-1 px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-500 transition-colors duration-150 active:scale-95 disabled:opacity-50"
+                                disabled={isJoining}
+                                onClick={() => handleJoin(contest.id)}
+                              >
+                                Join
+                              </button>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 )}
               </>
             ) : (
-              <div className={`p-6 rounded-xl shadow-lg ${cardBg}`}>
+              <div className={`p-6 rounded-2xl shadow-lg ${cardBg}`}>
                 <button
                   onClick={() => {
                     setSelectedContestId(null);
                     setSelectedContest(null);
                     setStandings([]);
                   }}
-                  className="text-sm text-blue-500 underline mb-4"
+                  className="text-sm text-blue-500 hover:underline mb-4"
                 >
                   &larr; Back to Contests
                 </button>
 
                 {isDetailLoading || !selectedContest ? (
-                  <p className="text-gray-400">Loading contest...</p>
+                  <div className="space-y-4">
+                    <div className={`h-8 w-2/3 rounded animate-pulse ${darkMode ? "bg-gray-800" : "bg-gray-200"}`} />
+                    <div className={`h-4 w-1/3 rounded animate-pulse ${darkMode ? "bg-gray-800" : "bg-gray-200"}`} />
+                    <div className={`h-48 rounded-xl animate-pulse ${darkMode ? "bg-gray-800" : "bg-gray-200"}`} />
+                  </div>
                 ) : (
                   <>
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h2 className="text-xl font-bold">{selectedContest.name}</h2>
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                      <div className="min-w-0">
+                        <h2 className="text-lg font-bold truncate">{selectedContest.name}</h2>
                         {selectedContest.prize && (
-                          <p className="text-sm text-blue-400">{selectedContest.prize}</p>
+                          <p className="text-sm text-blue-400 mt-0.5">🏆 {selectedContest.prize}</p>
                         )}
                       </div>
                       <span
-                        className={`text-xs px-2 py-1 rounded-full text-white ${STATUS_STYLES[selectedContest.status]}`}
+                        className={`shrink-0 text-xs px-2 py-1 rounded-full text-white ${STATUS_STYLES[selectedContest.status]}`}
                       >
                         {selectedContest.status}
                       </span>
                     </div>
 
-                    <p className="text-sm text-gray-400 mb-2">
+                    <p className="text-sm text-gray-400 mb-1">
                       {selectedContest.status === "UPCOMING" && (
                         <Countdown target={selectedContest.startAt} label="Starts in" />
                       )}
@@ -231,14 +291,25 @@ function Contest() {
                       {selectedContest.status === "ENDED" && "This contest has ended — final results below."}
                     </p>
 
+                    {selectedContest.status !== "UPCOMING" && (
+                      <div className={`h-1.5 rounded-full mb-4 max-w-xs ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}>
+                        <div
+                          className={`h-1.5 rounded-full ${selectedContest.status === "LIVE" ? "bg-green-500" : "bg-gray-400"}`}
+                          style={{ width: `${contestProgress(selectedContest)}%` }}
+                        />
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between mb-6">
-                      <p className="text-sm text-gray-400">{selectedContest._count.entries} participants</p>
+                      <p className="text-sm text-gray-400 tabular-nums">
+                        {selectedContest._count.entries} participant{selectedContest._count.entries === 1 ? "" : "s"}
+                      </p>
                       {selectedContest.status !== "ENDED" &&
                         (hasJoined ? (
                           <span className="text-sm text-green-500 font-semibold">You're in ✓</span>
                         ) : (
                           <button
-                            className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-500 disabled:opacity-50"
+                            className="px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-500 transition-colors duration-150 active:scale-95 disabled:opacity-50"
                             disabled={isJoining}
                             onClick={() => handleJoin(selectedContest.id)}
                           >
@@ -247,46 +318,56 @@ function Contest() {
                         ))}
                     </div>
 
-                    <h3 className="text-base font-semibold mb-3">Standings</h3>
+                    <h3 className="text-sm font-semibold mb-3">Standings</h3>
                     {standings.length === 0 ? (
-                      <p className="text-gray-400">No one has joined yet — be the first.</p>
+                      <p className="text-gray-400 text-sm">No one has joined yet — be the first.</p>
                     ) : (
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
-                          <thead className={darkMode ? "bg-gray-700" : "bg-gray-200"}>
+                          <thead className={darkMode ? "bg-gray-800" : "bg-gray-200"}>
                             <tr>
-                              <th className="p-3">Rank</th>
-                              <th className="p-3">Player</th>
-                              <th className="p-3">Net Worth</th>
-                              <th className="p-3">Change since joining</th>
+                              <th className="p-3 text-sm">Rank</th>
+                              <th className="p-3 text-sm">Player</th>
+                              <th className="p-3 text-sm">Net Worth</th>
+                              <th className="p-3 text-sm">Change since joining</th>
                             </tr>
                           </thead>
                           <tbody>
                             {standings.map((entry) => {
                               const isMe = entry.userId === currentUserId;
+                              const relativeShare = Math.max(0, Math.min(100, (entry.netWorth / topStandingNetWorth) * 100));
                               return (
                                 <tr
                                   key={entry.userId}
-                                  className={`border-b ${
+                                  className={`border-b transition-colors duration-150 ${
                                     isMe
                                       ? darkMode
                                         ? "bg-blue-900"
                                         : "bg-blue-50"
                                       : darkMode
-                                      ? "border-gray-700"
-                                      : "border-gray-200"
+                                      ? "border-gray-800 hover:bg-gray-800"
+                                      : "border-gray-200 hover:bg-gray-100"
                                   }`}
                                 >
-                                  <td className="p-3">{entry.rank}</td>
-                                  <td className="p-3 flex items-center gap-2">
-                                    <img src={entry.avatar} alt="" className="w-8 h-8 rounded-full" />
-                                    <span>
-                                      {entry.name}
-                                      {isMe && <span className="text-xs ml-1 text-blue-400">(You)</span>}
-                                    </span>
+                                  <td className="p-3 text-sm tabular-nums">
+                                    {entry.rank <= 3 ? MEDALS[entry.rank - 1] : entry.rank}
                                   </td>
-                                  <td className="p-3">{formatInr(entry.netWorth)}</td>
-                                  <td className={`p-3 ${entry.delta >= 0 ? "text-green-500" : "text-red-500"}`}>
+                                  <td className="p-3">
+                                    <div className="flex items-center gap-2">
+                                      <img src={entry.avatar} alt="" className="w-8 h-8 rounded-full shrink-0" />
+                                      <div className="min-w-0">
+                                        <div className="text-sm truncate">
+                                          {entry.name}
+                                          {isMe && <span className="text-xs ml-1 text-blue-400">(You)</span>}
+                                        </div>
+                                        <div className={`h-1 rounded-full mt-1 w-20 ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}>
+                                          <div className="h-1 rounded-full bg-blue-500" style={{ width: `${relativeShare}%` }} />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="p-3 text-sm tabular-nums">{formatInr(entry.netWorth)}</td>
+                                  <td className={`p-3 text-sm tabular-nums ${entry.delta >= 0 ? "text-green-500" : "text-red-500"}`}>
                                     {formatSignedInr(entry.delta)}
                                   </td>
                                 </tr>
