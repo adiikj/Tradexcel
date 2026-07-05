@@ -1,9 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import cookieparser from 'cookie-parser';
+import { pinoHttp } from 'pino-http';
+import logger from './utils/logger.js';
 
 
 const app = express();
+
+app.set('trust proxy', 1);
 
 const corsOptions = {
   origin: process.env.CORS_ORIGIN || "http://localhost:3000", // Next.js dev server
@@ -11,6 +15,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(pinoHttp({ logger }));
 
 
 app.use(express.json({limit : "16kb"}))

@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
 import { getQuote } from "../services/pricing.js";
+import { computeWeightedAvgPrice, computeRemainingQuantity, canAfford, canSell } from "../services/tradeMath.js";
 
 interface AuthRequest {
   user?: { id: string };
@@ -47,7 +48,7 @@ const buyStock = asyncHandler(async (req: AuthRequest, res: Response) => {
     if (!wallet) {
       throw new ApiError(404, "Wallet not found");
     }
-    if (total.gt(wallet.balance)) {
+    if (!canAfford(total, wallet.balance)) {
       throw new ApiError(400, "Insufficient funds for this trade");
     }
 
@@ -65,10 +66,12 @@ const buyStock = asyncHandler(async (req: AuthRequest, res: Response) => {
           where: { userId_symbol: { userId, symbol } },
           data: {
             quantity: existingHolding.quantity + quantity,
-            avgBuyPrice: existingHolding.avgBuyPrice
-              .mul(existingHolding.quantity)
-              .add(total)
-              .div(existingHolding.quantity + quantity),
+            avgBuyPrice: computeWeightedAvgPrice(
+              existingHolding.quantity,
+              existingHolding.avgBuyPrice,
+              quantity,
+              total
+            ),
           },
         })
       : await tx.holding.create({
@@ -102,7 +105,7 @@ const sellStock = asyncHandler(async (req: AuthRequest, res: Response) => {
     const holding = await tx.holding.findUnique({
       where: { userId_symbol: { userId, symbol } },
     });
-    if (!holding || quantity > holding.quantity) {
+    if (!holding || !canSell(quantity, holding.quantity)) {
       throw new ApiError(400, "Insufficient holdings to sell");
     }
 
@@ -113,7 +116,7 @@ const sellStock = asyncHandler(async (req: AuthRequest, res: Response) => {
       data: { balance: { increment: total } },
     });
 
-    const remainingQuantity = holding.quantity - quantity;
+    const remainingQuantity = computeRemainingQuantity(holding.quantity, quantity);
     const updatedHolding =
       remainingQuantity === 0
         ? await tx.holding

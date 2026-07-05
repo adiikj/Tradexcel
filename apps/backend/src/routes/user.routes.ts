@@ -14,15 +14,16 @@ import {
   updateAvatar,
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { authLimiter } from "../middlewares/rateLimit.middleware.js";
 import {upload} from "../middlewares/multer.middleware.js"
 
 const router = Router();
 
 // Public Routes
-router.post("/register", registerUser); // User registration
-router.post("/login", loginUser); // User login (password or pin)
-router.post("/google", googleLogin); // Google Sign-In
-router.post("/verify-otp", verifyOTP); // One-time email verification (signup only)
+router.post("/register", authLimiter, registerUser); // User registration
+router.post("/login", authLimiter, loginUser); // User login (password or pin)
+router.post("/google", authLimiter, googleLogin); // Google Sign-In
+router.post("/verify-otp", authLimiter, verifyOTP); // One-time email verification (signup only)
 router.post("/refresh-token", refreshAccessToken); // Refresh access token
 
 // Protected Routes (Require Authentication)

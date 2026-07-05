@@ -1,9 +1,7 @@
 import { ErrorRequestHandler } from "express";
+import multer from "multer";
 import { ApiError } from "../utils/ApiError.js";
 
-// Express only treats a middleware as an error handler if it declares all
-// four params, so every thrown/next(error) in the app funnels through here
-// and comes out as the same JSON shape ApiResponse uses for success.
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof ApiError) {
     res.status(err.statusCode).json({
@@ -12,6 +10,17 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
       data: err.data,
       success: false,
       errors: err.errors,
+    });
+    return;
+  }
+
+  if (err instanceof multer.MulterError || (err instanceof Error && err.message.includes("images are allowed"))) {
+    res.status(400).json({
+      status: 400,
+      message: err.message,
+      data: null,
+      success: false,
+      errors: [],
     });
     return;
   }
