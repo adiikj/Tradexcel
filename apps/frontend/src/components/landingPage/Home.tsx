@@ -92,7 +92,7 @@ function Home() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <div className="hidden sm:block relative w-full aspect-[1895/905]">
+          <div className="hidden sm:block relative w-full aspect-[3/2]">
             <img
               src={((dashboard)?.src || (dashboard)) as string}
               alt="Dashboard dark mode"
