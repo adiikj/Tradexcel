@@ -34,7 +34,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
     const fetchAvatar = async () => {
       try {
         const data = await getAvatar();  // Call the API to get the avatar
-        setAvatar(data.avatar);  // Set the avatar URL to state (make sure your API returns `avatar`)
+        setAvatar(data?.data?.avatar || null);  // Backend wraps the payload as { data: { avatar } }
       } catch (err) {
         setError(err.message);  // Handle error
       }
@@ -122,7 +122,7 @@ const Header = ({ darkMode, toggleDarkMode }) => {
               darkMode ? "bg-gray-800" : "bg-white"
             } w-10 h-10 md:w-12 md:h-12 cursor-pointer overflow-hidden`}
           >
-            <img src={((avatar || "https://via.placeholder.com/120x120.png?text=No+Avatar")?.src || (avatar || "https://via.placeholder.com/120x120.png?text=No+Avatar")) as string} alt="Profile" className="w-full h-full object-cover" />
+            <img src={(avatar || (profile as any)?.src || profile) as string} alt="Profile" className="w-full h-full object-cover" />
           </div>
 
           {menuOpen && (

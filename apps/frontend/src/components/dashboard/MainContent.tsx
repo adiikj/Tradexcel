@@ -62,14 +62,13 @@ function MainContent({ darkMode  }: any) {
   const totalPnl = Number(summary?.totalPnl ?? 0);
   const returnsPercent = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
 
-  // Same footprint as the real figure so nothing shifts once it loads —
-  // just reads as "loading" instead of a flash of literal "...".
+
   const StatSkeleton = () => (
     <span className={`inline-block h-6 md:h-8 w-20 rounded animate-pulse ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
   );
 
   return (
-    <div className={`flex flex-col md:flex-row w-10/12 md:w-10/12 rounded-2xl h-auto font-pop mx-7 md:mx-auto ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} transition-colors duration-300`}>
+    <div className={`flex flex-col md:flex-row md:items-start w-10/12 md:w-10/12 rounded-2xl h-auto font-pop mx-7 md:mx-auto ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} transition-colors duration-300`}>
       {/* Portfolio Section */}
       <div className="flex flex-col w-full md:w-3/5 m-6 ml-0 md:m-14 ">
         <div className="flex flex-col items-start">
@@ -148,7 +147,7 @@ function MainContent({ darkMode  }: any) {
       <div className="flex flex-col w-full md:w-2/5 m-14 ml-2 md:mt-16 mt-6">
         <div className="text-lg md:text-xl font-semibold mb-1">Today's Market</div>
         <div className="h-2 w-20 bg-blue-500 rounded-full mb-6 animate-line" style={{ animationDelay: '0.45s' }}></div>
-        <div className={`w-full h-full rounded-3xl p-5 flex flex-col items-center justify-center mt-0 ${darkMode ? 'bg-gray-900 text-white' : 'bg-grey text-black'} transition-colors duration-300`}>
+        <div className={`w-full h-auto rounded-3xl p-5 flex flex-col items-center mt-0 ${darkMode ? 'bg-gray-900 text-white' : 'bg-grey text-black'} transition-colors duration-300`}>
           <div className="flex justify-center mb-4 space-x-4">
             <button
               className={`px-4 py-2 rounded-xl transition-colors duration-200 active:scale-95 ${
