@@ -1,9 +1,6 @@
 import axios from "axios";
 
-// Kept separate from api.ts deliberately — this is a personal/internal tool,
-// not part of the regular user-facing app. It uses its own token storage key
-// (adminToken) so an admin session never mixes with a regular user session
-// in the same browser.
+// Separate from api.ts: uses its own adminToken so admin/user sessions never mix.
 const BASE_URL = process.env.NEXT_PUBLIC_API_TRADE_URL;
 
 const adminAuthHeaders = () => {
@@ -39,13 +36,53 @@ export const adminCreateContest = async (payload: {
   startAt: string;
   endAt: string;
   startingBalance?: number;
+  symbols: string[];
   prize?: string;
+  historicalStartDate?: string;
 }) => {
   try {
     const response = await axios.post(`${BASE_URL}/admin/contests`, payload, { headers: adminAuthHeaders() });
     return response.data;
   } catch (error: any) {
     const message = error?.response?.data?.message || error.message || "Failed to create contest";
+    throw new Error(message);
+  }
+};
+
+// historicalStartDate is absent: a replay contest's schedule is fixed at creation.
+export const adminUpdateContest = async (
+  contestId: string,
+  payload: {
+    name: string;
+    startAt: string;
+    endAt: string;
+    startingBalance?: number;
+    symbols: string[];
+    prize?: string;
+  }
+) => {
+  try {
+    const response = await axios.patch(`${BASE_URL}/admin/contests/${contestId}`, payload, {
+      headers: adminAuthHeaders(),
+    });
+    return response.data;
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error.message || "Failed to update contest";
+    throw new Error(message);
+  }
+};
+
+// Separate endpoint since a file upload needs multipart/form-data, not JSON.
+export const adminUploadContestImage = async (contestId: string, file: File) => {
+  try {
+    const formData = new FormData();
+    formData.append("image", file);
+    const response = await axios.post(`${BASE_URL}/admin/contests/${contestId}/image`, formData, {
+      headers: adminAuthHeaders(),
+    });
+    return response.data;
+  } catch (error: any) {
+    const message = error?.response?.data?.message || error.message || "Failed to upload contest image";
     throw new Error(message);
   }
 };

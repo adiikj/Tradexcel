@@ -1,6 +1,5 @@
-// One-off script: seeds a Wallet for any pre-existing user created before
-// the trading engine existed. Safe to re-run — only targets users with no
-// wallet yet. Run with: pnpm --filter @tradexcel/backend backfill:wallets
+// Seeds a Wallet for any pre-existing user missing one. Safe to re-run.
+// Run with: pnpm --filter @tradexcel/backend backfill:wallets
 import prisma from "../db/prisma.js";
 
 const STARTING_BALANCE = "100000";

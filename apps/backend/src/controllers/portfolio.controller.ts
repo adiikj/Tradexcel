@@ -25,9 +25,7 @@ const getWallet = asyncHandler(async (req: AuthRequest, res: Response) => {
     .json(new ApiResponse(200, "Wallet fetched successfully", wallet));
 });
 
-// A quote failing for one symbol (rate limit, delisted ticker, Yahoo hiccup)
-// must never take down the whole portfolio response — that holding just
-// falls back to its invested value (zero P&L) instead of a live one.
+// A quote failure for one symbol falls back to invested value, not the whole response.
 const getPortfolio = asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
 

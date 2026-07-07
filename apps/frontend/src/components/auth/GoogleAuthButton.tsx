@@ -26,7 +26,7 @@ function GoogleAuthButton({ onError }: { onError: (message: string) => void }) {
         persistSession(dispatch, accessToken);
         router.push("/dashboard");
       } else {
-        // New account — same one-time OTP-email step as password signup.
+        // New account - same one-time OTP-email step as password signup.
         const email = response?.data?.email || "";
         const params = new URLSearchParams({ email, allowOTP: "true" }).toString();
         router.push(`/signup/otp?${params}`);

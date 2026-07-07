@@ -2,9 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-// Checks localStorage directly rather than a cookie — this token never
-// needs to be sent to the server automatically (no SSR pages depend on it),
-// so there's no reason to expose it as a cookie.
+// Uses localStorage, not a cookie: no SSR page depends on this token.
 const AdminRoute = ({ children }) => {
   const navigate = useRouter();
   const [checked, setChecked] = useState(false);

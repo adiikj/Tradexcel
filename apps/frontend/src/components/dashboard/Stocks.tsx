@@ -2,46 +2,40 @@
 import React, { useRef, useEffect } from 'react';
 import { Chart, CategoryScale, LinearScale, LineElement, LineController, PointElement } from 'chart.js';
 
-// Register necessary components
 Chart.register(CategoryScale, LinearScale, LineElement, LineController, PointElement);
 
 function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, price, todayChange, darkMode  }: any) {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
 
-  // Determine if today's change is positive or negative
   const isPositive = parseFloat(todayChange) >= 0;
 
   useEffect(() => {
     const ctx = chartRef.current.getContext('2d');
 
-    // Destroy the previous chart instance (if any) before creating a new one
     if (chartInstance.current) {
       chartInstance.current.destroy();
     }
 
-    // Fade toward transparent rather than a hardcoded white — fading to a
-    // literal white washed out into an ugly bright patch against dark-mode
-    // cards; transparent reads correctly on either theme.
+    // Fades to transparent instead of white so it reads correctly in dark mode too.
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, isPositive ? '#22c55e' : '#ef4444');
     gradient.addColorStop(1, isPositive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)');
 
-    // Create a new chart with sharp edges and no fill
     chartInstance.current = new Chart(ctx, {
-      type: 'line', // Line chart to simulate stock price trend
+      type: 'line',
       data: {
-        labels: labels, // X-axis labels (days of the week)
+        labels: labels,
         datasets: [
           {
-            label: shortName, // Stock name (short form)
-            data: stockPrices, // Stock price data
-            borderColor: gradient, // Use gradient colors for the line
-            backgroundColor: 'transparent', // No fill under the line
-            tension: 0, // Sharp edges (no smoothing)
+            label: shortName,
+            data: stockPrices,
+            borderColor: gradient,
+            backgroundColor: 'transparent',
+            cubicInterpolationMode: 'monotone',
             borderWidth: 2,
-            pointRadius: 0, // No points (dots)
-            showLine: true, // Show the line
+            pointRadius: 0,
+            showLine: true,
             hoverBorderWidth: 2,
           },
         ],
@@ -51,17 +45,17 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            display: false, // Hide legend
+            display: false,
           },
           tooltip: {
-            enabled: false, // Disable tooltip
+            enabled: false,
           },
         },
         scales: {
           y: {
-            beginAtZero: false, // Don't start the Y-axis from 0 for a more realistic stock chart
+            beginAtZero: false,
             ticks: {
-              display: false, // Hide Y-axis ticks
+              display: false,
             },
             grid: {
               drawOnChartArea: false,
@@ -77,7 +71,7 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
               display: false,
             },
             ticks: {
-              display: false, // Hide X-axis ticks
+              display: false,
             },
             border: {
               width: 0,
@@ -87,46 +81,36 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
       },
     });
 
-    // Cleanup: Destroy the chart instance when the component unmounts
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy();
       }
     };
-  }, [percentageChange, shortName, stockPrices, labels, todayChange]); // Re-run this effect when any relevant prop changes
+  }, [percentageChange, shortName, stockPrices, labels, todayChange]);
 
-  // Format today's change (string) with correct sign (+ or -)
-const formattedTodayChange = todayChange && todayChange !== 'NA' ? `${todayChange}` : 'NA';
-
-// Format percentage change as a number without + or - (remove the string formatting)
-const formattedPercentageChange = percentageChange && percentageChange !== 'NA' ? `${percentageChange}` : 'NA';
+  const formattedTodayChange = todayChange && todayChange !== 'NA' ? `${todayChange}` : 'NA';
+  const formattedPercentageChange = percentageChange && percentageChange !== 'NA' ? `${percentageChange}` : 'NA';
 
   return (
     <div className={`p-3 w-full flex flex-row sm:flex-row items-center rounded-lg shadow-md hover:shadow-lg mb-2 md:mb-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} transition-[background-color,box-shadow] duration-300`}>
-      {/* Stock details (name, full name, price, and change) */}
       <div className="flex flex-col items-center w-full sm:w-1/3 mb-4 sm:mb-0">
-        {/* Stock short name */}
         <div className="text-sm md:text-base font-semibold">{shortName}</div>
 
-        {/* Full stock name with truncation */}
         <div
           className={`text-xs md:text-sm ${darkMode ?  'text-gray-200' : ' text-gray-600'} transition-colors duration-300 overflow-hidden whitespace-nowrap text-ellipsis`}
-          title={fullName} // Show full name on hover
+          title={fullName}
         >
           {fullName.length > 15 ? `${fullName.substring(0, 15)}...` : fullName}
         </div>
       </div>
 
-      {/* Line chart canvas for stock price */}
       <div className="flex justify-center w-full sm:w-1/3 mb-4 sm:mb-0">
-        <canvas ref={chartRef} className="max-w-16 max-h-8"></canvas> {/* Graph width and height */}
+        <canvas ref={chartRef} className="max-w-16 max-h-8"></canvas>
       </div>
 
-      {/* Stock price and today's change */}
       <div className="flex flex-col items-center justify-end w-full sm:w-1/3">
         <div className="text-sm md:text-base font-medium tabular-nums">{price}</div>
 
-        {/* Display today's change and percentage */}
         <div className={`text-xs md:text-sm tabular-nums ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
           {formattedTodayChange} ({formattedPercentageChange})
         </div>

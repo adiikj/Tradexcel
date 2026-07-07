@@ -3,10 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Request, Response, NextFunction } from "express";
 
-// Deliberately separate from verifyJWT: a distinct secret, a distinct token
-// shape (role claim, no user id/DB lookup), and no relationship to the
-// regular User table. Leaking one system's signing key must not grant
-// access to the other.
+// Separate secret and token shape from verifyJWT so leaking one key can't grant the other's access.
 export const verifyAdmin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
 

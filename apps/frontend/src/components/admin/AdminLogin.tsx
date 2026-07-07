@@ -36,7 +36,7 @@ function AdminLogin() {
     <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white font-pop px-4">
       <div className="max-w-sm w-full border border-gray-700 rounded-2xl p-8 bg-gray-800 shadow-lg">
         <h1 className="text-xl font-bold mb-1">Admin Access</h1>
-        <p className="text-sm text-gray-400 mb-6">Internal tool — authorized personnel only.</p>
+        <p className="text-sm text-gray-400 mb-6">Internal tool - authorized personnel only.</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <p className="text-red-500 text-sm">{error}</p>}

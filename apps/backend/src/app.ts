@@ -71,6 +71,18 @@ import adminRouter from './routes/admin.routes.js';
 
 app.use('/api/v1', adminRouter);
 
+import socialRouter from './routes/social.routes.js';
+
+app.use('/api/v1', socialRouter);
+
+import newsRouter from './routes/news.routes.js';
+
+app.use('/api/v1', newsRouter);
+
+import notificationRouter from './routes/notification.routes.js';
+
+app.use('/api/v1', notificationRouter);
+
 import { errorHandler } from './middlewares/error.middleware.js';
 
 app.use(errorHandler);

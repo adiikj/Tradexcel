@@ -90,4 +90,33 @@ const getLeaderboard = asyncHandler(async (req: AuthRequest, res: Response) => {
   );
 });
 
-export { getLeaderboard };
+// Re-ranks the cached global rankings within just the caller's follow graph.
+const getFriendsLeaderboard = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const parsed = leaderboardQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new ApiError(400, "Invalid query parameters", parsed.error.issues);
+  }
+  const { limit } = parsed.data;
+  const userId = req.user!.id;
+
+  const follows = await prisma.follow.findMany({ where: { followerId: userId }, select: { followingId: true } });
+  const scopeIds = new Set([userId, ...follows.map((f) => f.followingId)]);
+
+  const rankings = await getRankings();
+  const scoped = rankings
+    .filter((entry) => scopeIds.has(entry.userId))
+    .map((entry, index) => ({ ...entry, rank: index + 1 }));
+
+  const top = scoped.slice(0, limit);
+  const currentUser = scoped.find((entry) => entry.userId === userId) ?? null;
+
+  return res.status(200).json(
+    new ApiResponse(200, "Friends leaderboard fetched successfully", {
+      leaderboard: top,
+      currentUser,
+      totalPlayers: scoped.length,
+    })
+  );
+});
+
+export { getLeaderboard, getFriendsLeaderboard, getRankings };

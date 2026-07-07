@@ -1,10 +1,4 @@
-// Seeds a handful of demo accounts with varied, realistic portfolios so the
-// leaderboard and Market/Portfolio pages have real signal for a first-time
-// visitor (recruiter demo) instead of a single empty account.
-//
-// Idempotent — safe to re-run; each demo user (and their wallet/holdings/
-// transactions) is deleted and recreated fresh every time.
-//
+// Seeds demo accounts with realistic portfolios for a recruiter demo. Idempotent.
 // Run with: pnpm --filter @tradexcel/backend seed:demo
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
@@ -27,11 +21,7 @@ interface DemoUser {
   name: string;
   username: string;
   email: string;
-  // costBasisFactor simulates having bought at a different historical price
-  // than today's live quote (e.g. 0.9 = bought 10% cheaper than now, a
-  // paper gain). A brand-new real trade always has zero P&L until the
-  // market moves — this backdating is purely cosmetic seed data so the
-  // leaderboard shows realistic spread immediately instead of nine ties.
+  // Simulated cost basis vs. today's live quote (0.9 = bought 10% cheaper), for P&L spread.
   costBasisFactor: number;
   holdings: { symbol: string; quantity: number }[];
 }

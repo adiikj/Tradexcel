@@ -1,9 +1,18 @@
-// Ranks a stock universe by today's real price change and returns the top 5,
-// instead of a fixed hardcoded list — shared by TopGainers and TopLosers.
+// Ranks a stock universe by today's real price change and returns the top 5. Shared by TopGainers/TopLosers.
 
 type StockMeta = { shortName: string; fullName: string; symbol: string };
 
 const LABELS = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
+
+// Curated large-cap symbols, to avoid firing one API call per symbol across the full catalog.
+export const LIQUID_MOVERS_SYMBOLS = new Set([
+  "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", "SBIN.NS", "BHARTIARTL.NS", "ITC.NS",
+  "LT.NS", "HCLTECH.NS", "KOTAKBANK.NS", "AXISBANK.NS", "BAJFINANCE.NS", "MARUTI.NS", "SUNPHARMA.NS", "TITAN.NS",
+  "ASIANPAINT.NS", "WIPRO.NS", "NESTLEIND.NS", "HINDUNILVR.NS", "ULTRACEMCO.NS", "NTPC.NS", "POWERGRID.NS",
+  "ONGC.NS", "COALINDIA.NS", "TATASTEEL.NS", "JSWSTEEL.NS", "ADANIENT.NS", "ADANIPORTS.NS", "TECHM.NS",
+  "DRREDDY.NS", "CIPLA.NS", "DIVISLAB.NS", "BAJAJFINSV.NS", "HDFCLIFE.NS", "SBILIFE.NS", "GRASIM.NS",
+  "EICHERMOT.NS", "M&M.NS", "BRITANNIA.NS", "INDUSINDBK.NS", "TATACONSUM.NS", "HEROMOTOCO.NS",
+]);
 
 export async function rankMovers(
   universe: StockMeta[],
@@ -23,8 +32,7 @@ export async function rankMovers(
       try {
         const data = await getStockData(stock.symbol);
         const magnitude = parseFloat(data.percentageChange) || 0;
-        // percentageChange comes back unsigned from the backend; the sign
-        // lives in todayChange (e.g. "+12.34" / "-5.67" / "NA").
+        // percentageChange is unsigned; the sign lives in todayChange.
         const isNegative = String(data.todayChange || "").trim().startsWith("-");
         const signedChange = isNegative ? -magnitude : magnitude;
 
@@ -34,11 +42,10 @@ export async function rankMovers(
           percentageChange: `${data.percentageChange || 0}%`,
           todayChange: `${data.todayChange || 0}`,
           stockPrices: data.stockPrices || Array(30).fill(0),
-          labels: LABELS,
+          labels: data.dates || LABELS,
           signedChange,
         };
       } catch (error) {
-        console.error(`Error fetching data for ${stock.symbol}:`, error);
         return null;
       }
     })

@@ -1,16 +1,10 @@
 "use client";
 import React, { createContext, useState, useEffect } from "react";
 
-// Create the Theme Context
 const ThemeContext = createContext<any>({} as any);
 
 export const ThemeProvider = ({ children }) => {
-  // Always start at the same default on server and client — reading
-  // localStorage into the initial state caused a hydration mismatch
-  // whenever a returning visitor had dark mode saved (server always
-  // renders light, client's first render read localStorage and rendered
-  // dark, React flagged a hydration error). The real value is synced in
-  // immediately after mount instead, via the effect below.
+  // Starts false on both server and client to avoid a hydration mismatch; synced from localStorage after mount.
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -27,7 +21,6 @@ export const ThemeProvider = ({ children }) => {
     });
   };
 
-  // Set the theme on component mount or when darkMode changes
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", darkMode ? "dark" : "light");
   }, [darkMode]);
@@ -39,5 +32,4 @@ export const ThemeProvider = ({ children }) => {
   );
 };
 
-// Export the context for consumption
 export default ThemeContext;

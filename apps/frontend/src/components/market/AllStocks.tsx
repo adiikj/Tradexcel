@@ -1,52 +1,14 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import ShortStock from "../dashboard/Stocks"; // Your Stock component that handles chart rendering
-import { getStockData } from "../../api/api";
-import stockList from "./StockData.json";
+import React from "react";
+import ShortStock from "../dashboard/Stocks";
 
-function AllStocks({ setSelectedStock, darkMode, filteredStocks  }: any) {
-  const [allstocks, setAllStocks] = useState<any>([]);
-  const [loading, setLoading] = useState<any>(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-
-      const updatedStocks = await Promise.all(
-        stockList.map(async (stock) => {
-          const data = await getStockData(stock.symbol);
-
-          // Use fallback values if data fetching fails
-          const stockData = data || {
-            currentPrice: 1000,
-            percentageChange: "N/A", 
-            todayChange: "N/A", 
-            stockPrices: Array(30).fill(1000),
-          };
-
-          return {
-            ...stock,
-            price: ` ${stockData.currentPrice.toFixed(2)}`,
-            percentageChange: `${stockData.percentageChange || 0}%`, // Format as percentage
-            todayChange: `${stockData.todayChange || 0}`, // Format as ₹ with 2 decimal places
-            stockPrices: stockData.stockPrices,
-            labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
-          };
-        })
-      );
-
-      setAllStocks(updatedStocks); // Set the updated stock data
-      setLoading(false);
-    };
-
-    fetchData();
-  }, []);
-
-  const stocksToDisplay = filteredStocks || allstocks;
+// Purely presentational - Market.tsx owns the single data fetch and passes the result down as filteredStocks.
+function AllStocks({ setSelectedStock, darkMode, filteredStocks, isLoading }: any) {
+  const stocksToDisplay = filteredStocks || [];
 
   return (
     <div>
-      {loading ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {Array.from({ length: 9 }).map((_, i) => (
             <div key={i} className={`h-24 rounded-lg animate-pulse ${darkMode ? 'bg-gray-800' : 'bg-white'}`} />

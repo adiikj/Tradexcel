@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import type { Quote } from "@tradexcel/shared";
+import { ApiError } from "../utils/ApiError.js";
 
 const CACHE_TTL_MS = 12_000;
 const cache = new Map<string, { quote: Quote; expiresAt: number }>();
@@ -36,9 +37,7 @@ async function fetchQuote(symbol: string): Promise<Quote> {
   };
 }
 
-// Fetches the live quote for a single symbol, serving from an in-memory
-// cache when possible since buy/sell + leaderboard all hit this and Yahoo
-// rate-limits aggressively.
+// Serves from an in-memory cache when possible; Yahoo rate-limits aggressively.
 export async function getQuote(symbol: string): Promise<Quote> {
   const key = symbol.toUpperCase();
   const cached = cache.get(key);
@@ -68,4 +67,13 @@ export async function getQuotes(symbols: string[]): Promise<Record<string, Quote
   );
 
   return Object.fromEntries(results);
+}
+
+// Shared 404-on-no-price wrapper used by both trade controllers.
+export async function fetchQuoteOrThrow(symbol: string): Promise<Quote> {
+  try {
+    return await getQuote(symbol);
+  } catch (error: any) {
+    throw new ApiError(404, `No live price available for ${symbol}`);
+  }
 }

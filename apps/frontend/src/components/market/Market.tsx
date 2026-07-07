@@ -14,15 +14,18 @@ import { formatInr } from "../../utils/format";
 function Market() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const [balance, setBalance] = useState(0);
+  const [isLoadingBalance, setIsLoadingBalance] = useState(true);
   const [holdings, setHoldings] = useState<Record<string, number>>({});
   const [selectedStock, setSelectedStock] = useState<any>(null);
   const [stocks, setStocks] = useState<any>([]);
+  const [isLoadingStocks, setIsLoadingStocks] = useState(true);
   const [searchQuery, setSearchQuery] = useState<any>(""); // Track the search query
   const [filterMode, setFilterMode] = useState<"all" | "gainers" | "losers" | "holdings">("all");
   const [tradeModal, setTradeModal] = useState<{ side: "BUY" | "SELL" } | null>(null);
 
   const refreshAccountState = useCallback(async () => {
     try {
+      setIsLoadingBalance(true);
       const [walletResponse, portfolioResponse] = await Promise.all([getWallet(), getPortfolio()]);
       setBalance(Number(walletResponse?.data?.balance ?? 0));
       const holdingsMap: Record<string, number> = {};
@@ -31,7 +34,9 @@ function Market() {
       }
       setHoldings(holdingsMap);
     } catch (err) {
-      console.error("Failed to load wallet/portfolio:", err);
+      // Wallet/portfolio failed to load; balance stays at its last known value.
+    } finally {
+      setIsLoadingBalance(false);
     }
   }, []);
 
@@ -41,30 +46,39 @@ function Market() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoadingStocks(true);
+
+      // Each symbol is fetched independently so one failure doesn't stall the list.
       const updatedStocks = await Promise.all(
         stockList.map(async (stock) => {
-          const data = await getStockData(stock.symbol);
+          try {
+            const data = await getStockData(stock.symbol);
 
-          const stockData = data || {
-            currentPrice: 1000,
-            percentageChange: "N/A",
-            todayChange: "N/A",
-            stockPrices: Array(30).fill(1000),
-          };
+            const stockData = data || {
+              currentPrice: 1000,
+              percentageChange: "N/A",
+              todayChange: "N/A",
+              stockPrices: Array(30).fill(1000),
+              dates: null,
+            };
 
-          return {
-            ...stock,
-            rawPrice: stockData.currentPrice,
-            price: `₹ ${stockData.currentPrice.toFixed(2)}`,
-            percentageChange: `${stockData.percentageChange || 0}%`, // Format as percentage
-            todayChange: `${stockData.todayChange || 0}`, // Format as ₹ with 2 decimal places
-            stockPrices: stockData.stockPrices,
-            labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
-          };
+            return {
+              ...stock,
+              rawPrice: stockData.currentPrice,
+              price: `₹ ${stockData.currentPrice.toFixed(2)}`,
+              percentageChange: `${stockData.percentageChange || 0}%`, // Format as percentage
+              todayChange: `${stockData.todayChange || 0}`, // Format as ₹ with 2 decimal places
+              stockPrices: stockData.stockPrices,
+              labels: stockData.dates || Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
+            };
+          } catch (error) {
+            return null;
+          }
         })
       );
 
-      setStocks(updatedStocks);
+      setStocks(updatedStocks.filter((stock): stock is NonNullable<typeof stock> => stock !== null));
+      setIsLoadingStocks(false);
     };
 
     fetchData();
@@ -101,7 +115,14 @@ function Market() {
             <h1 className="text-2xl md:text-3xl font-bold">Market</h1>
           <div className="h-2 w-28 bg-blue-500 rounded-full mb-6 animate-line"></div>
           <div className="flex justify-between items-center mt-6">
-          <p className="mb-4 text-base md:text-xl tabular-nums">Balance: {formatInr(balance)}</p>
+          <p className="mb-4 text-base md:text-xl tabular-nums flex items-center gap-2">
+            Cash:{" "}
+            {isLoadingBalance ? (
+              <span className={`inline-block h-5 w-24 rounded animate-pulse ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
+            ) : (
+              formatInr(balance)
+            )}
+          </p>
           {selectedStock && (
               <button
                 onClick={() => setSelectedStock(null)}
@@ -181,6 +202,7 @@ function Market() {
                   setSelectedStock={setSelectedStock}
                   darkMode={darkMode}
                   filteredStocks={filteredStocks}
+                  isLoading={isLoadingStocks}
                 />
               </div>
             </div>

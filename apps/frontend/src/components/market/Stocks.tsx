@@ -2,18 +2,14 @@
 import React, { useRef, useEffect } from 'react';
 import { Chart, CategoryScale, LinearScale, LineElement, LineController, PointElement, Tooltip, Filler } from 'chart.js';
 
-// Register necessary components and Filler plugin
 Chart.register(CategoryScale, LinearScale, LineElement, LineController, PointElement, Tooltip, Filler);
 
 function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, price, todayChange, darkMode, ownedQuantity, onBuy, onSell }: any) {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
 
-  // Determine if today's change is positive or negative
   const isPositive = parseFloat(todayChange) >= 0;
 
-  // Real, already-available data (the 30-day price series we already fetch
-  // for the chart) rather than empty decoration — no backend change needed.
   const validPrices = (stockPrices || []).filter((p: number) => typeof p === 'number' && !Number.isNaN(p));
   const thirtyDayHigh = validPrices.length ? Math.max(...validPrices) : null;
   const thirtyDayLow = validPrices.length ? Math.min(...validPrices) : null;
@@ -21,23 +17,42 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
   useEffect(() => {
     const ctx = chartRef.current.getContext('2d');
 
-    // Destroy the previous chart instance (if any) before creating a new one
     if (chartInstance.current) {
       chartInstance.current.destroy();
     }
 
-    // Create a gradient color for the line with a more dynamic effect
-    const gradientLine = ctx.createLinearGradient(0, 0, 0, 400);
-    gradientLine.addColorStop(0, isPositive ? 'limegreen' : 'darkred'); // Green for positive, red for negative
-    gradientLine.addColorStop(1, isPositive ? 'forestgreen' : 'firebrick'); // Darker green for positive, darker red for negative
+    const lineColor = isPositive ? '#22c55e' : '#ef4444';
+    const gridColor = darkMode ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)';
+    const axisTextColor = darkMode ? '#9ca3af' : '#6b7280';
 
-    // Create a light color gradient for the area below the line with a smoother transition
     const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
-    gradientFill.addColorStop(0, isPositive ? "rgba(0, 255, 0, 0.3)" : "rgba(255, 0, 0, 0.3)"); // Change based on positivity or negativity
-    gradientFill.addColorStop(1, isPositive ? "rgba(0, 255, 0, 0.1)" : "rgba(255, 0, 0, 0.1)"); // Fading effect with transparency
+    gradientFill.addColorStop(0, isPositive ? 'rgba(34, 197, 94, 0.25)' : 'rgba(239, 68, 68, 0.25)');
+    gradientFill.addColorStop(1, isPositive ? 'rgba(34, 197, 94, 0)' : 'rgba(239, 68, 68, 0)');
 
-    // Create a new chart with sharp edges and no fill
+    // Vanilla canvas draw for the price line instead of pulling in chartjs-plugin-annotation.
+    const currentPriceNum = parseFloat(String(price).replace(/[^0-9.-]/g, ''));
+    const currentPriceLine = {
+      id: 'currentPriceLine',
+      afterDraw(chart: any) {
+        if (!Number.isFinite(currentPriceNum)) return;
+        const { ctx: c, chartArea, scales } = chart;
+        const y = scales.y.getPixelForValue(currentPriceNum);
+        if (y < chartArea.top || y > chartArea.bottom) return;
+
+        c.save();
+        c.setLineDash([4, 4]);
+        c.strokeStyle = darkMode ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.35)';
+        c.lineWidth = 1;
+        c.beginPath();
+        c.moveTo(chartArea.left, y);
+        c.lineTo(chartArea.right, y);
+        c.stroke();
+        c.restore();
+      },
+    };
+
     chartInstance.current = new Chart(ctx, {
+      plugins: [currentPriceLine],
       type: 'line', // Line chart to simulate stock price trend
       data: {
         labels: labels, // X-axis labels (days of the week)
@@ -45,15 +60,16 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
           {
             label: shortName, // Stock name (short form)
             data: stockPrices, // Stock price data
-            borderColor: gradientLine, // Use gradient colors for the line
-            backgroundColor: gradientFill, // Light color fill below the line
-            tension: 0, // Sharp edges (no smoothing)
+            borderColor: lineColor,
+            backgroundColor: gradientFill, // Fades to transparent, not a solid block
+            cubicInterpolationMode: 'monotone', // Smooth, natural curve without overshooting real values
             borderWidth: 2,
-            pointRadius: 1, // Show points
-            pointBackgroundColor: darkMode ? "white" : "black", // Point color
-            pointBorderWidth: 2,
-            fill: 'origin', // Ensure that the area under the line is filled
-            hoverBorderWidth: 2,
+            pointRadius: 0, // Points only appear on hover, not on every day
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: lineColor,
+            pointHoverBorderColor: darkMode ? '#111827' : '#ffffff',
+            pointHoverBorderWidth: 2,
+            fill: 'origin',
           },
         ],
       },
@@ -68,9 +84,15 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
             enabled: true, // Enable tooltips
             mode: 'nearest', // Display tooltip for the nearest point
             intersect: false, // Allow tooltip when hovering over the line
-            backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)', // Tooltip background color
-            titleColor: darkMode ? 'black' : 'white', // Tooltip title color
-            bodyColor: darkMode ? 'black' : 'white', // Tooltip body color
+            displayColors: false, // No color swatch - only one series, it's redundant
+            backgroundColor: darkMode ? '#1f2937' : '#ffffff',
+            titleColor: darkMode ? '#9ca3af' : '#6b7280',
+            bodyColor: darkMode ? '#ffffff' : '#111827',
+            borderColor: darkMode ? '#374151' : '#e5e7eb',
+            borderWidth: 1,
+            padding: 10,
+            cornerRadius: 8,
+            bodyFont: { weight: 'bold' as const },
             callbacks: {
               label: function (tooltipItem: any) {
                 return `₹${tooltipItem.raw.toFixed(2)}`; // Format tooltip value as currency
@@ -81,12 +103,18 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
         scales: {
           y: {
             beginAtZero: false, // Don't start the Y-axis from 0 for a more realistic stock chart
+            position: 'right',
             ticks: {
-              display: false, // Hide Y-axis ticks
+              display: true,
+              maxTicksLimit: 5,
+              color: axisTextColor,
+              font: { size: 11 },
+              callback: (value: any) => `₹${Number(value).toFixed(0)}`,
             },
             grid: {
-              drawOnChartArea: false,
-              display: false,
+              drawOnChartArea: true,
+              display: true,
+              color: gridColor,
             },
             border: {
               width: 0,
@@ -98,7 +126,11 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
               display: false,
             },
             ticks: {
-              display: false, // Hide X-axis ticks
+              display: true,
+              autoSkip: true,
+              maxTicksLimit: 6,
+              color: axisTextColor,
+              font: { size: 11 },
             },
             border: {
               width: 0,
@@ -108,18 +140,14 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
       },
     });
 
-    // Cleanup: Destroy the chart instance when the component unmounts
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy();
       }
     };
-  }, [percentageChange, shortName, stockPrices, labels, darkMode, todayChange]); // Re-run this effect when any relevant prop changes
+  }, [percentageChange, shortName, stockPrices, labels, darkMode, todayChange, price]);
 
-  // Format today's change (string) with correct sign (+ or -)
   const formattedTodayChange = todayChange && todayChange !== 'NA' ? `${todayChange}` : 'NA';
-
-  // Format percentage change as a number without + or - (remove the string formatting)
   const formattedPercentageChange = percentageChange && percentageChange !== 'NA' ? `${percentageChange}` : 'NA';
 
   return (

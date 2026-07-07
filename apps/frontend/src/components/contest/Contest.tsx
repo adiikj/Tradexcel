@@ -6,9 +6,17 @@ import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import ThemeContext from "../../context/ThemeContext";
 import { Helmet } from "react-helmet";
-import { getContests, getContest, joinContest, getContestStandings, getUserProfile } from "../../api/api";
+import {
+  getContests,
+  getContest,
+  joinContest,
+  getContestStandings,
+  getContestPortfolio,
+  getUserProfile,
+} from "../../api/api";
 import { formatInr, formatSignedInr } from "../../utils/format";
 import Countdown from "./Countdown";
+import TradeModal from "../trade/TradeModal";
 
 const STATUS_STYLES: Record<string, string> = {
   UPCOMING: "bg-yellow-500",
@@ -18,8 +26,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
-// A real progress bar, not decorative — % of the contest window that has
-// elapsed, so a LIVE card visually communicates how close it is to ending.
+// % of the contest window elapsed, so a LIVE card shows how close it is to ending.
 function contestProgress(contest: { startAt: string; endAt: string; status: string }) {
   if (contest.status === "ENDED") return 100;
   if (contest.status === "UPCOMING") return 0;
@@ -43,6 +50,10 @@ function Contest() {
   const [standings, setStandings] = useState<any[]>([]);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+
+  const [contestPortfolio, setContestPortfolio] = useState<{ holdings: any[]; summary: any } | null>(null);
+  const [buyTarget, setBuyTarget] = useState<{ symbol: string; price: number } | null>(null);
+  const [sellTarget, setSellTarget] = useState<any>(null);
 
   const fetchContests = useCallback(async () => {
     try {
@@ -71,8 +82,13 @@ function Contest() {
         getContest(contestId),
         getContestStandings(contestId),
       ]);
-      setSelectedContest(contestRes?.data || null);
+      const contest = contestRes?.data || null;
+      setSelectedContest(contest);
       setStandings(standingsRes?.data?.standings || []);
+
+      // Not having joined yet is expected (404) - just means no panel to show.
+      const portfolioRes = await getContestPortfolio(contestId).catch(() => null);
+      setContestPortfolio(portfolioRes?.data || null);
     } catch (err: any) {
       toast.error(err.message || "Failed to load contest details.");
     } finally {
@@ -180,7 +196,7 @@ function Contest() {
                         <motion.div
                           key={contest.id}
                           whileHover={{ scale: 1.02 }}
-                          className={`flex flex-col rounded-2xl p-5 shadow-lg transition-shadow duration-200 hover:shadow-xl ${
+                          className={`flex flex-col rounded-2xl shadow-lg transition-shadow duration-200 hover:shadow-xl overflow-hidden ${
                             isLive
                               ? darkMode
                                 ? "bg-gradient-to-b from-green-900/30 to-gray-900 border border-green-500/30"
@@ -188,57 +204,62 @@ function Contest() {
                               : `${cardBg} border ${darkMode ? "border-gray-800" : "border-gray-200"}`
                           }`}
                         >
-                          <div className="flex justify-between items-start mb-2 gap-2">
-                            <h2 className="text-base font-bold truncate">{contest.name}</h2>
-                            <span
-                              className={`shrink-0 text-xs px-2 py-0.5 rounded-full text-white ${STATUS_STYLES[contest.status]}`}
-                            >
-                              {contest.status}
-                            </span>
-                          </div>
-
-                          {contest.prize && (
-                            <p className="text-sm text-blue-400 mb-2 truncate">🏆 {contest.prize}</p>
+                          {contest.imageUrl && (
+                            <img src={contest.imageUrl} alt="" className="w-full h-28 object-cover" />
                           )}
-
-                          <div className="flex items-center gap-1 text-sm text-gray-400 mb-3 tabular-nums">
-                            <span>👥</span>
-                            <span>{contest._count.entries} participant{contest._count.entries === 1 ? "" : "s"}</span>
-                          </div>
-
-                          <p className="text-xs text-gray-400 mb-3">
-                            {contest.status === "UPCOMING" && <Countdown target={contest.startAt} label="Starts in" />}
-                            {contest.status === "LIVE" && <Countdown target={contest.endAt} label="Ends in" />}
-                            {contest.status === "ENDED" && "Contest has ended"}
-                          </p>
-
-                          {contest.status !== "UPCOMING" && (
-                            <div className={`h-1.5 rounded-full mb-4 ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}>
-                              <div
-                                className={`h-1.5 rounded-full ${isLive ? "bg-green-500" : "bg-gray-400"}`}
-                                style={{ width: `${progress}%` }}
-                              />
-                            </div>
-                          )}
-
-                          <div className="flex gap-2 mt-auto">
-                            <button
-                              className={`flex-1 px-4 py-2 text-sm rounded-md transition-colors duration-150 active:scale-95 ${
-                                darkMode ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                              }`}
-                              onClick={() => setSelectedContestId(contest.id)}
-                            >
-                              View
-                            </button>
-                            {contest.status !== "ENDED" && (
-                              <button
-                                className="flex-1 px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-500 transition-colors duration-150 active:scale-95 disabled:opacity-50"
-                                disabled={isJoining}
-                                onClick={() => handleJoin(contest.id)}
+                          <div className="flex flex-col flex-1 p-5">
+                            <div className="flex justify-between items-start mb-2 gap-2">
+                              <h2 className="text-base font-bold truncate">{contest.name}</h2>
+                              <span
+                                className={`shrink-0 text-xs px-2 py-0.5 rounded-full text-white ${STATUS_STYLES[contest.status]}`}
                               >
-                                Join
-                              </button>
+                                {contest.status}
+                              </span>
+                            </div>
+
+                            {contest.prize && (
+                              <p className="text-sm text-blue-400 mb-2 truncate">🏆 {contest.prize}</p>
                             )}
+
+                            <div className="flex items-center gap-1 text-sm text-gray-400 mb-3 tabular-nums">
+                              <span>👥</span>
+                              <span>{contest._count.entries} participant{contest._count.entries === 1 ? "" : "s"}</span>
+                            </div>
+
+                            <p className="text-xs text-gray-400 mb-3">
+                              {contest.status === "UPCOMING" && <Countdown target={contest.startAt} label="Starts in" />}
+                              {contest.status === "LIVE" && <Countdown target={contest.endAt} label="Ends in" />}
+                              {contest.status === "ENDED" && "Contest has ended"}
+                            </p>
+
+                            {contest.status !== "UPCOMING" && (
+                              <div className={`h-1.5 rounded-full mb-4 ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}>
+                                <div
+                                  className={`h-1.5 rounded-full ${isLive ? "bg-green-500" : "bg-gray-400"}`}
+                                  style={{ width: `${progress}%` }}
+                                />
+                              </div>
+                            )}
+
+                            <div className="flex gap-2 mt-auto">
+                              <button
+                                className={`flex-1 px-4 py-2 text-sm rounded-md transition-colors duration-150 active:scale-95 ${
+                                  darkMode ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                                }`}
+                                onClick={() => setSelectedContestId(contest.id)}
+                              >
+                                View
+                              </button>
+                              {contest.status !== "ENDED" && (
+                                <button
+                                  className="flex-1 px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-500 transition-colors duration-150 active:scale-95 disabled:opacity-50"
+                                  disabled={isJoining}
+                                  onClick={() => handleJoin(contest.id)}
+                                >
+                                  Join
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </motion.div>
                       );
@@ -253,6 +274,7 @@ function Contest() {
                     setSelectedContestId(null);
                     setSelectedContest(null);
                     setStandings([]);
+                    setContestPortfolio(null);
                   }}
                   className="text-sm text-blue-500 hover:underline mb-4"
                 >
@@ -267,6 +289,14 @@ function Contest() {
                   </div>
                 ) : (
                   <>
+                    {selectedContest.imageUrl && (
+                      <img
+                        src={selectedContest.imageUrl}
+                        alt=""
+                        className="w-full h-40 md:h-52 object-cover rounded-xl mb-4"
+                      />
+                    )}
+
                     <div className="flex justify-between items-start mb-2 gap-2">
                       <div className="min-w-0">
                         <h2 className="text-lg font-bold truncate">{selectedContest.name}</h2>
@@ -288,8 +318,15 @@ function Contest() {
                       {selectedContest.status === "LIVE" && (
                         <Countdown target={selectedContest.endAt} label="Ends in" />
                       )}
-                      {selectedContest.status === "ENDED" && "This contest has ended — final results below."}
+                      {selectedContest.status === "ENDED" && "This contest has ended - final results below."}
                     </p>
+
+                    {selectedContest.historicalStartDate && selectedContest.simulatedDate && (
+                      <p className="text-xs text-purple-400 mb-2">
+                        📼 Replaying {new Date(selectedContest.historicalStartDate).toLocaleDateString()} -
+                        simulated date: {new Date(selectedContest.simulatedDate).toLocaleDateString()}
+                      </p>
+                    )}
 
                     {selectedContest.status !== "UPCOMING" && (
                       <div className={`h-1.5 rounded-full mb-4 max-w-xs ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}>
@@ -320,7 +357,7 @@ function Contest() {
 
                     <h3 className="text-sm font-semibold mb-3">Standings</h3>
                     {standings.length === 0 ? (
-                      <p className="text-gray-400 text-sm">No one has joined yet — be the first.</p>
+                      <p className="text-gray-400 text-sm">No one has joined yet - be the first.</p>
                     ) : (
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -377,6 +414,100 @@ function Contest() {
                         </table>
                       </div>
                     )}
+
+                    {hasJoined && contestPortfolio && (
+                      <div className="mt-8 pt-6 border-t border-gray-500/20">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-sm font-semibold">My Contest Portfolio</h3>
+                          <div className="text-sm tabular-nums">
+                            <span className="text-gray-400">Cash: </span>
+                            <span className="font-semibold">{formatInr(contestPortfolio.summary?.balance)}</span>
+                          </div>
+                        </div>
+
+                        {contestPortfolio.holdings.length === 0 ? (
+                          <p className="text-gray-400 text-sm mb-4">
+                            No holdings yet - buy from the stock universe below.
+                          </p>
+                        ) : (
+                          <div className="overflow-x-auto mb-4">
+                            <table className="w-full text-left border-collapse text-sm">
+                              <thead>
+                                <tr className={darkMode ? "border-b border-gray-700" : "border-b border-gray-200"}>
+                                  <th className="py-2 px-3">Symbol</th>
+                                  <th className="py-2 px-3">Qty</th>
+                                  <th className="py-2 px-3">Avg Cost</th>
+                                  <th className="py-2 px-3">Current</th>
+                                  <th className="py-2 px-3">P&amp;L</th>
+                                  <th className="py-2 px-3"></th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {contestPortfolio.holdings.map((holding: any) => {
+                                  const pnl = holding.unrealizedPnl !== null ? Number(holding.unrealizedPnl) : null;
+                                  const pnlPositive = pnl !== null && pnl >= 0;
+                                  return (
+                                    <tr
+                                      key={holding.id}
+                                      className={darkMode ? "border-b border-gray-800" : "border-b border-gray-200"}
+                                    >
+                                      <td className="py-2 px-3 font-medium">{holding.symbol}</td>
+                                      <td className="py-2 px-3 tabular-nums">{holding.quantity}</td>
+                                      <td className="py-2 px-3 tabular-nums">{formatInr(holding.avgBuyPrice)}</td>
+                                      <td className="py-2 px-3 tabular-nums">
+                                        {holding.currentPrice !== null ? formatInr(holding.currentPrice) : "-"}
+                                      </td>
+                                      <td
+                                        className={`py-2 px-3 tabular-nums font-semibold ${
+                                          pnl === null ? "" : pnlPositive ? "text-green-500" : "text-red-500"
+                                        }`}
+                                      >
+                                        {pnl === null ? "-" : formatSignedInr(pnl)}
+                                      </td>
+                                      <td className="py-2 px-3">
+                                        {selectedContest.status === "LIVE" && (
+                                          <button
+                                            onClick={() => setSellTarget(holding)}
+                                            className={`px-3 py-1 rounded text-white text-xs transition-colors duration-150 active:scale-95 ${
+                                              darkMode ? "bg-red-600 hover:bg-red-500" : "bg-red-500 hover:bg-red-400"
+                                            }`}
+                                          >
+                                            Sell
+                                          </button>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+
+                        {selectedContest.status === "LIVE" && (
+                          <>
+                            <h4 className="text-xs uppercase tracking-wide text-gray-400 mb-2">Stock universe</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {(selectedContest.symbols || []).map((symbol: string) => {
+                                const price = selectedContest.todaysPrices?.[symbol];
+                                return (
+                                  <button
+                                    key={symbol}
+                                    onClick={() => setBuyTarget({ symbol, price: price ?? 0 })}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors duration-150 active:scale-95 ${
+                                      darkMode ? "border-gray-700 hover:bg-gray-800" : "border-gray-300 hover:bg-gray-100"
+                                    }`}
+                                  >
+                                    {symbol}
+                                    {price ? ` · ${formatInr(price)}` : ""}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -384,6 +515,31 @@ function Contest() {
           </main>
         </div>
       </div>
+
+      {buyTarget && selectedContestId && (
+        <TradeModal
+          symbol={buyTarget.symbol}
+          side="BUY"
+          initialPrice={buyTarget.price}
+          availableCash={Number(contestPortfolio?.summary?.balance ?? 0)}
+          darkMode={darkMode}
+          contestId={selectedContestId}
+          onClose={() => setBuyTarget(null)}
+          onSuccess={() => fetchContestDetail(selectedContestId)}
+        />
+      )}
+      {sellTarget && selectedContestId && (
+        <TradeModal
+          symbol={sellTarget.symbol}
+          side="SELL"
+          initialPrice={Number(sellTarget.currentPrice ?? sellTarget.avgBuyPrice)}
+          availableQty={sellTarget.quantity}
+          darkMode={darkMode}
+          contestId={selectedContestId}
+          onClose={() => setSellTarget(null)}
+          onSuccess={() => fetchContestDetail(selectedContestId)}
+        />
+      )}
     </>
   );
 }

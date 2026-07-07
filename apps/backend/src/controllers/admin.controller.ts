@@ -14,7 +14,7 @@ const loginSchema = z.object({
   password: z.string().min(1, "password is required"),
 });
 
-// Constant-time comparison — a plain `===` on a single shared secret leaks
+// Constant-time comparison - a plain `===` on a single shared secret leaks
 // timing information an attacker could use to guess it character-by-character.
 function safeCompare(a: string, b: string): boolean {
   const bufA = Buffer.from(a);

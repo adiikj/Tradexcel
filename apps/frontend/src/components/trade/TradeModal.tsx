@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { getStockData, buyStock, sellStock } from "../../api/api";
+import { getStockData, buyStock, sellStock, buyContestStock, sellContestStock } from "../../api/api";
 import { formatInr } from "../../utils/format";
 
 const PRICE_REFRESH_MS = 10_000;
@@ -14,6 +14,8 @@ interface TradeModalProps {
   availableCash?: number;
   availableQty?: number;
   darkMode?: boolean;
+  // When set, trades go against this contest's isolated ledger instead of the global wallet.
+  contestId?: string;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -26,6 +28,7 @@ function TradeModal({
   availableCash = 0,
   availableQty = 0,
   darkMode,
+  contestId,
   onClose,
   onSuccess,
 }: TradeModalProps) {
@@ -56,7 +59,13 @@ function TradeModal({
     try {
       setIsSubmitting(true);
       setError("");
-      if (isBuy) {
+      if (contestId) {
+        if (isBuy) {
+          await buyContestStock(contestId, symbol, quantity);
+        } else {
+          await sellContestStock(contestId, symbol, quantity);
+        }
+      } else if (isBuy) {
         await buyStock(symbol, quantity);
       } else {
         await sellStock(symbol, quantity);

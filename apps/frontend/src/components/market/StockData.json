@@ -130,11 +130,6 @@
     "symbol": "MARUTI.NS"
   },
   {
-    "shortName": "RELIANCE",
-    "fullName": "Reliance Industries",
-    "symbol": "RELIANCE.NS"
-  },
-  {
     "shortName": "POWERGRID",
     "fullName": "Power Grid Corporation",
     "symbol": "POWERGRID.NS"
@@ -155,16 +150,6 @@
     "symbol": "BPCL.NS"
   },
   {
-    "shortName": "BANKBARODA",
-    "fullName": "Bank of Baroda",
-    "symbol": "BANKBARODA.NS"
-  },
-  {
-    "shortName": "ADANIGREEN",
-    "fullName": "Adani Green Energy",
-    "symbol": "ADANIGREEN.NS"
-  },
-  {
     "shortName": "CANBK",
     "fullName": "Canara Bank",
     "symbol": "CANBK.NS"
@@ -173,5 +158,1135 @@
     "shortName": "BHARTIARTL",
     "fullName": "Bharti Airtel",
     "symbol": "BHARTIARTL.NS"
+  },
+  {
+    "shortName": "KOTAKBANK",
+    "fullName": "Kotak Mahindra Bank",
+    "symbol": "KOTAKBANK.NS"
+  },
+  {
+    "shortName": "INDUSINDBK",
+    "fullName": "IndusInd Bank",
+    "symbol": "INDUSINDBK.NS"
+  },
+  {
+    "shortName": "FEDERALBNK",
+    "fullName": "Federal Bank",
+    "symbol": "FEDERALBNK.NS"
+  },
+  {
+    "shortName": "IDFCFIRSTB",
+    "fullName": "IDFC First Bank",
+    "symbol": "IDFCFIRSTB.NS"
+  },
+  {
+    "shortName": "BANDHANBNK",
+    "fullName": "Bandhan Bank",
+    "symbol": "BANDHANBNK.NS"
+  },
+  {
+    "shortName": "RBLBANK",
+    "fullName": "RBL Bank",
+    "symbol": "RBLBANK.NS"
+  },
+  {
+    "shortName": "AUBANK",
+    "fullName": "AU Small Finance Bank",
+    "symbol": "AUBANK.NS"
+  },
+  {
+    "shortName": "YESBANK",
+    "fullName": "Yes Bank",
+    "symbol": "YESBANK.NS"
+  },
+  {
+    "shortName": "UNIONBANK",
+    "fullName": "Union Bank of India",
+    "symbol": "UNIONBANK.NS"
+  },
+  {
+    "shortName": "BANKINDIA",
+    "fullName": "Bank of India",
+    "symbol": "BANKINDIA.NS"
+  },
+  {
+    "shortName": "INDIANB",
+    "fullName": "Indian Bank",
+    "symbol": "INDIANB.NS"
+  },
+  {
+    "shortName": "UCOBANK",
+    "fullName": "UCO Bank",
+    "symbol": "UCOBANK.NS"
+  },
+  {
+    "shortName": "MAHABANK",
+    "fullName": "Bank of Maharashtra",
+    "symbol": "MAHABANK.NS"
+  },
+  {
+    "shortName": "IOB",
+    "fullName": "Indian Overseas Bank",
+    "symbol": "IOB.NS"
+  },
+  {
+    "shortName": "SOUTHBANK",
+    "fullName": "South Indian Bank",
+    "symbol": "SOUTHBANK.NS"
+  },
+  {
+    "shortName": "KARURVYSYA",
+    "fullName": "Karur Vysya Bank",
+    "symbol": "KARURVYSYA.NS"
+  },
+  {
+    "shortName": "CUB",
+    "fullName": "City Union Bank",
+    "symbol": "CUB.NS"
+  },
+  {
+    "shortName": "DCBBANK",
+    "fullName": "DCB Bank",
+    "symbol": "DCBBANK.NS"
+  },
+  {
+    "shortName": "BAJAJFINSV",
+    "fullName": "Bajaj Finserv",
+    "symbol": "BAJAJFINSV.NS"
+  },
+  {
+    "shortName": "HDFCLIFE",
+    "fullName": "HDFC Life Insurance Company",
+    "symbol": "HDFCLIFE.NS"
+  },
+  {
+    "shortName": "SBILIFE",
+    "fullName": "SBI Life Insurance Company",
+    "symbol": "SBILIFE.NS"
+  },
+  {
+    "shortName": "ICICIPRULI",
+    "fullName": "ICICI Prudential Life Insurance",
+    "symbol": "ICICIPRULI.NS"
+  },
+  {
+    "shortName": "ICICIGI",
+    "fullName": "ICICI Lombard General Insurance",
+    "symbol": "ICICIGI.NS"
+  },
+  {
+    "shortName": "SHRIRAMFIN",
+    "fullName": "Shriram Finance",
+    "symbol": "SHRIRAMFIN.NS"
+  },
+  {
+    "shortName": "CHOLAFIN",
+    "fullName": "Cholamandalam Investment and Finance",
+    "symbol": "CHOLAFIN.NS"
+  },
+  {
+    "shortName": "MUTHOOTFIN",
+    "fullName": "Muthoot Finance",
+    "symbol": "MUTHOOTFIN.NS"
+  },
+  {
+    "shortName": "MANAPPURAM",
+    "fullName": "Manappuram Finance",
+    "symbol": "MANAPPURAM.NS"
+  },
+  {
+    "shortName": "LICHSGFIN",
+    "fullName": "LIC Housing Finance",
+    "symbol": "LICHSGFIN.NS"
+  },
+  {
+    "shortName": "PFC",
+    "fullName": "Power Finance Corporation",
+    "symbol": "PFC.NS"
+  },
+  {
+    "shortName": "RECLTD",
+    "fullName": "REC Limited",
+    "symbol": "RECLTD.NS"
+  },
+  {
+    "shortName": "IRFC",
+    "fullName": "Indian Railway Finance Corporation",
+    "symbol": "IRFC.NS"
+  },
+  {
+    "shortName": "PNBHOUSING",
+    "fullName": "PNB Housing Finance",
+    "symbol": "PNBHOUSING.NS"
+  },
+  {
+    "shortName": "SBICARD",
+    "fullName": "SBI Cards and Payment Services",
+    "symbol": "SBICARD.NS"
+  },
+  {
+    "shortName": "HDFCAMC",
+    "fullName": "HDFC Asset Management Company",
+    "symbol": "HDFCAMC.NS"
+  },
+  {
+    "shortName": "ANGELONE",
+    "fullName": "Angel One",
+    "symbol": "ANGELONE.NS"
+  },
+  {
+    "shortName": "CDSL",
+    "fullName": "Central Depository Services",
+    "symbol": "CDSL.NS"
+  },
+  {
+    "shortName": "BSE",
+    "fullName": "BSE Limited",
+    "symbol": "BSE.NS"
+  },
+  {
+    "shortName": "MCX",
+    "fullName": "Multi Commodity Exchange of India",
+    "symbol": "MCX.NS"
+  },
+  {
+    "shortName": "IEX",
+    "fullName": "Indian Energy Exchange",
+    "symbol": "IEX.NS"
+  },
+  {
+    "shortName": "CAMS",
+    "fullName": "Computer Age Management Services",
+    "symbol": "CAMS.NS"
+  },
+  {
+    "shortName": "LTF",
+    "fullName": "L&T Finance",
+    "symbol": "LTF.NS"
+  },
+  {
+    "shortName": "M&MFIN",
+    "fullName": "Mahindra & Mahindra Financial Services",
+    "symbol": "M&MFIN.NS"
+  },
+  {
+    "shortName": "IIFL",
+    "fullName": "IIFL Finance",
+    "symbol": "IIFL.NS"
+  },
+  {
+    "shortName": "INFY",
+    "fullName": "Infosys",
+    "symbol": "INFY.NS"
+  },
+  {
+    "shortName": "TECHM",
+    "fullName": "Tech Mahindra",
+    "symbol": "TECHM.NS"
+  },
+  {
+    "shortName": "MPHASIS",
+    "fullName": "Mphasis",
+    "symbol": "MPHASIS.NS"
+  },
+  {
+    "shortName": "PERSISTENT",
+    "fullName": "Persistent Systems",
+    "symbol": "PERSISTENT.NS"
+  },
+  {
+    "shortName": "COFORGE",
+    "fullName": "Coforge",
+    "symbol": "COFORGE.NS"
+  },
+  {
+    "shortName": "LTTS",
+    "fullName": "L&T Technology Services",
+    "symbol": "LTTS.NS"
+  },
+  {
+    "shortName": "OFSS",
+    "fullName": "Oracle Financial Services Software",
+    "symbol": "OFSS.NS"
+  },
+  {
+    "shortName": "KPITTECH",
+    "fullName": "KPIT Technologies",
+    "symbol": "KPITTECH.NS"
+  },
+  {
+    "shortName": "CYIENT",
+    "fullName": "Cyient",
+    "symbol": "CYIENT.NS"
+  },
+  {
+    "shortName": "TATAELXSI",
+    "fullName": "Tata Elxsi",
+    "symbol": "TATAELXSI.NS"
+  },
+  {
+    "shortName": "ZENSARTECH",
+    "fullName": "Zensar Technologies",
+    "symbol": "ZENSARTECH.NS"
+  },
+  {
+    "shortName": "NEWGEN",
+    "fullName": "Newgen Software Technologies",
+    "symbol": "NEWGEN.NS"
+  },
+  {
+    "shortName": "M&M",
+    "fullName": "Mahindra & Mahindra",
+    "symbol": "M&M.NS"
+  },
+  {
+    "shortName": "HEROMOTOCO",
+    "fullName": "Hero MotoCorp",
+    "symbol": "HEROMOTOCO.NS"
+  },
+  {
+    "shortName": "EICHERMOT",
+    "fullName": "Eicher Motors",
+    "symbol": "EICHERMOT.NS"
+  },
+  {
+    "shortName": "TVSMOTOR",
+    "fullName": "TVS Motor Company",
+    "symbol": "TVSMOTOR.NS"
+  },
+  {
+    "shortName": "ASHOKLEY",
+    "fullName": "Ashok Leyland",
+    "symbol": "ASHOKLEY.NS"
+  },
+  {
+    "shortName": "ESCORTS",
+    "fullName": "Escorts Kubota",
+    "symbol": "ESCORTS.NS"
+  },
+  {
+    "shortName": "BALKRISIND",
+    "fullName": "Balkrishna Industries",
+    "symbol": "BALKRISIND.NS"
+  },
+  {
+    "shortName": "MRF",
+    "fullName": "MRF Limited",
+    "symbol": "MRF.NS"
+  },
+  {
+    "shortName": "APOLLOTYRE",
+    "fullName": "Apollo Tyres",
+    "symbol": "APOLLOTYRE.NS"
+  },
+  {
+    "shortName": "CEATLTD",
+    "fullName": "CEAT Limited",
+    "symbol": "CEATLTD.NS"
+  },
+  {
+    "shortName": "BOSCHLTD",
+    "fullName": "Bosch Limited",
+    "symbol": "BOSCHLTD.NS"
+  },
+  {
+    "shortName": "MOTHERSON",
+    "fullName": "Samvardhana Motherson International",
+    "symbol": "MOTHERSON.NS"
+  },
+  {
+    "shortName": "BHARATFORG",
+    "fullName": "Bharat Forge",
+    "symbol": "BHARATFORG.NS"
+  },
+  {
+    "shortName": "EXIDEIND",
+    "fullName": "Exide Industries",
+    "symbol": "EXIDEIND.NS"
+  },
+  {
+    "shortName": "DRREDDY",
+    "fullName": "Dr. Reddy's Laboratories",
+    "symbol": "DRREDDY.NS"
+  },
+  {
+    "shortName": "CIPLA",
+    "fullName": "Cipla",
+    "symbol": "CIPLA.NS"
+  },
+  {
+    "shortName": "DIVISLAB",
+    "fullName": "Divi's Laboratories",
+    "symbol": "DIVISLAB.NS"
+  },
+  {
+    "shortName": "LUPIN",
+    "fullName": "Lupin",
+    "symbol": "LUPIN.NS"
+  },
+  {
+    "shortName": "AUROPHARMA",
+    "fullName": "Aurobindo Pharma",
+    "symbol": "AUROPHARMA.NS"
+  },
+  {
+    "shortName": "ALKEM",
+    "fullName": "Alkem Laboratories",
+    "symbol": "ALKEM.NS"
+  },
+  {
+    "shortName": "BIOCON",
+    "fullName": "Biocon",
+    "symbol": "BIOCON.NS"
+  },
+  {
+    "shortName": "ZYDUSLIFE",
+    "fullName": "Zydus Lifesciences",
+    "symbol": "ZYDUSLIFE.NS"
+  },
+  {
+    "shortName": "GLENMARK",
+    "fullName": "Glenmark Pharmaceuticals",
+    "symbol": "GLENMARK.NS"
+  },
+  {
+    "shortName": "IPCALAB",
+    "fullName": "IPCA Laboratories",
+    "symbol": "IPCALAB.NS"
+  },
+  {
+    "shortName": "ABBOTINDIA",
+    "fullName": "Abbott India",
+    "symbol": "ABBOTINDIA.NS"
+  },
+  {
+    "shortName": "LAURUSLABS",
+    "fullName": "Laurus Labs",
+    "symbol": "LAURUSLABS.NS"
+  },
+  {
+    "shortName": "GRANULES",
+    "fullName": "Granules India",
+    "symbol": "GRANULES.NS"
+  },
+  {
+    "shortName": "NATCOPHARM",
+    "fullName": "Natco Pharma",
+    "symbol": "NATCOPHARM.NS"
+  },
+  {
+    "shortName": "JBCHEPHARM",
+    "fullName": "JB Chemicals & Pharmaceuticals",
+    "symbol": "JBCHEPHARM.NS"
+  },
+  {
+    "shortName": "GLAND",
+    "fullName": "Gland Pharma",
+    "symbol": "GLAND.NS"
+  },
+  {
+    "shortName": "SYNGENE",
+    "fullName": "Syngene International",
+    "symbol": "SYNGENE.NS"
+  },
+  {
+    "shortName": "APOLLOHOSP",
+    "fullName": "Apollo Hospitals Enterprise",
+    "symbol": "APOLLOHOSP.NS"
+  },
+  {
+    "shortName": "FORTIS",
+    "fullName": "Fortis Healthcare",
+    "symbol": "FORTIS.NS"
+  },
+  {
+    "shortName": "MAXHEALTH",
+    "fullName": "Max Healthcare Institute",
+    "symbol": "MAXHEALTH.NS"
+  },
+  {
+    "shortName": "LALPATHLAB",
+    "fullName": "Dr. Lal PathLabs",
+    "symbol": "LALPATHLAB.NS"
+  },
+  {
+    "shortName": "METROPOLIS",
+    "fullName": "Metropolis Healthcare",
+    "symbol": "METROPOLIS.NS"
+  },
+  {
+    "shortName": "HINDUNILVR",
+    "fullName": "Hindustan Unilever",
+    "symbol": "HINDUNILVR.NS"
+  },
+  {
+    "shortName": "NESTLEIND",
+    "fullName": "Nestle India",
+    "symbol": "NESTLEIND.NS"
+  },
+  {
+    "shortName": "BRITANNIA",
+    "fullName": "Britannia Industries",
+    "symbol": "BRITANNIA.NS"
+  },
+  {
+    "shortName": "DABUR",
+    "fullName": "Dabur India",
+    "symbol": "DABUR.NS"
+  },
+  {
+    "shortName": "MARICO",
+    "fullName": "Marico",
+    "symbol": "MARICO.NS"
+  },
+  {
+    "shortName": "GODREJCP",
+    "fullName": "Godrej Consumer Products",
+    "symbol": "GODREJCP.NS"
+  },
+  {
+    "shortName": "COLPAL",
+    "fullName": "Colgate-Palmolive India",
+    "symbol": "COLPAL.NS"
+  },
+  {
+    "shortName": "TATACONSUM",
+    "fullName": "Tata Consumer Products",
+    "symbol": "TATACONSUM.NS"
+  },
+  {
+    "shortName": "UBL",
+    "fullName": "United Breweries",
+    "symbol": "UBL.NS"
+  },
+  {
+    "shortName": "VBL",
+    "fullName": "Varun Beverages",
+    "symbol": "VBL.NS"
+  },
+  {
+    "shortName": "EMAMILTD",
+    "fullName": "Emami",
+    "symbol": "EMAMILTD.NS"
+  },
+  {
+    "shortName": "PGHH",
+    "fullName": "Procter & Gamble Hygiene and Health Care",
+    "symbol": "PGHH.NS"
+  },
+  {
+    "shortName": "GILLETTE",
+    "fullName": "Gillette India",
+    "symbol": "GILLETTE.NS"
+  },
+  {
+    "shortName": "ONGC",
+    "fullName": "Oil and Natural Gas Corporation",
+    "symbol": "ONGC.NS"
+  },
+  {
+    "shortName": "IOC",
+    "fullName": "Indian Oil Corporation",
+    "symbol": "IOC.NS"
+  },
+  {
+    "shortName": "HINDPETRO",
+    "fullName": "Hindustan Petroleum Corporation",
+    "symbol": "HINDPETRO.NS"
+  },
+  {
+    "shortName": "OIL",
+    "fullName": "Oil India",
+    "symbol": "OIL.NS"
+  },
+  {
+    "shortName": "PETRONET",
+    "fullName": "Petronet LNG",
+    "symbol": "PETRONET.NS"
+  },
+  {
+    "shortName": "IGL",
+    "fullName": "Indraprastha Gas",
+    "symbol": "IGL.NS"
+  },
+  {
+    "shortName": "MGL",
+    "fullName": "Mahanagar Gas",
+    "symbol": "MGL.NS"
+  },
+  {
+    "shortName": "ATGL",
+    "fullName": "Adani Total Gas",
+    "symbol": "ATGL.NS"
+  },
+  {
+    "shortName": "NTPC",
+    "fullName": "NTPC Limited",
+    "symbol": "NTPC.NS"
+  },
+  {
+    "shortName": "TATAPOWER",
+    "fullName": "Tata Power Company",
+    "symbol": "TATAPOWER.NS"
+  },
+  {
+    "shortName": "NHPC",
+    "fullName": "NHPC Limited",
+    "symbol": "NHPC.NS"
+  },
+  {
+    "shortName": "SJVN",
+    "fullName": "SJVN Limited",
+    "symbol": "SJVN.NS"
+  },
+  {
+    "shortName": "TORNTPOWER",
+    "fullName": "Torrent Power",
+    "symbol": "TORNTPOWER.NS"
+  },
+  {
+    "shortName": "CESC",
+    "fullName": "CESC Limited",
+    "symbol": "CESC.NS"
+  },
+  {
+    "shortName": "SUZLON",
+    "fullName": "Suzlon Energy",
+    "symbol": "SUZLON.NS"
+  },
+  {
+    "shortName": "COALINDIA",
+    "fullName": "Coal India",
+    "symbol": "COALINDIA.NS"
+  },
+  {
+    "shortName": "ADANIENT",
+    "fullName": "Adani Enterprises",
+    "symbol": "ADANIENT.NS"
+  },
+  {
+    "shortName": "TATASTEEL",
+    "fullName": "Tata Steel",
+    "symbol": "TATASTEEL.NS"
+  },
+  {
+    "shortName": "JSWSTEEL",
+    "fullName": "JSW Steel",
+    "symbol": "JSWSTEEL.NS"
+  },
+  {
+    "shortName": "VEDL",
+    "fullName": "Vedanta Limited",
+    "symbol": "VEDL.NS"
+  },
+  {
+    "shortName": "JINDALSTEL",
+    "fullName": "Jindal Steel & Power",
+    "symbol": "JINDALSTEL.NS"
+  },
+  {
+    "shortName": "SAIL",
+    "fullName": "Steel Authority of India",
+    "symbol": "SAIL.NS"
+  },
+  {
+    "shortName": "NMDC",
+    "fullName": "NMDC Limited",
+    "symbol": "NMDC.NS"
+  },
+  {
+    "shortName": "NATIONALUM",
+    "fullName": "National Aluminium Company",
+    "symbol": "NATIONALUM.NS"
+  },
+  {
+    "shortName": "HINDCOPPER",
+    "fullName": "Hindustan Copper",
+    "symbol": "HINDCOPPER.NS"
+  },
+  {
+    "shortName": "MOIL",
+    "fullName": "MOIL Limited",
+    "symbol": "MOIL.NS"
+  },
+  {
+    "shortName": "APLAPOLLO",
+    "fullName": "APL Apollo Tubes",
+    "symbol": "APLAPOLLO.NS"
+  },
+  {
+    "shortName": "RATNAMANI",
+    "fullName": "Ratnamani Metals & Tubes",
+    "symbol": "RATNAMANI.NS"
+  },
+  {
+    "shortName": "ULTRACEMCO",
+    "fullName": "UltraTech Cement",
+    "symbol": "ULTRACEMCO.NS"
+  },
+  {
+    "shortName": "SHREECEM",
+    "fullName": "Shree Cement",
+    "symbol": "SHREECEM.NS"
+  },
+  {
+    "shortName": "AMBUJACEM",
+    "fullName": "Ambuja Cements",
+    "symbol": "AMBUJACEM.NS"
+  },
+  {
+    "shortName": "ACC",
+    "fullName": "ACC Limited",
+    "symbol": "ACC.NS"
+  },
+  {
+    "shortName": "DALBHARAT",
+    "fullName": "Dalmia Bharat",
+    "symbol": "DALBHARAT.NS"
+  },
+  {
+    "shortName": "JKCEMENT",
+    "fullName": "JK Cement",
+    "symbol": "JKCEMENT.NS"
+  },
+  {
+    "shortName": "RAMCOCEM",
+    "fullName": "The Ramco Cements",
+    "symbol": "RAMCOCEM.NS"
+  },
+  {
+    "shortName": "LT",
+    "fullName": "Larsen & Toubro",
+    "symbol": "LT.NS"
+  },
+  {
+    "shortName": "ABB",
+    "fullName": "ABB India",
+    "symbol": "ABB.NS"
+  },
+  {
+    "shortName": "CUMMINSIND",
+    "fullName": "Cummins India",
+    "symbol": "CUMMINSIND.NS"
+  },
+  {
+    "shortName": "HAL",
+    "fullName": "Hindustan Aeronautics",
+    "symbol": "HAL.NS"
+  },
+  {
+    "shortName": "BDL",
+    "fullName": "Bharat Dynamics",
+    "symbol": "BDL.NS"
+  },
+  {
+    "shortName": "MAZDOCK",
+    "fullName": "Mazagon Dock Shipbuilders",
+    "symbol": "MAZDOCK.NS"
+  },
+  {
+    "shortName": "COCHINSHIP",
+    "fullName": "Cochin Shipyard",
+    "symbol": "COCHINSHIP.NS"
+  },
+  {
+    "shortName": "IRCON",
+    "fullName": "IRCON International",
+    "symbol": "IRCON.NS"
+  },
+  {
+    "shortName": "RVNL",
+    "fullName": "Rail Vikas Nigam",
+    "symbol": "RVNL.NS"
+  },
+  {
+    "shortName": "CONCOR",
+    "fullName": "Container Corporation of India",
+    "symbol": "CONCOR.NS"
+  },
+  {
+    "shortName": "IRB",
+    "fullName": "IRB Infrastructure Developers",
+    "symbol": "IRB.NS"
+  },
+  {
+    "shortName": "NBCC",
+    "fullName": "NBCC (India)",
+    "symbol": "NBCC.NS"
+  },
+  {
+    "shortName": "NCC",
+    "fullName": "NCC Limited",
+    "symbol": "NCC.NS"
+  },
+  {
+    "shortName": "KEC",
+    "fullName": "KEC International",
+    "symbol": "KEC.NS"
+  },
+  {
+    "shortName": "THERMAX",
+    "fullName": "Thermax",
+    "symbol": "THERMAX.NS"
+  },
+  {
+    "shortName": "POLYCAB",
+    "fullName": "Polycab India",
+    "symbol": "POLYCAB.NS"
+  },
+  {
+    "shortName": "HAVELLS",
+    "fullName": "Havells India",
+    "symbol": "HAVELLS.NS"
+  },
+  {
+    "shortName": "VOLTAS",
+    "fullName": "Voltas",
+    "symbol": "VOLTAS.NS"
+  },
+  {
+    "shortName": "BLUESTARCO",
+    "fullName": "Blue Star",
+    "symbol": "BLUESTARCO.NS"
+  },
+  {
+    "shortName": "DIXON",
+    "fullName": "Dixon Technologies",
+    "symbol": "DIXON.NS"
+  },
+  {
+    "shortName": "AMBER",
+    "fullName": "Amber Enterprises India",
+    "symbol": "AMBER.NS"
+  },
+  {
+    "shortName": "CROMPTON",
+    "fullName": "Crompton Greaves Consumer Electricals",
+    "symbol": "CROMPTON.NS"
+  },
+  {
+    "shortName": "WHIRLPOOL",
+    "fullName": "Whirlpool of India",
+    "symbol": "WHIRLPOOL.NS"
+  },
+  {
+    "shortName": "CGPOWER",
+    "fullName": "CG Power and Industrial Solutions",
+    "symbol": "CGPOWER.NS"
+  },
+  {
+    "shortName": "KAYNES",
+    "fullName": "Kaynes Technology India",
+    "symbol": "KAYNES.NS"
+  },
+  {
+    "shortName": "ASTRAL",
+    "fullName": "Astral Limited",
+    "symbol": "ASTRAL.NS"
+  },
+  {
+    "shortName": "SUPREMEIND",
+    "fullName": "Supreme Industries",
+    "symbol": "SUPREMEIND.NS"
+  },
+  {
+    "shortName": "FINCABLES",
+    "fullName": "Finolex Cables",
+    "symbol": "FINCABLES.NS"
+  },
+  {
+    "shortName": "CENTURYPLY",
+    "fullName": "Century Plyboards",
+    "symbol": "CENTURYPLY.NS"
+  },
+  {
+    "shortName": "KEI",
+    "fullName": "KEI Industries",
+    "symbol": "KEI.NS"
+  },
+  {
+    "shortName": "IDEA",
+    "fullName": "Vodafone Idea",
+    "symbol": "IDEA.NS"
+  },
+  {
+    "shortName": "INDUSTOWER",
+    "fullName": "Indus Towers",
+    "symbol": "INDUSTOWER.NS"
+  },
+  {
+    "shortName": "TATACOMM",
+    "fullName": "Tata Communications",
+    "symbol": "TATACOMM.NS"
+  },
+  {
+    "shortName": "HFCL",
+    "fullName": "HFCL Limited",
+    "symbol": "HFCL.NS"
+  },
+  {
+    "shortName": "DMART",
+    "fullName": "Avenue Supermarts",
+    "symbol": "DMART.NS"
+  },
+  {
+    "shortName": "TRENT",
+    "fullName": "Trent Limited",
+    "symbol": "TRENT.NS"
+  },
+  {
+    "shortName": "ABFRL",
+    "fullName": "Aditya Birla Fashion and Retail",
+    "symbol": "ABFRL.NS"
+  },
+  {
+    "shortName": "PAGEIND",
+    "fullName": "Page Industries",
+    "symbol": "PAGEIND.NS"
+  },
+  {
+    "shortName": "RELAXO",
+    "fullName": "Relaxo Footwears",
+    "symbol": "RELAXO.NS"
+  },
+  {
+    "shortName": "BATAINDIA",
+    "fullName": "Bata India",
+    "symbol": "BATAINDIA.NS"
+  },
+  {
+    "shortName": "VMART",
+    "fullName": "V-Mart Retail",
+    "symbol": "VMART.NS"
+  },
+  {
+    "shortName": "SHOPERSTOP",
+    "fullName": "Shoppers Stop",
+    "symbol": "SHOPERSTOP.NS"
+  },
+  {
+    "shortName": "NYKAA",
+    "fullName": "FSN E-Commerce Ventures (Nykaa)",
+    "symbol": "NYKAA.NS"
+  },
+  {
+    "shortName": "PAYTM",
+    "fullName": "One97 Communications (Paytm)",
+    "symbol": "PAYTM.NS"
+  },
+  {
+    "shortName": "POLICYBZR",
+    "fullName": "PB Fintech (Policybazaar)",
+    "symbol": "POLICYBZR.NS"
+  },
+  {
+    "shortName": "IRCTC",
+    "fullName": "Indian Railway Catering and Tourism Corporation",
+    "symbol": "IRCTC.NS"
+  },
+  {
+    "shortName": "DELHIVERY",
+    "fullName": "Delhivery",
+    "symbol": "DELHIVERY.NS"
+  },
+  {
+    "shortName": "ZEEL",
+    "fullName": "Zee Entertainment Enterprises",
+    "symbol": "ZEEL.NS"
+  },
+  {
+    "shortName": "SUNTV",
+    "fullName": "Sun TV Network",
+    "symbol": "SUNTV.NS"
+  },
+  {
+    "shortName": "PVRINOX",
+    "fullName": "PVR INOX",
+    "symbol": "PVRINOX.NS"
+  },
+  {
+    "shortName": "NAZARA",
+    "fullName": "Nazara Technologies",
+    "symbol": "NAZARA.NS"
+  },
+  {
+    "shortName": "SAREGAMA",
+    "fullName": "Saregama India",
+    "symbol": "SAREGAMA.NS"
+  },
+  {
+    "shortName": "DLF",
+    "fullName": "DLF Limited",
+    "symbol": "DLF.NS"
+  },
+  {
+    "shortName": "GODREJPROP",
+    "fullName": "Godrej Properties",
+    "symbol": "GODREJPROP.NS"
+  },
+  {
+    "shortName": "OBEROIRLTY",
+    "fullName": "Oberoi Realty",
+    "symbol": "OBEROIRLTY.NS"
+  },
+  {
+    "shortName": "PRESTIGE",
+    "fullName": "Prestige Estates Projects",
+    "symbol": "PRESTIGE.NS"
+  },
+  {
+    "shortName": "PHOENIXLTD",
+    "fullName": "Phoenix Mills",
+    "symbol": "PHOENIXLTD.NS"
+  },
+  {
+    "shortName": "BRIGADE",
+    "fullName": "Brigade Enterprises",
+    "symbol": "BRIGADE.NS"
+  },
+  {
+    "shortName": "SOBHA",
+    "fullName": "Sobha Limited",
+    "symbol": "SOBHA.NS"
+  },
+  {
+    "shortName": "LODHA",
+    "fullName": "Macrotech Developers (Lodha)",
+    "symbol": "LODHA.NS"
+  },
+  {
+    "shortName": "PIDILITIND",
+    "fullName": "Pidilite Industries",
+    "symbol": "PIDILITIND.NS"
+  },
+  {
+    "shortName": "SRF",
+    "fullName": "SRF Limited",
+    "symbol": "SRF.NS"
+  },
+  {
+    "shortName": "AARTIIND",
+    "fullName": "Aarti Industries",
+    "symbol": "AARTIIND.NS"
+  },
+  {
+    "shortName": "DEEPAKNTR",
+    "fullName": "Deepak Nitrite",
+    "symbol": "DEEPAKNTR.NS"
+  },
+  {
+    "shortName": "NAVINFLUOR",
+    "fullName": "Navin Fluorine International",
+    "symbol": "NAVINFLUOR.NS"
+  },
+  {
+    "shortName": "TATACHEM",
+    "fullName": "Tata Chemicals",
+    "symbol": "TATACHEM.NS"
+  },
+  {
+    "shortName": "GNFC",
+    "fullName": "Gujarat Narmada Valley Fertilizers",
+    "symbol": "GNFC.NS"
+  },
+  {
+    "shortName": "CHAMBLFERT",
+    "fullName": "Chambal Fertilisers and Chemicals",
+    "symbol": "CHAMBLFERT.NS"
+  },
+  {
+    "shortName": "COROMANDEL",
+    "fullName": "Coromandel International",
+    "symbol": "COROMANDEL.NS"
+  },
+  {
+    "shortName": "PIIND",
+    "fullName": "PI Industries",
+    "symbol": "PIIND.NS"
+  },
+  {
+    "shortName": "CLEAN",
+    "fullName": "Clean Science and Technology",
+    "symbol": "CLEAN.NS"
+  },
+  {
+    "shortName": "FLUOROCHEM",
+    "fullName": "Gujarat Fluorochemicals",
+    "symbol": "FLUOROCHEM.NS"
+  },
+  {
+    "shortName": "GRASIM",
+    "fullName": "Grasim Industries",
+    "symbol": "GRASIM.NS"
+  },
+  {
+    "shortName": "GODREJIND",
+    "fullName": "Godrej Industries",
+    "symbol": "GODREJIND.NS"
+  },
+  {
+    "shortName": "BAJAJHLDNG",
+    "fullName": "Bajaj Holdings & Investment",
+    "symbol": "BAJAJHLDNG.NS"
+  },
+  {
+    "shortName": "3MINDIA",
+    "fullName": "3M India",
+    "symbol": "3MINDIA.NS"
+  },
+  {
+    "shortName": "HONAUT",
+    "fullName": "Honeywell Automation India",
+    "symbol": "HONAUT.NS"
+  },
+  {
+    "shortName": "BERGEPAINT",
+    "fullName": "Berger Paints India",
+    "symbol": "BERGEPAINT.NS"
+  },
+  {
+    "shortName": "KANSAINER",
+    "fullName": "Kansai Nerolac Paints",
+    "symbol": "KANSAINER.NS"
+  },
+  {
+    "shortName": "TRIDENT",
+    "fullName": "Trident Limited",
+    "symbol": "TRIDENT.NS"
+  },
+  {
+    "shortName": "RAYMOND",
+    "fullName": "Raymond Limited",
+    "symbol": "RAYMOND.NS"
+  },
+  {
+    "shortName": "WELCORP",
+    "fullName": "Welspun Corp",
+    "symbol": "WELCORP.NS"
+  },
+  {
+    "shortName": "BALRAMCHIN",
+    "fullName": "Balrampur Chini Mills",
+    "symbol": "BALRAMCHIN.NS"
+  },
+  {
+    "shortName": "EIDPARRY",
+    "fullName": "EID Parry (India)",
+    "symbol": "EIDPARRY.NS"
+  },
+  {
+    "shortName": "BLUEDART",
+    "fullName": "Blue Dart Express",
+    "symbol": "BLUEDART.NS"
+  },
+  {
+    "shortName": "TCI",
+    "fullName": "Transport Corporation of India",
+    "symbol": "TCI.NS"
+  },
+  {
+    "shortName": "VRLLOG",
+    "fullName": "VRL Logistics",
+    "symbol": "VRLLOG.NS"
   }
 ]

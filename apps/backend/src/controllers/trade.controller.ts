@@ -1,34 +1,21 @@
 import { Prisma } from "@prisma/client";
-import { z } from "zod";
 import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
-import { getQuote } from "../services/pricing.js";
-import { computeWeightedAvgPrice, computeRemainingQuantity, canAfford, canSell } from "../services/tradeMath.js";
+import { fetchQuoteOrThrow } from "../services/pricing.js";
+import {
+  tradeSchema,
+  computeWeightedAvgPrice,
+  computeRemainingQuantity,
+  canAfford,
+  canSell,
+} from "../services/tradeMath.js";
 
 interface AuthRequest {
   user?: { id: string };
   body: any;
-}
-
-const tradeSchema = z.object({
-  symbol: z
-    .string()
-    .trim()
-    .min(1, "symbol is required")
-    .max(15, "symbol is too long")
-    .transform((s) => s.toUpperCase()),
-  quantity: z.coerce.number().int().positive("quantity must be a positive integer"),
-});
-
-async function fetchQuoteOrThrow(symbol: string) {
-  try {
-    return await getQuote(symbol);
-  } catch (error: any) {
-    throw new ApiError(404, `No live price available for ${symbol}`);
-  }
 }
 
 const buyStock = asyncHandler(async (req: AuthRequest, res: Response) => {

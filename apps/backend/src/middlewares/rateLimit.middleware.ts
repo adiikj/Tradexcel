@@ -22,7 +22,7 @@ export const tradeLimiter = rateLimit({
 });
 
 // A single shared secret is a higher-value brute-force target than any one
-// user's password — much tighter budget than the regular auth routes.
+// user's password - much tighter budget than the regular auth routes.
 export const adminLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 5,

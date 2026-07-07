@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect, useContext } from "react";
-import { FaEdit, FaSave, FaEye, FaEyeSlash, FaTimes } from "react-icons/fa";
+import Link from "next/link";
+import { FaEdit, FaSave, FaEye, FaEyeSlash, FaTimes, FaUserCircle } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import Header from "./Header";
 import Vheader from "./Vheader";
 import ThemeContext from "../../context/ThemeContext";
@@ -29,40 +31,58 @@ function YourProfile() {
 
   const [initialData, setInitialData] = useState<any>({});
   const [isEditing, setIsEditing] = useState<any>(false);
+  const [accountFlags, setAccountFlags] = useState<any>({
+    hasGoogleLogin: false,
+    hasPassword: false,
+    hasPin: false,
+  });
   const [showPassword, setShowPassword] = useState<any>({
     oldPassword: false,
     newPassword: false,
     oldPin: false,
     newPin: false,
   });
+  const [streak, setStreak] = useState<any>({ currentStreak: 0, longestStreak: 0 });
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await getUserProfile();
+      if (response.status === 200 && response.data) {
+        const {
+          name,
+          username,
+          email,
+          phoneNumber,
+          dob,
+          avatar,
+          hasGoogleLogin,
+          hasPassword,
+          hasPin,
+          currentStreak,
+          longestStreak,
+        } = response.data;
+        const formattedDob = dob ? new Date(dob).toISOString().split("T")[0] : "";
+
+        const initial = {
+          name: name || "",
+          username: username || "",
+          email: email || "",
+          phoneNumber: phoneNumber || "",
+          dob: formattedDob,
+          avatar: avatar || null,
+        };
+
+        setFormData(initial);
+        setInitialData(initial);
+        setAccountFlags({ hasGoogleLogin: !!hasGoogleLogin, hasPassword: !!hasPassword, hasPin: !!hasPin });
+        setStreak({ currentStreak: currentStreak || 0, longestStreak: longestStreak || 0 });
+      }
+    } catch (err) {
+      // Fields stay at their defaults; the form is still usable.
+    }
+  };
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const response = await getUserProfile();
-        if (response.status === 200 && response.data) {
-          const { name, username, email, phoneNumber, dob, avatar } = response.data;
-          const formattedDob = dob ? new Date(dob).toISOString().split("T")[0] : "";
-
-          const initial = {
-            name: name || "",
-            username: username || "",
-            email: email || "",
-            phoneNumber: phoneNumber || "",
-            dob: formattedDob,
-            avatar: avatar || null,
-          };
-
-          setFormData(initial);
-          setInitialData(initial);
-        } else {
-          console.error("Failed to fetch profile data");
-        }
-      } catch (err) {
-        console.error("Error fetching profile data:", err);
-      }
-    };
-
     fetchUserProfile();
   }, []);
 
@@ -115,7 +135,6 @@ function YourProfile() {
         alert("Failed to update avatar.");
       }
     } catch (err) {
-      console.error("Error updating avatar:", err);
       alert("There was an error updating the avatar. Please try again.");
     }
   };
@@ -138,6 +157,16 @@ function YourProfile() {
         payload.phoneNumber = formData.phoneNumber;
         payload.dob = formData.dob;
       }
+    } else if (activeSection === "security") {
+      // oldPassword/oldPin are only sent when the account already has one.
+      if (securityData.newPassword) {
+        payload.newPassword = securityData.newPassword;
+        if (accountFlags.hasPassword) payload.oldPassword = securityData.oldPassword;
+      }
+      if (securityData.newPin) {
+        payload.newPin = securityData.newPin;
+        if (accountFlags.hasPin) payload.oldPin = securityData.oldPin;
+      }
     }
 
     try {
@@ -145,17 +174,25 @@ function YourProfile() {
       if (activeSection === "personal") {
         response = await updateUserProfile(payload);
       } else if (activeSection === "security") {
+        if (Object.keys(payload).length === 0) {
+          alert("Enter a new password and/or PIN to save.");
+          return;
+        }
         response = await changePasswordAndPin(payload);
       }
 
       if (response.status === 200) {
         alert("Profile updated successfully!");
-        setInitialData({ ...formData });
+        if (activeSection === "personal") {
+          setInitialData({ ...formData });
+        } else {
+          setSecurityData({ oldPassword: "", newPassword: "", oldPin: "", newPin: "" });
+          await fetchUserProfile();
+        }
       } else {
         alert("Failed to update profile. Please try again.");
       }
     } catch (err) {
-      console.error("Error updating user profile:", err);
       alert("There was an error updating the profile. Please try again.");
     }
 
@@ -233,9 +270,30 @@ function YourProfile() {
         <div className="flex flex-col lg:flex-row mb-16 md:mb-0">
           <Vheader darkMode={darkMode} />
           <main className="flex-1 p-6 md:m-10">
-            <h1 className={`text-2xl md:text-3xl font-bold transition-all duration-300 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
-              Your Profile
-            </h1>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h1 className={`text-2xl md:text-3xl font-bold transition-all duration-300 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
+                Your Profile
+              </h1>
+              {formData.username && (
+                <div className="flex items-center gap-3">
+                  {streak.currentStreak > 0 && (
+                    <span
+                      className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
+                        darkMode ? "bg-amber-900/40 text-amber-300" : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      🔥 {streak.currentStreak}-day streak
+                    </span>
+                  )}
+                  <Link
+                    href={`/u/${formData.username}`}
+                    className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
+                  >
+                    <FaUserCircle /> View Public Profile
+                  </Link>
+                </div>
+              )}
+            </div>
             <div className="h-2 w-32 md:w-44 bg-blue-500 rounded-full mb-7 animate-line"></div>
             <div className={`max-w-4xl mx-auto transition-all duration-300 shadow-lg rounded-lg overflow-hidden ${darkMode ? "bg-gray-900 text-gray-200" : "bg-gray-100 text-gray-800"}`}>
               <div className={`p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
@@ -319,10 +377,59 @@ function YourProfile() {
                 )}
                 {activeSection === "security" && (
                   <>
-                    {renderField("Current Password", "oldPassword", "password")}
-                    {renderField("New Password", "newPassword", "password")}
-                    {renderField("Current PIN", "oldPin", "password")}
-                    {renderField("New PIN", "newPin", "password")}
+                    <div className="col-span-1 md:col-span-2">
+                      <h3 className={`font-semibold mb-2 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
+                        Connected Accounts
+                      </h3>
+                      <div
+                        className={`flex items-center justify-between p-3 rounded-md border ${
+                          darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-300"
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <FcGoogle size={18} /> Google
+                        </span>
+                        {accountFlags.hasGoogleLogin ? (
+                          <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-500/15 text-green-500">
+                            Connected
+                          </span>
+                        ) : (
+                          <span
+                            className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                              darkMode ? "bg-gray-600 text-gray-300" : "bg-gray-200 text-gray-600"
+                            }`}
+                          >
+                            Not connected
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2 mt-2">
+                      <h3 className={`font-semibold mb-1 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
+                        {accountFlags.hasPassword ? "Change Password" : "Set a Password"}
+                      </h3>
+                      {!accountFlags.hasPassword && (
+                        <p className="text-xs text-gray-400 mb-2">
+                          Your account currently signs in with Google only. Set a password to also enable normal login.
+                        </p>
+                      )}
+                    </div>
+                    {accountFlags.hasPassword && renderField("Current Password", "oldPassword", "password")}
+                    {renderField(accountFlags.hasPassword ? "New Password" : "Password", "newPassword", "password")}
+
+                    <div className="col-span-1 md:col-span-2 mt-2">
+                      <h3 className={`font-semibold mb-1 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
+                        {accountFlags.hasPin ? "Change PIN" : "Set a PIN"}
+                      </h3>
+                      {!accountFlags.hasPin && (
+                        <p className="text-xs text-gray-400 mb-2">
+                          Set a 4-digit PIN for quick sign-in without your password.
+                        </p>
+                      )}
+                    </div>
+                    {accountFlags.hasPin && renderField("Current PIN", "oldPin", "password")}
+                    {renderField(accountFlags.hasPin ? "New PIN" : "PIN", "newPin", "password")}
                   </>
                 )}
               </form>

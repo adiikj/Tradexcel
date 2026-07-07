@@ -3,7 +3,9 @@ import React, { useEffect, useState } from 'react';
 import Stock from './Stocks'; // Your Stock component that handles chart rendering
 import { getStockData } from '../../api/api';
 import stockUniverse from "../market/StockData.json";
-import { rankMovers } from "./marketMovers";
+import { rankMovers, LIQUID_MOVERS_SYMBOLS } from "./marketMovers";
+
+const liquidUniverse = stockUniverse.filter((s) => LIQUID_MOVERS_SYMBOLS.has(s.symbol));
 
 function TopLosers({ darkMode  }: any) {
   const [losers, setLosers] = useState<any>([]);
@@ -16,10 +18,10 @@ function TopLosers({ darkMode  }: any) {
       setLoading(true);
 
       try {
-        const topLosers = await rankMovers(stockUniverse, getStockData, "losers");
+        const topLosers = await rankMovers(liquidUniverse, getStockData, "losers");
         if (!cancelled) setLosers(topLosers);
       } catch (error) {
-        console.error("Error fetching losers:", error);
+        // Leave losers empty; the UI already handles a zero-length list.
       } finally {
         if (!cancelled) setLoading(false);
       }

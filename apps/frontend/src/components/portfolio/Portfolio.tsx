@@ -9,8 +9,7 @@ import { getPortfolio } from '../../api/api';
 import TradeModal from '../trade/TradeModal';
 import { formatInr, formatSignedInr, formatPercent } from '../../utils/format';
 
-// Cycled across holdings for the allocation bar + row avatars — cash always
-// renders in neutral gray so it reads as "not a position."
+// Cycled across holdings for the allocation bar + row avatars; cash stays neutral gray.
 const ALLOCATION_COLORS = [
   "bg-blue-500", "bg-purple-500", "bg-teal-500", "bg-amber-500",
   "bg-pink-500", "bg-indigo-500", "bg-cyan-500", "bg-rose-500",
@@ -118,7 +117,7 @@ function Portfolio() {
                     </div>
                   </div>
 
-                  {/* Allocation bar — real data (holding value vs cash), not decoration */}
+                  {/* Allocation bar - real data (holding value vs cash), not decoration */}
                   {allocation.length > 0 && netWorth > 0 && (
                     <div className="mt-6 pt-5 border-t border-gray-500/20">
                       <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Allocation</div>
@@ -149,7 +148,7 @@ function Portfolio() {
                   <h2 className="text-lg md:text-xl font-semibold mb-6">Stock Holdings</h2>
                   {holdings.length === 0 ? (
                     <div className="text-center py-10">
-                      <p className="text-gray-400 mb-4">No holdings yet — make your first trade to see it here.</p>
+                      <p className="text-gray-400 mb-4">No holdings yet - make your first trade to see it here.</p>
                       <Link
                         href="/market"
                         className="inline-block px-6 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
@@ -204,13 +203,13 @@ function Portfolio() {
                                 <td className="py-3 px-4 text-xs md:text-base tabular-nums">{holding.quantity}</td>
                                 <td className="py-3 px-4 text-xs md:text-base tabular-nums">{formatInr(holding.avgBuyPrice)}</td>
                                 <td className="py-3 px-4 text-xs md:text-base tabular-nums">
-                                  {holding.currentPrice !== null ? formatInr(holding.currentPrice) : '—'}
+                                  {holding.currentPrice !== null ? formatInr(holding.currentPrice) : '-'}
                                 </td>
                                 <td className="py-3 px-4 text-xs md:text-base tabular-nums">
-                                  {holding.currentValue !== null ? formatInr(holding.currentValue) : '—'}
+                                  {holding.currentValue !== null ? formatInr(holding.currentValue) : '-'}
                                 </td>
                                 <td className={`py-3 px-4 text-xs md:text-base font-semibold tabular-nums ${pnl === null ? "" : pnlPositive ? "text-green-500" : "text-red-500"}`}>
-                                  {pnl === null ? '—' : `${formatSignedInr(pnl)} (${formatPercent(pnlPercent)})`}
+                                  {pnl === null ? '-' : `${formatSignedInr(pnl)} (${formatPercent(pnlPercent)})`}
                                 </td>
                                 <td className="py-3 px-4 text-xs md:text-base">
                                   <button

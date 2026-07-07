@@ -37,10 +37,20 @@ function EnterOTP() {
     newOtp[index] = value;
     setOtp(newOtp);
 
+    // Auto-advance to the next box after a digit is typed.
     if (value && index < otp.length - 1) {
       const nextInput = document.getElementById(`otp-input-${index + 1}`);
       if (nextInput) nextInput.focus();
-    } else if (!value && index > 0) {
+    }
+  };
+
+  // Backspace on an empty box never fires onChange, so handle it here: step back and clear.
+  const handleKeyDown = (e, index) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      e.preventDefault();
+      const newOtp = [...otp];
+      newOtp[index - 1] = "";
+      setOtp(newOtp);
       const prevInput = document.getElementById(`otp-input-${index - 1}`);
       if (prevInput) prevInput.focus();
     }
@@ -73,7 +83,7 @@ function EnterOTP() {
 
   return (
     <motion.div
-      className="flex flex-col justify-center items-center min-h-screen pt-10 font-pop p-4"
+      className="flex flex-col justify-center items-center min-h-screen pt-10 font-pop p-4 bg-grey"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
@@ -122,7 +132,8 @@ function EnterOTP() {
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleChange(e, index)}
-                    className="w-10 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-xl border border-gray-300 rounded-md outline-blue-500 focus:ring-2 focus:ring-blue-500"
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    className="text-gray-800 bg-white w-10 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-xl border border-gray-300 rounded-md outline-blue-500 focus:ring-2 focus:ring-blue-500"
                     placeholder="-"
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}

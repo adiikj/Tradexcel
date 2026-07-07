@@ -6,28 +6,28 @@ import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import ThemeContext from "../../context/ThemeContext";
 import { Helmet } from "react-helmet";
-import { getLeaderboard } from "../../api/api";
+import { getLeaderboard, getFriendsLeaderboard } from "../../api/api";
 import { formatInr, formatPercent } from "../../utils/format";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
-// True podium order (2nd — 1st — 3rd), matching how a real podium reads,
-// with the #1 slot getting extra height/prominence.
+// Real podium order: 2nd, 1st, 3rd, with the #1 slot tallest.
 const PODIUM_ORDER = [1, 0, 2];
 
 function Leaderboard() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
+  const [scope, setScope] = useState<"global" | "friends">("global");
   const [entries, setEntries] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [totalPlayers, setTotalPlayers] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchLeaderboard = useCallback(async () => {
+  const fetchLeaderboard = useCallback(async (nextScope: "global" | "friends") => {
     try {
       setIsLoading(true);
       setError("");
-      const response = await getLeaderboard(20);
+      const response = nextScope === "global" ? await getLeaderboard(20) : await getFriendsLeaderboard(20);
       setEntries(response?.data?.leaderboard || []);
       setCurrentUser(response?.data?.currentUser || null);
       setTotalPlayers(response?.data?.totalPlayers || 0);
@@ -39,8 +39,8 @@ function Leaderboard() {
   }, []);
 
   useEffect(() => {
-    fetchLeaderboard();
-  }, [fetchLeaderboard]);
+    fetchLeaderboard(scope);
+  }, [fetchLeaderboard, scope]);
 
   const isCurrentUserVisible = entries.some((entry) => entry.userId === currentUser?.userId);
   const top3 = entries.slice(0, 3);
@@ -67,10 +67,28 @@ function Leaderboard() {
             <h1 className="text-2xl md:text-3xl font-bold">Leaderboard</h1>
             <div className="h-2 w-44 bg-blue-500 rounded-full mb-6 animate-line"></div>
 
+            <div className="flex gap-2 mb-6">
+              {(["global", "friends"] as const).map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setScope(option)}
+                  className={`px-4 py-1.5 text-sm font-semibold rounded-full capitalize transition-colors ${
+                    scope === option
+                      ? "bg-blue-500 text-white"
+                      : darkMode
+                      ? "bg-gray-700 text-gray-300"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  {option === "friends" ? "Following" : "Global"}
+                </button>
+              ))}
+            </div>
+
             {error && (
               <div className="mb-4 flex items-center gap-3">
                 <p className="text-red-500">{error}</p>
-                <button onClick={fetchLeaderboard} className="text-sm text-blue-500 underline">
+                <button onClick={() => fetchLeaderboard(scope)} className="text-sm text-blue-500 underline">
                   Retry
                 </button>
               </div>
@@ -87,19 +105,23 @@ function Leaderboard() {
               </div>
             ) : entries.length === 0 ? (
               <div className="text-center py-10">
-                <p className="text-gray-400 mb-4">No players yet — be the first to make a trade.</p>
+                <p className="text-gray-400 mb-4">
+                  {scope === "friends"
+                    ? "You're not following anyone yet - follow other traders to see them here."
+                    : "No players yet - be the first to make a trade."}
+                </p>
                 <Link
-                  href="/market"
+                  href={scope === "friends" ? "/activity" : "/market"}
                   className="inline-block px-6 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
                 >
-                  Go to Market
+                  {scope === "friends" ? "Go to Activity" : "Go to Market"}
                 </Link>
               </div>
             ) : (
               <>
                 <p className="text-sm text-gray-400 mb-6 tabular-nums">{totalPlayers} players ranked by net worth</p>
 
-                {/* Top 3 podium — real podium order (2nd, 1st, 3rd), #1 tallest */}
+                {/* Top 3 podium - real podium order (2nd, 1st, 3rd), #1 tallest */}
                 <div className="flex items-end justify-center gap-3 mb-10">
                   {PODIUM_ORDER.filter((i) => top3[i]).map((i) => {
                     const entry = top3[i];
@@ -122,15 +144,20 @@ function Leaderboard() {
                         whileHover={{ scale: 1.03 }}
                       >
                         <span className={isFirst ? "text-3xl sm:text-4xl" : "text-xl sm:text-2xl"}>{MEDALS[i]}</span>
-                        <img
-                          src={entry.avatar}
-                          alt=""
-                          className={`rounded-full my-2 ${isFirst ? "w-12 h-12 sm:w-14 sm:h-14" : "w-9 h-9 sm:w-10 sm:h-10"}`}
-                        />
-                        <span className="font-bold text-center text-xs sm:text-base truncate max-w-full">
+                        <Link href={`/u/${entry.username}`}>
+                          <img
+                            src={entry.avatar}
+                            alt=""
+                            className={`rounded-full my-2 ${isFirst ? "w-12 h-12 sm:w-14 sm:h-14" : "w-9 h-9 sm:w-10 sm:h-10"}`}
+                          />
+                        </Link>
+                        <Link
+                          href={`/u/${entry.username}`}
+                          className="font-bold text-center text-xs sm:text-base truncate max-w-full hover:underline"
+                        >
                           {entry.name}
                           {isMe && <span className="text-xs ml-1 text-blue-400">(You)</span>}
-                        </span>
+                        </Link>
                         <span className="tabular-nums font-semibold text-xs sm:text-sm mt-1">{formatInr(entry.netWorth)}</span>
                         <span className={`tabular-nums text-xs ${entry.totalPnlPercent >= 0 ? "text-green-500" : "text-red-500"}`}>
                           {formatPercent(entry.totalPnlPercent)}
@@ -170,7 +197,7 @@ function Leaderboard() {
                           >
                             <td className="p-3 text-sm tabular-nums">{entry.rank}</td>
                             <td className="p-3">
-                              <div className="flex items-center gap-2">
+                              <Link href={`/u/${entry.username}`} className="flex items-center gap-2 hover:underline">
                                 <img src={entry.avatar} alt="" className="w-8 h-8 rounded-full shrink-0" />
                                 <div className="min-w-0">
                                   <div className="text-sm truncate">
@@ -184,7 +211,7 @@ function Leaderboard() {
                                     />
                                   </div>
                                 </div>
-                              </div>
+                              </Link>
                             </td>
                             <td className="p-3 text-sm tabular-nums">{formatInr(entry.netWorth)}</td>
                             <td className={`p-3 text-sm tabular-nums ${entry.totalPnlPercent >= 0 ? "text-green-500" : "text-red-500"}`}>

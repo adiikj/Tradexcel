@@ -157,7 +157,7 @@ function PriceAlerts() {
             {isLoading ? (
               <p className="text-gray-400">Loading alerts...</p>
             ) : alerts.length === 0 ? (
-              <p className="text-gray-400">No alerts yet — create one above to get notified by email.</p>
+              <p className="text-gray-400">No alerts yet - create one above to get notified by email.</p>
             ) : (
               <div className="space-y-3">
                 {alerts.map((alert) => (

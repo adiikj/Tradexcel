@@ -3,10 +3,7 @@ import prisma from "../db/prisma.js";
 import { getQuotes } from "../services/pricing.js";
 import { sendEmail } from "../services/mailer.js";
 
-// Checks every untriggered alert against a single batched quote fetch (one
-// call per unique symbol across all users' alerts, not one per alert), fires
-// an email via the existing Gmail OAuth2 mailer, and marks it triggered so
-// it never fires twice.
+// Batches one quote fetch per unique symbol across all alerts, not one per alert.
 export async function checkPriceAlerts(): Promise<number> {
   const alerts = await prisma.priceAlert.findMany({
     where: { triggered: false },
@@ -44,8 +41,7 @@ export async function checkPriceAlerts(): Promise<number> {
       });
     } catch (error: any) {
       console.error(`Failed to send alert email to ${alert.user.email}:`, error.message);
-      // Don't mark triggered if the notification never went out — the next
-      // tick will retry it rather than silently dropping the alert.
+      // Not marking triggered lets the next tick retry.
       continue;
     }
 

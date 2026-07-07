@@ -1,4 +1,17 @@
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
+
+// Shared by the global trade controller and the contest trade controller -
+// both trade a symbol/quantity pair, just against different ledgers.
+export const tradeSchema = z.object({
+  symbol: z
+    .string()
+    .trim()
+    .min(1, "symbol is required")
+    .max(15, "symbol is too long")
+    .transform((s) => s.toUpperCase()),
+  quantity: z.coerce.number().int().positive("quantity must be a positive integer"),
+});
 
 export function computeWeightedAvgPrice(
   existingQuantity: number,

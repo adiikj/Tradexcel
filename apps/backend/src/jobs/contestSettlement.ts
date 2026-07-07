@@ -1,14 +1,9 @@
 import cron from "node-cron";
 import prisma from "../db/prisma.js";
-import { computeNetWorths } from "../services/netWorth.js";
+import { computeContestNetWorths } from "../services/contestNetWorth.js";
 
-// Freezes final standings for any contest whose endAt has passed but hasn't
-// been settled yet: computes each entrant's final net worth once, ranks by
-// delta from their joinNetWorth, writes finalRank/finalNetWorth, and flips
-// the contest to ENDED. Also flips UPCOMING -> LIVE for contests that have
-// started, so the persisted status column stays honest between reads (the
-// read endpoints derive status from the clock anyway, so this isn't load
-// bearing for correctness — just keeps the DB row consistent with reality).
+// Freezes final standings for contests past endAt: ranks entrants by delta
+// from startingBalance, writes finalRank/finalNetWorth, flips status to ENDED.
 export async function settleDueContests(): Promise<number> {
   const now = new Date();
 
@@ -20,12 +15,12 @@ export async function settleDueContests(): Promise<number> {
     const entries = await prisma.contestEntry.findMany({ where: { contestId: contest.id } });
 
     if (entries.length > 0) {
-      const netWorths = await computeNetWorths(entries.map((e) => e.userId));
+      const netWorths = await computeContestNetWorths(contest.id);
 
       const ranked = entries
         .map((entry) => {
-          const finalNetWorth = netWorths.get(entry.userId) ?? entry.joinNetWorth;
-          return { entry, finalNetWorth, delta: finalNetWorth.sub(entry.joinNetWorth) };
+          const finalNetWorth = netWorths.get(entry.id) ?? entry.balance;
+          return { entry, finalNetWorth, delta: finalNetWorth.sub(contest.startingBalance) };
         })
         .sort((a, b) => (b.delta.gt(a.delta) ? 1 : b.delta.lt(a.delta) ? -1 : 0))
         .map((item, index) => ({ ...item, rank: index + 1 }));

@@ -1,36 +1,53 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import alert from "../../assets/alerts.png";
 import alert_w from "../../assets/alerts-w.png";
-import { getAlerts } from "../../api/api";
+import { getAlerts, getNotifications, markNotificationsRead } from "../../api/api";
 
 const Alerts = ({ darkMode }) => {
   const [alertsOpen, setAlertsOpen] = useState<any>(false);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const alertsRef = useRef(null);
 
   useEffect(() => {
-    getAlerts()
-      .then((res) => {
-        const triggered = (res?.data || [])
+    Promise.all([getAlerts(), getNotifications()])
+      .then(([alertsRes, notificationsRes]) => {
+        const triggeredAlerts = (alertsRes?.data || [])
           .filter((a: any) => a.triggered)
-          .sort((a: any, b: any) => new Date(b.triggeredAt).getTime() - new Date(a.triggeredAt).getTime())
           .map((a: any) => ({
-            id: a.id,
+            id: `alert-${a.id}`,
             message: `${a.symbol} went ${a.direction === "ABOVE" ? "above" : "below"} ₹${a.targetPrice}`,
-            time: new Date(a.triggeredAt).toLocaleString("en-IN"),
+            time: a.triggeredAt,
+            link: null,
           }));
-        setNotifications(triggered);
+
+        const followNotifications = (notificationsRes?.data?.notifications || []).map((n: any) => ({
+          id: `notif-${n.id}`,
+          message: n.message,
+          time: n.createdAt,
+          link: n.link,
+        }));
+
+        const merged = [...triggeredAlerts, ...followNotifications].sort(
+          (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
+        );
+
+        setNotifications(merged);
+        setUnreadCount(notificationsRes?.data?.unreadCount || 0);
       })
       .catch(() => {});
   }, []);
 
   const handleAlertsClick = () => {
     setAlertsOpen((prevState) => !prevState);
+    if (unreadCount > 0) {
+      setUnreadCount(0);
+      markNotificationsRead().catch(() => {});
+    }
   };
 
-  // Dismiss from view only — the underlying alert record isn't deleted here;
-  // manage/delete alerts from the Alerts page.
   const handleClearNotification = (id) => {
     setNotifications((prevNotifications) =>
       prevNotifications.filter((notification) => notification.id !== id)
@@ -41,7 +58,6 @@ const Alerts = ({ darkMode }) => {
     setNotifications([]);
   };
 
-  // Close the alerts dropdown if clicked outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (alertsRef.current && !alertsRef.current.contains(event.target)) {
@@ -55,10 +71,9 @@ const Alerts = ({ darkMode }) => {
 
   return (
     <div ref={alertsRef} className="relative">
-      {/* Alerts Icon */}
       <div
         onClick={handleAlertsClick}
-        className={`flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-all duration-300 ${
+        className={`relative flex items-center p-2 rounded-md cursor-pointer transition-all duration-300 ${
           alertsOpen
             ? darkMode
               ? "bg-gray-700 text-white"
@@ -69,14 +84,15 @@ const Alerts = ({ darkMode }) => {
         }`}
       >
         <img
-          className="w-6 h-6 sm:w-8 sm:h-8 mx-auto"
+          className="w-5 h-5 sm:w-6 sm:h-6"
           src={((darkMode ? alert_w : alert)?.src || (darkMode ? alert_w : alert)) as string}
           alt="Alerts"
         />
-        <span className="hidden sm:inline ml-2">Alerts</span>
+        {unreadCount > 0 && (
+          <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-red-500" />
+        )}
       </div>
 
-      {/* Alerts Dropdown */}
       {alertsOpen && (
         <div
           className={`absolute w-72 sm:w-96 md:w-80 lg:w-96 ${
@@ -86,37 +102,48 @@ const Alerts = ({ darkMode }) => {
           <h4 className="font-bold text-base md:text-lg mb-4">Notifications</h4>
           <ul className="space-y-4">
             {notifications.length > 0 ? (
-              notifications.map((notification) => (
-                <li
-                  key={notification.id}
-                  className={`flex justify-between items-start gap-2 p-3 rounded-md shadow-sm ${
-                    darkMode
-                      ? "bg-gray-700 hover:bg-gray-600"
-                      : "bg-gray-100 hover:bg-gray-200"
-                  } transition-all duration-300`}
-                >
+              notifications.map((notification) => {
+                const content = (
                   <div className="flex-1">
                     <p className="font-medium text-sm md:text-base">{notification.message}</p>
-                    <small className="text-gray-400 text-xs md:text-sm">{notification.time}</small>
+                    <small className="text-gray-400 text-xs md:text-sm">
+                      {new Date(notification.time).toLocaleString("en-IN")}
+                    </small>
                   </div>
-                  <button
-                    onClick={() => handleClearNotification(notification.id)}
-                    className={`text-sm md:text-sm px-3 py-1 rounded ${
-                      darkMode
-                        ? "bg-red-500 hover:bg-red-400 text-white"
-                        : "bg-red-100 hover:bg-red-200 text-red-600"
-                    }`}
+                );
+
+                return (
+                  <li
+                    key={notification.id}
+                    className={`flex justify-between items-start gap-2 p-3 rounded-md shadow-sm ${
+                      darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
+                    } transition-all duration-300`}
                   >
-                    Clear
-                  </button>
-                </li>
-              ))
+                    {notification.link ? (
+                      <Link href={notification.link} onClick={() => setAlertsOpen(false)} className="flex-1">
+                        {content}
+                      </Link>
+                    ) : (
+                      content
+                    )}
+                    <button
+                      onClick={() => handleClearNotification(notification.id)}
+                      className={`text-sm md:text-sm px-3 py-1 rounded ${
+                        darkMode
+                          ? "bg-red-500 hover:bg-red-400 text-white"
+                          : "bg-red-100 hover:bg-red-200 text-red-600"
+                      }`}
+                    >
+                      Clear
+                    </button>
+                  </li>
+                );
+              })
             ) : (
               <p className="text-center text-gray-400">No notifications</p>
             )}
           </ul>
 
-          {/* Clear All Button */}
           {notifications.length > 0 && (
             <div className="mt-4 text-center">
               <button

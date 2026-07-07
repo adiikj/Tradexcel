@@ -13,6 +13,8 @@ import { google } from "googleapis";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mailer.js";
+import { otpEmailTemplate } from "../services/emailTemplates.js";
+import { recordLogin } from "../services/streak.js";
 
 const randomAvatars = [
   "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/rf2tm0acjgmcawzvardw.png",
@@ -37,15 +39,18 @@ const PUBLIC_USER_FIELDS = {
   dob: true,
   otpVerified: true,
   createdAt: true,
+  currentStreak: true,
+  longestStreak: true,
 } as const;
 
 async function sendOtpEmail(email: string, otp: string) {
   try {
+    const { html, text } = otpEmailTemplate(otp);
     await sendEmail({
       to: email,
       subject: "Your Tradexcel verification code",
-      html: `<h3>Your Tradexcel verification code is <b>${otp}</b>. It is valid for 10 minutes.</h3>`,
-      text: `Your Tradexcel verification code is ${otp}. It is valid for 10 minutes.`,
+      html,
+      text,
     });
   } catch (error: any) {
     console.error("Error sending OTP email:", error.message);
@@ -101,7 +106,10 @@ const AUTH_COOKIE_OPTIONS = {
   expires: new Date(Date.now() + 3600000),
 };
 
-async function issueSession(userId: string, res: any, message: string) {
+async function issueSession(userId: string, res: any, message: string, recordStreak = true) {
+  if (recordStreak) {
+    await recordLogin(userId).catch((error) => console.error("Error recording login streak:", error));
+  }
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(userId);
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -138,10 +146,9 @@ const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
     throw new ApiError(401, "Refresh Token is expired or used");
   }
 
-  return issueSession(user.id, res, "Access token refreshed successfully");
+  return issueSession(user.id, res, "Access token refreshed successfully", false);
 });
 
-// User Registration
 const registerSchema = z.object({
   name: z.string().trim().min(2, "name is required"),
   username: z
@@ -171,7 +178,7 @@ const registerUser = asyncHandler(async (req: any, res: any) => {
     if (existingUser.otpVerified) {
       throw new ApiError(400, "Email or username is already registered.");
     }
-    // Abandoned/unverified signup with the same identity — clear it and retry fresh.
+    // Abandoned/unverified signup with the same identity - clear it and retry fresh.
     await prisma.user.delete({ where: { id: existingUser.id } });
   }
 
@@ -203,8 +210,7 @@ const registerUser = asyncHandler(async (req: any, res: any) => {
   );
 });
 
-// One-time email verification — runs once at signup (password or Google),
-// then creates the wallet and logs the user straight in.
+// Creates the wallet and logs the user in on first successful verification.
 const verifyOtpSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
   otp: z.string().trim().length(6, "otp must be 6 digits"),
@@ -244,8 +250,6 @@ const verifyOTP = asyncHandler(async (req: any, res: any) => {
   return issueSession(user.id, res, "Email verified. You're logged in.");
 });
 
-// User Login — emailOrUsername plus either the full password or the 4-digit
-// quick-login PIN set up at registration.
 const loginSchema = z
   .object({
     emailOrUsername: z.string().trim().min(1, "email or username is required"),
@@ -279,9 +283,17 @@ const loginUser = asyncHandler(async (req: any, res: any) => {
   const storedHash = password ? user.password : user.pin;
 
   if (!storedHash) {
+    if (user.googleId) {
+      throw new ApiError(
+        400,
+        `This account uses Google Sign-In. Continue with Google, or set a ${
+          password ? "password" : "PIN"
+        } from your profile to enable this login method.`
+      );
+    }
     throw new ApiError(
       400,
-      password ? "This account has no password set — try logging in with your PIN." : "This account has no PIN set."
+      password ? "This account has no password set - try logging in with your PIN." : "This account has no PIN set."
     );
   }
 
@@ -293,10 +305,7 @@ const loginUser = asyncHandler(async (req: any, res: any) => {
   return issueSession(user.id, res, "User logged in successfully");
 });
 
-// Google Sign-In — verifies the ID token server-side, links to an existing
-// account by email if there is one, otherwise creates a new user. New
-// accounts still go through the same one-time OTP-email step as password
-// signups; returning Google users log straight in.
+// New Google accounts still go through the OTP-email step like password signups.
 const googleLoginSchema = z.object({
   idToken: z.string().min(1, "idToken is required"),
 });
@@ -339,7 +348,7 @@ const googleLogin = asyncHandler(async (req: any, res: any) => {
     if (linked.otpVerified) {
       return issueSession(linked.id, res, "User logged in successfully");
     }
-    // Had signed up before but never finished verifying — re-send the code.
+    // Had signed up before but never finished verifying - re-send the code.
     const { otp, otpExpiry } = generateOtp();
     await prisma.user.update({ where: { id: linked.id }, data: { otp, otpExpiry } });
     await sendOtpEmail(linked.email, otp);
@@ -368,10 +377,9 @@ const googleLogin = asyncHandler(async (req: any, res: any) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, "Almost there — verify the code we emailed you.", { email: payload.email }));
+    .json(new ApiResponse(200, "Almost there - verify the code we emailed you.", { email: payload.email }));
 });
 
-// User Logout
 const logoutUser = asyncHandler(async (req: any, res: any) => {
   await prisma.user.update({
     where: { id: req.user.id },
@@ -406,29 +414,33 @@ const getName = asyncHandler(async (req: any, res: any) => {
 const getProfile = asyncHandler(async (req: any, res: any) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
-    select: PUBLIC_USER_FIELDS,
+    select: { ...PUBLIC_USER_FIELDS, googleId: true, password: true, pin: true },
   });
 
   if (!user) {
     throw new ApiError(404, "User not found");
   }
-  res.status(200).json(new ApiResponse(200, "Profile fetched successfully", user));
+
+  // Never leak the raw googleId/password/pin, only whether each is set.
+  const { googleId, password, pin, ...publicFields } = user;
+  res.status(200).json(
+    new ApiResponse(200, "Profile fetched successfully", {
+      ...publicFields,
+      hasGoogleLogin: Boolean(googleId),
+      hasPassword: Boolean(password),
+      hasPin: Boolean(pin),
+    })
+  );
 });
 
-const changePasswordPinSchema = z
-  .object({
-    oldPassword: z.string().optional(),
-    newPassword: z.string().min(8).optional(),
-    oldPin: z.string().optional(),
-    newPin: z.string().regex(/^\d{4}$/).optional(),
-  })
-  .refine((d) => Boolean(d.oldPassword) === Boolean(d.newPassword), {
-    message: "Both oldPassword and newPassword are required together",
-  })
-  .refine((d) => Boolean(d.oldPin) === Boolean(d.newPin), {
-    message: "Both oldPin and newPin are required together",
-  });
+const changePasswordPinSchema = z.object({
+  oldPassword: z.string().optional(),
+  newPassword: z.string().min(8).optional(),
+  oldPin: z.string().optional(),
+  newPin: z.string().regex(/^\d{4}$/).optional(),
+});
 
+// oldPassword/oldPin are only required when the account already has one.
 const changeCurrentPasswordAndPin = asyncHandler(async (req: any, res: any) => {
   const parsed = changePasswordPinSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -444,14 +456,14 @@ const changeCurrentPasswordAndPin = asyncHandler(async (req: any, res: any) => {
   const updateData: { password?: string; pin?: string } = {};
 
   if (newPassword) {
-    if (!user.password || !(await verifyPassword(oldPassword!, user.password))) {
+    if (user.password && (!oldPassword || !(await verifyPassword(oldPassword, user.password)))) {
       throw new ApiError(401, "Invalid old password");
     }
     updateData.password = await hashPassword(newPassword);
   }
 
   if (newPin) {
-    if (!user.pin || !(await verifyPassword(oldPin!, user.pin))) {
+    if (user.pin && (!oldPin || !(await verifyPassword(oldPin, user.pin)))) {
       throw new ApiError(401, "Invalid old PIN");
     }
     updateData.pin = await hashPassword(newPin);
