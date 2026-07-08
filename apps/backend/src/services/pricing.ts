@@ -1,8 +1,12 @@
 import fetch from "node-fetch";
 import type { Quote } from "@tradexcel/shared";
 import { ApiError } from "../utils/ApiError.js";
+import { isMarketOpen } from "./marketHours.js";
 
 const CACHE_TTL_MS = 12_000;
+// Once the market's closed the price can't have moved, so there's no reason
+// to re-hit Yahoo every 12s - hold the last-fetched (closing) quote much longer.
+const CLOSED_MARKET_CACHE_TTL_MS = 30 * 60 * 1000;
 const cache = new Map<string, { quote: Quote; expiresAt: number }>();
 
 async function fetchQuote(symbol: string): Promise<Quote> {
@@ -46,7 +50,8 @@ export async function getQuote(symbol: string): Promise<Quote> {
   }
 
   const quote = await fetchQuote(key);
-  cache.set(key, { quote, expiresAt: Date.now() + CACHE_TTL_MS });
+  const ttl = isMarketOpen() ? CACHE_TTL_MS : CLOSED_MARKET_CACHE_TTL_MS;
+  cache.set(key, { quote, expiresAt: Date.now() + ttl });
   return quote;
 }
 

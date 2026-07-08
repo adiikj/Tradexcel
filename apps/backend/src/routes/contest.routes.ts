@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getContests, getContest, joinContest, getStandings } from "../controllers/contest.controller.js";
 import { buyContestStock, sellContestStock, getContestPortfolio } from "../controllers/contestTrade.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { tradeLimiter } from "../middlewares/rateLimit.middleware.js";
+import { tradeLimiter, mutationLimiter } from "../middlewares/rateLimit.middleware.js";
 
 const router = Router();
 
@@ -10,7 +10,7 @@ const router = Router();
 // users can only browse, join, trade within, and view standings for contests.
 router.get("/contests", verifyJWT, getContests);
 router.get("/contests/:id", verifyJWT, getContest);
-router.post("/contests/:id/join", verifyJWT, joinContest);
+router.post("/contests/:id/join", verifyJWT, mutationLimiter, joinContest);
 router.get("/contests/:id/standings", verifyJWT, getStandings);
 router.get("/contests/:id/portfolio", verifyJWT, getContestPortfolio);
 router.post("/contests/:id/trade/buy", verifyJWT, tradeLimiter, buyContestStock);

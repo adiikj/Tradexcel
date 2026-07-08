@@ -4,19 +4,12 @@ type StockMeta = { shortName: string; fullName: string; symbol: string };
 
 const LABELS = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
 
-// Curated large-cap symbols, to avoid firing one API call per symbol across the full catalog.
-export const LIQUID_MOVERS_SYMBOLS = new Set([
-  "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", "SBIN.NS", "BHARTIARTL.NS", "ITC.NS",
-  "LT.NS", "HCLTECH.NS", "KOTAKBANK.NS", "AXISBANK.NS", "BAJFINANCE.NS", "MARUTI.NS", "SUNPHARMA.NS", "TITAN.NS",
-  "ASIANPAINT.NS", "WIPRO.NS", "NESTLEIND.NS", "HINDUNILVR.NS", "ULTRACEMCO.NS", "NTPC.NS", "POWERGRID.NS",
-  "ONGC.NS", "COALINDIA.NS", "TATASTEEL.NS", "JSWSTEEL.NS", "ADANIENT.NS", "ADANIPORTS.NS", "TECHM.NS",
-  "DRREDDY.NS", "CIPLA.NS", "DIVISLAB.NS", "BAJAJFINSV.NS", "HDFCLIFE.NS", "SBILIFE.NS", "GRASIM.NS",
-  "EICHERMOT.NS", "M&M.NS", "BRITANNIA.NS", "INDUSINDBK.NS", "TATACONSUM.NS", "HEROMOTOCO.NS",
-]);
-
-export async function rankMovers(
+// Pure function over already-fetched per-symbol data (REST batch response,
+// optionally overlaid with live ticks) so callers can re-rank reactively on
+// every price update instead of re-fetching.
+export function rankFromData(
   universe: StockMeta[],
-  getStockData: (symbol: string) => Promise<any>,
+  dataMap: Record<string, any>,
   direction: "gainers" | "losers"
 ) {
   // The stock list has a few duplicate symbols; keep one entry each.
@@ -27,31 +20,32 @@ export async function rankMovers(
     return true;
   });
 
-  const results = await Promise.all(
-    uniqueUniverse.map(async (stock) => {
-      try {
-        const data = await getStockData(stock.symbol);
-        const magnitude = parseFloat(data.percentageChange) || 0;
-        // percentageChange is unsigned; the sign lives in todayChange.
-        const isNegative = String(data.todayChange || "").trim().startsWith("-");
-        const signedChange = isNegative ? -magnitude : magnitude;
+  const ranked = uniqueUniverse
+    .map((stock) => {
+      const data = dataMap[stock.symbol];
+      if (!data) return null;
 
-        return {
-          ...stock,
-          price: `₹ ${data.currentPrice?.toFixed(2) || "N/A"}`,
-          percentageChange: `${data.percentageChange || 0}%`,
-          todayChange: `${data.todayChange || 0}`,
-          stockPrices: data.stockPrices || Array(30).fill(0),
-          labels: data.dates || LABELS,
-          signedChange,
-        };
-      } catch (error) {
-        return null;
-      }
+      const magnitude = parseFloat(data.percentageChange) || 0;
+      // percentageChange is unsigned; the sign lives in todayChange.
+      const isNegative = String(data.todayChange || "").trim().startsWith("-");
+      const signedChange = isNegative ? -magnitude : magnitude;
+
+      return {
+        ...stock,
+        price: `₹ ${data.currentPrice?.toFixed(2) || "N/A"}`,
+        percentageChange: `${data.percentageChange || 0}%`,
+        todayChange: `${data.todayChange || 0}`,
+        stockPrices: data.stockPrices || Array(30).fill(0),
+        labels: data.dates || LABELS,
+        signedChange,
+      };
     })
-  );
-
-  const ranked = results.filter((stock): stock is NonNullable<typeof stock> => stock !== null);
+    .filter((stock): stock is NonNullable<typeof stock> => stock !== null)
+    // On a lopsided market day, "top 5 by rank" can include stocks moving the
+    // wrong direction (e.g. a red stock in the gainers list because it's just
+    // less red than the rest). Only ever show stocks actually matching this
+    // direction - fewer than 5 (or zero) is correct when the market is skewed.
+    .filter((stock) => (direction === "gainers" ? stock.signedChange > 0 : stock.signedChange < 0));
 
   ranked.sort((a, b) => (direction === "gainers" ? b.signedChange - a.signedChange : a.signedChange - b.signedChange));
 

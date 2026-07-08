@@ -30,15 +30,35 @@ model User {
   longestStreak Int       @default(0)
   lastLoginDate DateTime? @db.Date
 
-  wallet               Wallet?
-  holdings             Holding[]
-  transactions         Transaction[]
-  contestEntries       ContestEntry[]
-  priceAlerts          PriceAlert[]
-  following            Follow[]          @relation("Following")
-  followers            Follow[]          @relation("Followers")
+  wallet                Wallet?
+  holdings              Holding[]
+  transactions          Transaction[]
+  contestEntries        ContestEntry[]
+  ownedContests         Contest[]        @relation("ContestOwner")
+  priceAlerts           PriceAlert[]
+  following             Follow[]         @relation("Following")
+  followers             Follow[]         @relation("Followers")
   notificationsReceived Notification[]   @relation("NotificationRecipient")
   notificationsCaused   Notification[]   @relation("NotificationActor")
+  weeklySnapshots       WeeklySnapshot[]
+}
+
+// One row per user per completed week - written by the weekly reset job
+// right before it force-liquidates holdings and resets the wallet back to
+// STARTING_BALANCE, so profiles can show a "how did last week go" history.
+model WeeklySnapshot {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  weekStart    DateTime
+  weekEnd      DateTime
+  startBalance Decimal  @db.Decimal(18, 2)
+  endNetWorth  Decimal  @db.Decimal(18, 2)
+  pnlPercent   Decimal  @db.Decimal(10, 4)
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, weekStart])
+  @@index([userId, weekStart])
 }
 
 enum NotificationType {
@@ -118,30 +138,42 @@ enum ContestStatus {
   ENDED
 }
 
+enum ContestVisibility {
+  PUBLIC
+  PRIVATE
+}
+
 // Each entry gets its own isolated virtual wallet + holdings, seeded from
 // startingBalance at join and traded only within `symbols` - decoupled from
 // the user's real Wallet/Holding so contests can't leak into (or be leaked
 // into by) normal trading.
 model Contest {
-  id                  String        @id @default(cuid())
+  id                  String            @id @default(cuid())
   name                String
   startAt             DateTime
   endAt               DateTime
-  startingBalance     Decimal       @default(100000) @db.Decimal(18, 2)
+  startingBalance     Decimal           @default(100000) @db.Decimal(18, 2)
   symbols             String[]
-  status              ContestStatus @default(UPCOMING)
+  status              ContestStatus     @default(UPCOMING)
+  visibility          ContestVisibility @default(PUBLIC)
   prize               String?
   imageUrl            String?
+  inviteCode          String?           @unique
+  ownerId             String?
+  owner               User?             @relation("ContestOwner", fields: [ownerId], references: [id])
   // Presence of historicalStartDate marks this contest as a "past event"
   // replay - historicalDates is the resolved, ordered list of historical
   // trading dates (one per real contest day) populated once at creation.
   // Null/empty means an ordinary contest trading at live prices, unchanged.
-  historicalStartDate DateTime?     @db.Date
-  historicalDates     DateTime[]    @db.Date
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  historicalStartDate DateTime?         @db.Date
+  historicalDates     DateTime[]        @db.Date
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
   entries ContestEntry[]
+
+  @@index([visibility, startAt])
+  @@index([ownerId])
 }
 
 // A shared cache of historical daily closes, keyed by symbol+date rather

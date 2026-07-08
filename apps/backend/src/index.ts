@@ -4,6 +4,8 @@ import connectDB from './db/index.js';
 import { app } from './app.js';
 import { startContestSettlementJob } from './jobs/contestSettlement.js';
 import { startAlertCheckerJob } from './jobs/alertChecker.js';
+import { startWeeklyResetJob } from './jobs/weeklyReset.js';
+import { initPriceSocket } from './realtime/priceSocket.js';
 
 if (process.env.NODE_ENV !== 'production') {
     const dotenv = await import('dotenv');
@@ -23,6 +25,8 @@ connectDB()
 
     startContestSettlementJob();
     startAlertCheckerJob();
+    startWeeklyResetJob();
+    initPriceSocket(server);
 
 })
 .catch((error)=>{

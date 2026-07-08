@@ -1,6 +1,9 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+// The cash balance every wallet starts (and, with weekly resets, restarts) with.
+export const STARTING_BALANCE = 100000;
+
 // Shared by the global trade controller and the contest trade controller -
 // both trade a symbol/quantity pair, just against different ledgers.
 export const tradeSchema = z.object({

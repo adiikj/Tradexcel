@@ -254,6 +254,36 @@ function PublicProfile({ username }: PublicProfileProps) {
                   </div>
                 </div>
 
+                {profile.weeklyPerformance?.length > 0 && (
+                  <div className={`rounded-2xl p-6 mt-6 ${cardBg}`}>
+                    <h2 className="font-bold mb-4">Weekly Performance</h2>
+                    <ul className="space-y-2">
+                      {profile.weeklyPerformance.map((week: any) => {
+                        const start = new Date(week.weekStart);
+                        const end = new Date(week.weekEnd);
+                        const dateRange = `${start.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} - ${end.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`;
+                        const positive = week.pnlPercent >= 0;
+                        return (
+                          <li
+                            key={week.weekStart}
+                            className={`flex items-center justify-between px-4 py-3 rounded-lg ${
+                              darkMode ? "bg-gray-800" : "bg-white"
+                            }`}
+                          >
+                            <span className="text-sm text-gray-400">{dateRange}</span>
+                            <div className="flex items-center gap-4">
+                              <span className="text-sm tabular-nums">{formatInr(week.endNetWorth)}</span>
+                              <span className={`text-sm font-semibold tabular-nums ${positive ? "text-green-500" : "text-red-500"}`}>
+                                {formatPercent(week.pnlPercent)}
+                              </span>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+
                 {!isAuthenticated && <PlaySignupCta username={profile.username} darkMode={darkMode} />}
 
                 {isAuthenticated && tab && (

@@ -6,14 +6,13 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
 import { computeNetWorths } from "../services/netWorth.js";
 import { getRankings } from "./leaderboard.controller.js";
+import { STARTING_BALANCE } from "../services/tradeMath.js";
 
 interface AuthRequest {
   user?: { id: string; name?: string; username?: string };
   params: any;
   query: any;
 }
-
-const STARTING_BALANCE = 100000;
 
 async function findUserByUsername(username: string) {
   const user = await prisma.user.findUnique({
@@ -50,7 +49,7 @@ const getPublicProfile = asyncHandler(async (req: AuthRequest, res: Response) =>
   const viewerId = req.user?.id;
   const target = await findUserByUsername(req.params.username);
 
-  const [netWorths, rankings, followersCount, followingCount, followRow] = await Promise.all([
+  const [netWorths, rankings, followersCount, followingCount, followRow, weeklyPerformance] = await Promise.all([
     computeNetWorths([target.id]),
     getRankings(),
     prisma.follow.count({ where: { followingId: target.id } }),
@@ -60,6 +59,11 @@ const getPublicProfile = asyncHandler(async (req: AuthRequest, res: Response) =>
           where: { followerId_followingId: { followerId: viewerId, followingId: target.id } },
         })
       : null,
+    prisma.weeklySnapshot.findMany({
+      where: { userId: target.id },
+      orderBy: { weekStart: "desc" },
+      take: 8,
+    }),
   ]);
 
   const netWorth = netWorths.get(target.id)?.toNumber() ?? STARTING_BALANCE;
@@ -83,6 +87,43 @@ const getPublicProfile = asyncHandler(async (req: AuthRequest, res: Response) =>
       isFollowing: Boolean(followRow),
       isSelf: target.id === viewerId,
       badges: badgesFor(target.currentStreak, rankEntry?.rank ?? null),
+      weeklyPerformance: weeklyPerformance.map((w) => ({
+        weekStart: w.weekStart,
+        weekEnd: w.weekEnd,
+        startBalance: w.startBalance.toNumber(),
+        endNetWorth: w.endNetWorth.toNumber(),
+        pnlPercent: w.pnlPercent.toNumber(),
+      })),
+    })
+  );
+});
+
+const searchQuerySchema = z.object({
+  q: z.string().trim().min(1).max(50),
+});
+
+const searchUsers = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const parsed = searchQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    return res.status(200).json(new ApiResponse(200, "Search results fetched successfully", { users: [] }));
+  }
+  const viewerId = req.user?.id;
+  const { q } = parsed.data;
+
+  const users = await prisma.user.findMany({
+    where: {
+      OR: [
+        { username: { contains: q, mode: "insensitive" } },
+        { name: { contains: q, mode: "insensitive" } },
+      ],
+    },
+    take: 8,
+    select: { id: true, name: true, username: true, avatar: true },
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, "Search results fetched successfully", {
+      users: users.filter((u) => u.id !== viewerId),
     })
   );
 });
@@ -273,4 +314,4 @@ const getActivityFeed = asyncHandler(async (req: AuthRequest, res: Response) => 
   );
 });
 
-export { getPublicProfile, followUser, unfollowUser, getFollowers, getFollowing, getActivityFeed };
+export { getPublicProfile, searchUsers, followUser, unfollowUser, getFollowers, getFollowing, getActivityFeed };

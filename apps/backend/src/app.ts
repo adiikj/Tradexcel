@@ -1,20 +1,20 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import cookieparser from 'cookie-parser';
 import { pinoHttp } from 'pino-http';
 import logger from './utils/logger.js';
+import { globalLimiter } from './middlewares/rateLimit.middleware.js';
+import { corsOptions } from './config/cors.js';
 
 
 const app = express();
 
 app.set('trust proxy', 1);
 
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "http://localhost:3000", // Next.js dev server
-  credentials: true, // Allow credentials (cookies, authentication headers, etc.)
-};
-
+app.use(helmet());
 app.use(cors(corsOptions));
+app.use(globalLimiter);
 app.use(
   pinoHttp({
     logger,

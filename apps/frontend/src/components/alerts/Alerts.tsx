@@ -5,15 +5,59 @@ import alert from "../../assets/alerts.png";
 import alert_w from "../../assets/alerts-w.png";
 import { getAlerts, getNotifications, markNotificationsRead } from "../../api/api";
 
+const NOTIFICATION_POLL_MS = 20000;
+
+// Synthesizes a short two-tone chime with the Web Audio API so no sound
+// asset needs to ship with the app. Browsers block audio until the user
+// has interacted with the page at least once - failures are swallowed.
+function playNotificationChime() {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    [880, 1320].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const start = now + i * 0.1;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.15, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.25);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.3);
+    });
+
+    setTimeout(() => ctx.close().catch(() => {}), 600);
+  } catch {
+    // Ignore - audio is a nice-to-have, never block on it.
+  }
+}
+
 const Alerts = ({ darkMode }) => {
   const [alertsOpen, setAlertsOpen] = useState<any>(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [justArrived, setJustArrived] = useState(false);
   const alertsRef = useRef(null);
+  const alertsOpenRef = useRef(false);
+  const seenIdsRef = useRef<Set<string> | null>(null);
 
   useEffect(() => {
-    Promise.all([getAlerts(), getNotifications()])
-      .then(([alertsRes, notificationsRes]) => {
+    alertsOpenRef.current = alertsOpen;
+  }, [alertsOpen]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        const [alertsRes, notificationsRes] = await Promise.all([getAlerts(), getNotifications()]);
+        if (cancelled) return;
+
         const triggeredAlerts = (alertsRes?.data || [])
           .filter((a: any) => a.triggered)
           .map((a: any) => ({
@@ -34,10 +78,31 @@ const Alerts = ({ darkMode }) => {
           (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
         );
 
+        const currentIds = new Set(merged.map((n) => n.id));
+        const isFirstLoad = seenIdsRef.current === null;
+        const hasNewArrival =
+          !isFirstLoad && merged.some((n) => !seenIdsRef.current!.has(n.id));
+
+        if (hasNewArrival && !alertsOpenRef.current) {
+          playNotificationChime();
+          setJustArrived(true);
+          setTimeout(() => setJustArrived(false), 650);
+        }
+
+        seenIdsRef.current = currentIds;
         setNotifications(merged);
         setUnreadCount(notificationsRes?.data?.unreadCount || 0);
-      })
-      .catch(() => {});
+      } catch {
+        // Keep showing the last known state if a poll fails.
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, NOTIFICATION_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   const handleAlertsClick = () => {
@@ -84,12 +149,18 @@ const Alerts = ({ darkMode }) => {
         }`}
       >
         <img
-          className="w-5 h-5 sm:w-6 sm:h-6"
+          className={`w-5 h-5 sm:w-6 sm:h-6 ${justArrived ? "animate-bell-ring" : ""}`}
           src={((darkMode ? alert_w : alert)?.src || (darkMode ? alert_w : alert)) as string}
           alt="Alerts"
         />
         {unreadCount > 0 && (
-          <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-red-500" />
+          <span
+            className={`absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-semibold leading-none ${
+              justArrived ? "scale-125" : "scale-100"
+            } transition-transform duration-300`}
+          >
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
         )}
       </div>
 

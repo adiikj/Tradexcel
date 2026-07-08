@@ -210,6 +210,39 @@ export const getStockData = async (symbol) => {
   }
 };
 
+// Batched equivalent of getStockData - one request for many symbols. Returns
+// a symbol -> data map; symbols the backend couldn't resolve map to null.
+export const getBatchStockData = async (symbols: string[]) => {
+  try {
+    const url = `${BASE_FINANCE_URL}/quotes`;
+    const response = await axios.get(url, { params: { symbols: symbols.join(",") } });
+
+    if (response.data.status !== 200) {
+      return {};
+    }
+
+    const raw = response.data.data || {};
+    const result: Record<string, any> = {};
+    for (const symbol of Object.keys(raw)) {
+      const stock = raw[symbol];
+      if (!stock) {
+        result[symbol] = null;
+        continue;
+      }
+      result[symbol] = {
+        currentPrice: stock.currentPrice || 0,
+        stockPrices: stock.stockPrices || Array.from({ length: 30 }, () => stock.currentPrice || 0),
+        percentageChange: stock.percentageChange,
+        todayChange: stock.todayChange,
+        dates: stock.dates || null,
+      };
+    }
+    return result;
+  } catch (error) {
+    throw new Error("Failed to fetch batch stock data");
+  }
+};
+
 export const getWallet = async () => {
   try {
     const token = (typeof window !== 'undefined' ? localStorage.getItem("authToken") : null);
@@ -441,6 +474,19 @@ export const deleteAlert = async (alertId: string) => {
     return response.data;
   } catch (error) {
     const message = error?.response?.data?.message || error.message || "Failed to delete alert";
+    throw new Error(message);
+  }
+};
+
+export const searchPlayers = async (query: string) => {
+  try {
+    const response = await axios.get(`${BASE_TRADE_URL}/social/search`, {
+      params: { q: query },
+      headers: optionalAuthHeaders(),
+    });
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to search players";
     throw new Error(message);
   }
 };

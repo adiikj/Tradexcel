@@ -5,15 +5,13 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
 import { computeNetWorths } from "../services/netWorth.js";
+import { STARTING_BALANCE } from "../services/tradeMath.js";
 
 interface AuthRequest {
   user?: { id: string };
   query: any;
 }
 
-// Every wallet is seeded with the same starting cash (see registration flow),
-// so net worth vs. this baseline is a fair "total return" figure across users.
-const STARTING_BALANCE = 100000;
 const LEADERBOARD_CACHE_TTL_MS = 45_000;
 
 interface RankedUser {

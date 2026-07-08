@@ -6,6 +6,10 @@ import { getUserName, getPortfolio } from '../../api/api';
 import Link from "next/link";
 import quotes from './Quote.json';
 import { formatInr, formatPercent, formatSignedInr } from '../../utils/format';
+import { useLiveQuotes } from '../../hooks/useLiveQuotes';
+import { useMarketStatus } from '../../hooks/useMarketStatus';
+import LiveStatusBadge from '../layout/LiveStatusBadge';
+import MarketClosedBanner from '../layout/MarketClosedBanner';
 
 function MainContent({ darkMode  }: any) {
   const [selectedMarket, setSelectedMarket] = useState<any>('gainers');
@@ -13,7 +17,7 @@ function MainContent({ darkMode  }: any) {
   const [isLoadingUserName, setIsLoadingUserName] = useState(true);
   const [dailyQuote] = useState<any>(() => quotes[new Date().getDate() % quotes.length]);
   const [summary, setSummary] = useState<any>(null);
-  const [holdingsCount, setHoldingsCount] = useState(0);
+  const [holdings, setHoldings] = useState<any[]>([]);
   const [isLoadingSummary, setIsLoadingSummary] = useState(true);
 
   const handleToggle = (marketType) => {
@@ -42,7 +46,7 @@ function MainContent({ darkMode  }: any) {
         setIsLoadingSummary(true);
         const response = await getPortfolio();
         setSummary(response?.data?.summary || null);
-        setHoldingsCount((response?.data?.holdings || []).length);
+        setHoldings(response?.data?.holdings || []);
       } catch (error: any) {
         // Summary stays null; the skeleton below just keeps showing.
       } finally {
@@ -54,13 +58,29 @@ function MainContent({ darkMode  }: any) {
     fetchSummary();
   }, []);
 
+  const { quotes: liveQuotes, connected: liveConnected } = useLiveQuotes(holdings.map((h) => h.symbol));
+  const marketStatus = useMarketStatus();
+
+  // Same math as portfolio.controller.ts's getPortfolio, executed client-side
+  // against the already-known avgBuyPrice/quantity once a live tick arrives.
+  const liveHoldings = holdings.map((holding) => {
+    const tick = liveQuotes[holding.symbol];
+    if (!tick) return holding;
+
+    const quantity = Number(holding.quantity);
+    const currentValue = tick.price * quantity;
+
+    return { ...holding, currentPrice: tick.price, currentValue, priceStale: false };
+  });
+
+  const walletBalance = Number(summary?.walletBalance ?? 0);
   const totalInvested = Number(summary?.totalInvested ?? 0);
-  const totalPnl = Number(summary?.totalPnl ?? 0);
+  const holdingsValue = liveHoldings.reduce((sum, h) => sum + Number(h.currentValue ?? h.investedValue ?? 0), 0);
+  const totalPnl = holdingsValue - totalInvested;
   const returnsPercent = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
   const isPnlPositive = totalPnl >= 0;
-  const netWorth = Number(summary?.netWorth ?? 0);
-  const holdingsValue = Number(summary?.totalCurrentValue ?? 0);
-  const cashValue = Number(summary?.walletBalance ?? 0);
+  const netWorth = walletBalance + holdingsValue;
+  const cashValue = walletBalance;
   const holdingsPercent = netWorth > 0 ? (holdingsValue / netWorth) * 100 : 0;
   const cashPercent = netWorth > 0 ? (cashValue / netWorth) * 100 : 0;
 
@@ -97,6 +117,7 @@ function MainContent({ darkMode  }: any) {
 
         <div className="text-lg md:text-xl font-semibold mb-1">My Portfolio</div>
         <div className="h-2 w-20 bg-blue-500 rounded-full mb-6 animate-line" style={{ animationDelay: '0.3s' }}></div>
+        <MarketClosedBanner darkMode={darkMode} />
         <div className={`w-full rounded-3xl p-5 md:p-6 ${darkMode ? 'bg-gray-900 text-white' : 'bg-grey text-black'} transition-colors duration-300`}>
           <div className="flex items-center gap-2 mb-1">
             <span
@@ -107,10 +128,11 @@ function MainContent({ darkMode  }: any) {
               ₹
             </span>
             <span className="text-xs uppercase tracking-widest text-gray-400">Net Worth</span>
+            <LiveStatusBadge connected={liveConnected} marketOpen={marketStatus.open} />
           </div>
           <div className="flex flex-wrap items-baseline gap-3 mb-5">
             <span className="text-2xl md:text-3xl font-bold tabular-nums">
-              {isLoadingSummary ? <HeroSkeleton /> : formatInr(summary?.netWorth)}
+              {isLoadingSummary ? <HeroSkeleton /> : formatInr(netWorth)}
             </span>
             {!isLoadingSummary && (
               <span
@@ -139,7 +161,7 @@ function MainContent({ darkMode  }: any) {
             <div>
               <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Holdings</div>
               <div className="text-base font-semibold tabular-nums">
-                {isLoadingSummary ? <StatSkeleton /> : holdingsCount}
+                {isLoadingSummary ? <StatSkeleton /> : holdings.length}
               </div>
             </div>
           </div>
@@ -165,7 +187,7 @@ function MainContent({ darkMode  }: any) {
             </div>
           )}
         </div>
-        {!isLoadingSummary && holdingsCount === 0 && (
+        {!isLoadingSummary && holdings.length === 0 && (
           <p className="mt-3 text-sm text-gray-400">
             No holdings yet.{" "}
             <Link href="/market" className="text-blue-500 underline">

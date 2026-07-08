@@ -2,9 +2,13 @@ import cron from "node-cron";
 import prisma from "../db/prisma.js";
 import { getQuotes } from "../services/pricing.js";
 import { sendEmail } from "../services/mailer.js";
+import { isMarketOpen } from "../services/marketHours.js";
 
 // Batches one quote fetch per unique symbol across all alerts, not one per alert.
 export async function checkPriceAlerts(): Promise<number> {
+  // Prices can't cross a target outside trading hours - skip the Yahoo hit entirely.
+  if (!isMarketOpen()) return 0;
+
   const alerts = await prisma.priceAlert.findMany({
     where: { triggered: false },
     include: { user: { select: { email: true, name: true } } },

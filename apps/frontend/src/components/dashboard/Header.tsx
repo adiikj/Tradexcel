@@ -11,6 +11,7 @@ import profile from "../../assets/profile.png";
 import dark from "../../assets/dark.png";
 import lighty from "../../assets/light-y.png";
 import Alerts from "../alerts/Alerts"; // Importing Alerts component
+import GlobalSearch from "../layout/GlobalSearch";
 import { getAvatar } from "../../api/api";
 
 const Header = ({ darkMode, toggleDarkMode }) => {
@@ -72,6 +73,9 @@ const Header = ({ darkMode, toggleDarkMode }) => {
           />
         </div>
       </Link>
+
+      {/* Global Search */}
+      <GlobalSearch darkMode={darkMode} />
 
       {/* Right Section */}
       <div className="flex items-center gap-2 md:gap-3">

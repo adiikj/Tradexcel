@@ -1,18 +1,25 @@
 "use client";
 import React, { useState, useEffect, useContext, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import Stock from "../market/Stocks";
 import ThemeContext from "../../context/ThemeContext";
-import { getStockData, getWallet, getPortfolio } from "../../api/api";
+import { getBatchStockData, getWallet, getPortfolio } from "../../api/api";
 import AllStocks from "./AllStocks";
 import stockList from "./StockData.json";
 import { Helmet } from 'react-helmet';
 import TradeModal from "../trade/TradeModal";
 import { formatInr } from "../../utils/format";
+import { useLiveQuotes } from "../../hooks/useLiveQuotes";
+import { useMarketStatus } from "../../hooks/useMarketStatus";
+import { tickToStockFields } from "../../utils/liveQuote";
+import LiveStatusBadge from "../layout/LiveStatusBadge";
+import MarketClosedBanner from "../layout/MarketClosedBanner";
 
 function Market() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
+  const searchParams = useSearchParams();
   const [balance, setBalance] = useState(0);
   const [isLoadingBalance, setIsLoadingBalance] = useState(true);
   const [holdings, setHoldings] = useState<Record<string, number>>({});
@@ -48,43 +55,71 @@ function Market() {
     const fetchData = async () => {
       setIsLoadingStocks(true);
 
-      // Each symbol is fetched independently so one failure doesn't stall the list.
-      const updatedStocks = await Promise.all(
-        stockList.map(async (stock) => {
-          try {
-            const data = await getStockData(stock.symbol);
+      try {
+        // One request for every symbol on the page instead of one-per-stock.
+        const batch = await getBatchStockData(stockList.map((stock) => stock.symbol));
 
-            const stockData = data || {
-              currentPrice: 1000,
-              percentageChange: "N/A",
-              todayChange: "N/A",
-              stockPrices: Array(30).fill(1000),
-              dates: null,
-            };
+        const updatedStocks = stockList.map((stock) => {
+          const stockData = batch[stock.symbol] || {
+            currentPrice: 1000,
+            percentageChange: "N/A",
+            todayChange: "N/A",
+            stockPrices: Array(30).fill(1000),
+            dates: null,
+          };
 
-            return {
-              ...stock,
-              rawPrice: stockData.currentPrice,
-              price: `₹ ${stockData.currentPrice.toFixed(2)}`,
-              percentageChange: `${stockData.percentageChange || 0}%`, // Format as percentage
-              todayChange: `${stockData.todayChange || 0}`, // Format as ₹ with 2 decimal places
-              stockPrices: stockData.stockPrices,
-              labels: stockData.dates || Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
-            };
-          } catch (error) {
-            return null;
-          }
-        })
-      );
+          return {
+            ...stock,
+            rawPrice: stockData.currentPrice,
+            price: `₹ ${stockData.currentPrice.toFixed(2)}`,
+            percentageChange: `${stockData.percentageChange || 0}%`, // Format as percentage
+            todayChange: `${stockData.todayChange || 0}`, // Format as ₹ with 2 decimal places
+            stockPrices: stockData.stockPrices,
+            labels: stockData.dates || Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
+          };
+        });
 
-      setStocks(updatedStocks.filter((stock): stock is NonNullable<typeof stock> => stock !== null));
-      setIsLoadingStocks(false);
+        setStocks(updatedStocks);
+      } catch (error) {
+        setStocks([]);
+      } finally {
+        setIsLoadingStocks(false);
+      }
     };
 
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const symbol = searchParams.get("symbol");
+    if (!symbol || stocks.length === 0) return;
+    const match = stocks.find((stock) => stock.symbol === symbol);
+    if (match) setSelectedStock(match);
+  }, [searchParams, stocks]);
+
+  const { quotes: liveQuotes, connected: liveConnected } = useLiveQuotes(
+    stocks.map((stock: any) => stock.symbol)
+  );
+  const marketStatus = useMarketStatus();
+
+  const withLiveQuote = useCallback(
+    (stock: any) => {
+      const tick = liveQuotes[stock.symbol];
+      if (!tick) return stock;
+      const fields = tickToStockFields(tick);
+      return {
+        ...stock,
+        rawPrice: fields.currentPrice,
+        price: `₹ ${fields.currentPrice.toFixed(2)}`,
+        percentageChange: `${fields.percentageChange}%`,
+        todayChange: fields.todayChange,
+      };
+    },
+    [liveQuotes]
+  );
+
   const filteredStocks = stocks
+    .map(withLiveQuote)
     .filter((stock) =>
       stock.shortName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       stock.fullName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -96,6 +131,7 @@ function Market() {
       return true;
     });
 
+  const displayedSelectedStock = selectedStock ? withLiveQuote(selectedStock) : null;
   const ownedQuantity = selectedStock ? holdings[selectedStock.symbol] || 0 : 0;
 
   return (
@@ -114,14 +150,18 @@ function Market() {
         <div className="p-6 flex-1 mx-0 mb-20 md:mb-0 m-2 lg:m-10">
             <h1 className="text-2xl md:text-3xl font-bold">Market</h1>
           <div className="h-2 w-28 bg-blue-500 rounded-full mb-6 animate-line"></div>
+          <MarketClosedBanner darkMode={darkMode} />
           <div className="flex justify-between items-center mt-6">
-          <p className="mb-4 text-base md:text-xl tabular-nums flex items-center gap-2">
-            Cash:{" "}
-            {isLoadingBalance ? (
-              <span className={`inline-block h-5 w-24 rounded animate-pulse ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
-            ) : (
-              formatInr(balance)
-            )}
+          <p className="mb-4 text-base md:text-xl tabular-nums flex items-center gap-3">
+            <span className="flex items-center gap-2">
+              Cash:{" "}
+              {isLoadingBalance ? (
+                <span className={`inline-block h-5 w-24 rounded animate-pulse ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
+              ) : (
+                formatInr(balance)
+              )}
+            </span>
+            <LiveStatusBadge connected={liveConnected} marketOpen={marketStatus.open} />
           </p>
           {selectedStock && (
               <button
@@ -133,16 +173,16 @@ function Market() {
             )}
           </div>
 
-          {selectedStock ? (
+          {displayedSelectedStock ? (
             <div className="mb-6">
               <Stock
-                shortName={selectedStock.shortName}
-                fullName={selectedStock.fullName}
-                price={selectedStock.price}
-                stockPrices={selectedStock.stockPrices}
-                percentageChange={selectedStock.percentageChange}
-                todayChange={selectedStock.todayChange}
-                labels={selectedStock.labels}
+                shortName={displayedSelectedStock.shortName}
+                fullName={displayedSelectedStock.fullName}
+                price={displayedSelectedStock.price}
+                stockPrices={displayedSelectedStock.stockPrices}
+                percentageChange={displayedSelectedStock.percentageChange}
+                todayChange={displayedSelectedStock.todayChange}
+                labels={displayedSelectedStock.labels}
                 darkMode={darkMode}
                 ownedQuantity={ownedQuantity}
                 onBuy={() => setTradeModal({ side: "BUY" })}
@@ -210,12 +250,12 @@ function Market() {
         </div>
       </div>
     </div>
-    {tradeModal && selectedStock && (
+    {tradeModal && displayedSelectedStock && (
       <TradeModal
-        symbol={selectedStock.symbol}
-        fullName={selectedStock.fullName}
+        symbol={displayedSelectedStock.symbol}
+        fullName={displayedSelectedStock.fullName}
         side={tradeModal.side}
-        initialPrice={selectedStock.rawPrice}
+        initialPrice={displayedSelectedStock.rawPrice}
         availableCash={balance}
         availableQty={ownedQuantity}
         darkMode={darkMode}
