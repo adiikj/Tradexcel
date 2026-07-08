@@ -12,6 +12,7 @@ import {
   canAfford,
   canSell,
 } from "../services/tradeMath.js";
+import { checkAndAwardAchievements } from "../services/achievements.js";
 
 interface AuthRequest {
   user?: { id: string };
@@ -72,6 +73,8 @@ const buyStock = asyncHandler(async (req: AuthRequest, res: Response) => {
     return { wallet: updatedWallet, holding, transaction };
   });
 
+  checkAndAwardAchievements(userId).catch((error) => console.error("Error checking achievements:", error));
+
   return res
     .status(200)
     .json(new ApiResponse(200, "Stock purchased successfully", result));
@@ -120,6 +123,8 @@ const sellStock = asyncHandler(async (req: AuthRequest, res: Response) => {
 
     return { wallet, holding: updatedHolding, transaction };
   });
+
+  checkAndAwardAchievements(userId).catch((error) => console.error("Error checking achievements:", error));
 
   return res
     .status(200)

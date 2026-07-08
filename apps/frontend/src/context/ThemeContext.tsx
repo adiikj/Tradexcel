@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect } from "react";
 
 const ThemeContext = createContext<any>({} as any);
 
@@ -8,8 +8,10 @@ export const ThemeProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    const savedMode = localStorage.getItem("darkMode") === "true";
+    const stored = localStorage.getItem("darkMode");
+    const savedMode = stored === null ? true : stored === "true";
     setDarkMode(savedMode);
+    document.documentElement.setAttribute("data-theme", savedMode ? "dark" : "light");
   }, []);
 
   const toggleDarkMode = () => {

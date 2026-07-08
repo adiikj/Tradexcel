@@ -15,6 +15,7 @@ import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mailer.js";
 import { otpEmailTemplate } from "../services/emailTemplates.js";
 import { recordLogin } from "../services/streak.js";
+import { checkAndAwardAchievements } from "../services/achievements.js";
 
 const randomAvatars = [
   "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/rf2tm0acjgmcawzvardw.png",
@@ -109,6 +110,7 @@ const AUTH_COOKIE_OPTIONS = {
 async function issueSession(userId: string, res: any, message: string, recordStreak = true) {
   if (recordStreak) {
     await recordLogin(userId).catch((error) => console.error("Error recording login streak:", error));
+    checkAndAwardAchievements(userId).catch((error) => console.error("Error checking achievements:", error));
   }
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(userId);
   const user = await prisma.user.findUnique({

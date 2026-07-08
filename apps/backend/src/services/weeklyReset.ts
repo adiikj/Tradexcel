@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import prisma from "../db/prisma.js";
 import { getQuotes } from "./pricing.js";
 import { calculateHoldingsValue, STARTING_BALANCE } from "./tradeMath.js";
+import { awardWeeklyChampion } from "./achievements.js";
 
 // Weeks are aligned to Monday 00:00 UTC regardless of when the job actually
 // ticks, so the boundary is stable even if the server was briefly down.
@@ -66,6 +67,10 @@ export async function runWeeklyReset(): Promise<number> {
       }
     }
   }
+
+  // Idempotent (awardBadge no-ops on an already-earned badge), so it's safe
+  // to call this every run rather than only when resetCount > 0.
+  await awardWeeklyChampion(weekStart).catch((error) => console.error("Error awarding weekly champion:", error));
 
   return resetCount;
 }

@@ -41,6 +41,21 @@ model User {
   notificationsReceived Notification[]   @relation("NotificationRecipient")
   notificationsCaused   Notification[]   @relation("NotificationActor")
   weeklySnapshots       WeeklySnapshot[]
+  badges                UserBadge[]
+}
+
+// Earned records only - badge definitions (name/description/icon) live in
+// services/achievements.ts, looked up by badgeId, so adding/editing a badge
+// never needs a migration.
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  badgeId  String
+  earnedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+  @@index([userId])
 }
 
 // One row per user per completed week - written by the weekly reset job
@@ -63,6 +78,7 @@ model WeeklySnapshot {
 
 enum NotificationType {
   FOLLOW
+  ACHIEVEMENT
 }
 
 model Notification {

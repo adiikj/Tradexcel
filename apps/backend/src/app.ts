@@ -83,6 +83,14 @@ import notificationRouter from './routes/notification.routes.js';
 
 app.use('/api/v1', notificationRouter);
 
+import achievementsRouter from './routes/achievements.routes.js';
+
+app.use('/api/v1', achievementsRouter);
+
+import hallOfFameRouter from './routes/hallOfFame.routes.js';
+
+app.use('/api/v1', hallOfFameRouter);
+
 import { errorHandler } from './middlewares/error.middleware.js';
 
 app.use(errorHandler);

@@ -366,12 +366,46 @@ const optionalAuthHeaders = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-export const getContests = async () => {
+export const getContests = async (scope: "public" | "private" = "public") => {
   try {
-    const response = await axios.get(`${BASE_TRADE_URL}/contests`, { headers: authHeaders() });
+    const response = await axios.get(`${BASE_TRADE_URL}/contests`, {
+      params: { scope },
+      headers: authHeaders(),
+    });
     return response.data;
   } catch (error) {
     const message = error?.response?.data?.message || error.message || "Failed to fetch contests";
+    throw new Error(message);
+  }
+};
+
+export const createPrivateContest = async (payload: {
+  name: string;
+  startAt: string;
+  endAt: string;
+  startingBalance?: number;
+  symbols: string[];
+  prize?: string;
+}) => {
+  try {
+    const response = await axios.post(`${BASE_TRADE_URL}/contests/private`, payload, { headers: authHeaders() });
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to create private league";
+    throw new Error(message);
+  }
+};
+
+export const joinPrivateContest = async (inviteCode: string) => {
+  try {
+    const response = await axios.post(
+      `${BASE_TRADE_URL}/contests/private/join`,
+      { inviteCode },
+      { headers: authHeaders() }
+    );
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to join private league";
     throw new Error(message);
   }
 };
@@ -598,3 +632,24 @@ export const getFriendsLeaderboard = async (limit = 20) => {
     throw new Error(message);
   }
 };
+
+export const getAchievements = async () => {
+  try {
+    const response = await axios.get(`${BASE_TRADE_URL}/achievements`, { headers: authHeaders() });
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to fetch achievements";
+    throw new Error(message);
+  }
+};
+
+export const getHallOfFame = async () => {
+  try {
+    const response = await axios.get(`${BASE_TRADE_URL}/hall-of-fame`, { headers: authHeaders() });
+    return response.data;
+  } catch (error) {
+    const message = error?.response?.data?.message || error.message || "Failed to fetch hall of fame";
+    throw new Error(message);
+  }
+};
+

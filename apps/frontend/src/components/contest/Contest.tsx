@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import Header from "../dashboard/Header";
@@ -7,15 +7,18 @@ import Vheader from "../dashboard/Vheader";
 import ThemeContext from "../../context/ThemeContext";
 import { Helmet } from "react-helmet";
 import {
+  createPrivateContest,
   getContests,
   getContest,
   joinContest,
+  joinPrivateContest,
   getContestStandings,
   getContestPortfolio,
   getUserProfile,
 } from "../../api/api";
 import { formatInr, formatSignedInr } from "../../utils/format";
 import Countdown from "./Countdown";
+import { CreatePrivateContestModal, JoinPrivateContestModal } from "./PrivateLeagueTools";
 import TradeModal from "../trade/TradeModal";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -26,7 +29,6 @@ const STATUS_STYLES: Record<string, string> = {
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
-// % of the contest window elapsed, so a LIVE card shows how close it is to ending.
 function contestProgress(contest: { startAt: string; endAt: string; status: string }) {
   if (contest.status === "ENDED") return 100;
   if (contest.status === "UPCOMING") return 0;
@@ -39,6 +41,7 @@ function contestProgress(contest: { startAt: string; endAt: string; status: stri
 function Contest() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
+  const [scope, setScope] = useState<"public" | "private">("public");
   const [statusFilter, setStatusFilter] = useState<"ALL" | "UPCOMING" | "LIVE" | "ENDED">("ALL");
   const [contests, setContests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,12 +57,16 @@ function Contest() {
   const [contestPortfolio, setContestPortfolio] = useState<{ holdings: any[]; summary: any } | null>(null);
   const [buyTarget, setBuyTarget] = useState<{ symbol: string; price: number } | null>(null);
   const [sellTarget, setSellTarget] = useState<any>(null);
+  const [isJoiningPrivate, setIsJoiningPrivate] = useState(false);
+  const [isCreatingPrivate, setIsCreatingPrivate] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const fetchContests = useCallback(async () => {
+  const fetchContests = useCallback(async (nextScope: "public" | "private") => {
     try {
       setIsLoading(true);
       setError("");
-      const response = await getContests();
+      const response = await getContests(nextScope);
       setContests(response?.data || []);
     } catch (err: any) {
       setError(err.message || "Failed to load contests.");
@@ -69,11 +76,14 @@ function Contest() {
   }, []);
 
   useEffect(() => {
-    fetchContests();
+    fetchContests(scope);
+  }, [fetchContests, scope]);
+
+  useEffect(() => {
     getUserProfile()
       .then((res) => setCurrentUserId(res?.data?.id ?? null))
       .catch(() => {});
-  }, [fetchContests]);
+  }, []);
 
   const fetchContestDetail = useCallback(async (contestId: string) => {
     try {
@@ -86,7 +96,6 @@ function Contest() {
       setSelectedContest(contest);
       setStandings(standingsRes?.data?.standings || []);
 
-      // Not having joined yet is expected (404) - just means no panel to show.
       const portfolioRes = await getContestPortfolio(contestId).catch(() => null);
       setContestPortfolio(portfolioRes?.data || null);
     } catch (err: any) {
@@ -108,7 +117,7 @@ function Contest() {
       setIsJoining(true);
       await joinContest(contestId);
       toast.success("Joined contest!");
-      await fetchContests();
+      await fetchContests(scope);
       if (selectedContestId === contestId) {
         await fetchContestDetail(contestId);
       }
@@ -119,10 +128,72 @@ function Contest() {
     }
   };
 
-  const hasJoined = currentUserId && standings.some((s) => s.userId === currentUserId);
+  const handleJoinPrivate = async (inviteCode: string) => {
+    if (isJoiningPrivate) return;
+    try {
+      setIsJoiningPrivate(true);
+      const response = await joinPrivateContest(inviteCode);
+      const joinedContest = response?.data?.contest;
+      toast.success("Joined private league!");
+      setScope("private");
+      setShowJoinModal(false);
+      await fetchContests("private");
+      if (joinedContest?.id) {
+        setSelectedContestId(joinedContest.id);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to join private league.");
+    } finally {
+      setIsJoiningPrivate(false);
+    }
+  };
 
-  const filteredContests =
-    statusFilter === "ALL" ? contests : contests.filter((c) => c.status === statusFilter);
+  const handleCreatePrivate = async (payload: {
+    name: string;
+    startAt: string;
+    endAt: string;
+    startingBalance?: number;
+    symbols: string[];
+    prize?: string;
+  }) => {
+    if (isCreatingPrivate) return;
+    if (!payload.name || !payload.startAt || !payload.endAt || payload.symbols.length === 0) {
+      toast.error("Name, schedule, and at least one symbol are required.");
+      return;
+    }
+
+    try {
+      setIsCreatingPrivate(true);
+      const response = await createPrivateContest(payload);
+      const createdContest = response?.data;
+      toast.success(`Private contest created. Code: ${createdContest?.inviteCode || "ready"}`);
+      setScope("private");
+      setShowCreateModal(false);
+      await fetchContests("private");
+      if (createdContest?.id) {
+        setSelectedContestId(createdContest.id);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create private league.");
+    } finally {
+      setIsCreatingPrivate(false);
+    }
+  };
+
+  const handleCopyInviteCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success("Invite code copied!");
+    } catch {
+      toast.error("Couldn't copy - copy it manually instead.");
+    }
+  };
+
+  const hasJoined = Boolean(selectedContest?.isJoined ?? (currentUserId && standings.some((entry) => entry.userId === currentUserId)));
+  const filteredContests = useMemo(
+    () => (statusFilter === "ALL" ? contests : contests.filter((contest) => contest.status === statusFilter)),
+    [contests, statusFilter]
+  );
 
   const cardBg = darkMode ? "bg-gray-900" : "bg-gray-50";
   const topStandingNetWorth = standings[0]?.netWorth || 1;
@@ -149,7 +220,7 @@ function Contest() {
             {error && (
               <div className="mb-4 flex items-center gap-3">
                 <p className="text-red-500 text-sm">{error}</p>
-                <button onClick={fetchContests} className="text-sm text-blue-500 underline">
+                <button onClick={() => fetchContests(scope)} className="text-sm text-blue-500 underline">
                   Retry
                 </button>
               </div>
@@ -157,7 +228,48 @@ function Contest() {
 
             {!selectedContestId ? (
               <>
-                {/* Status filter tabs */}
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { key: "public", label: "Public contests" },
+                      { key: "private", label: "Private contests" },
+                    ] as const).map((tab) => (
+                      <button
+                        key={tab.key}
+                        className={`px-4 py-1.5 text-xs md:text-sm rounded-full transition-colors duration-200 active:scale-95 ${
+                          scope === tab.key
+                            ? "bg-blue-500 text-white"
+                            : darkMode
+                            ? "bg-gray-700 text-white hover:bg-gray-600"
+                            : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                        }`}
+                        onClick={() => setScope(tab.key)}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {scope === "private" && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowJoinModal(true)}
+                        className={`px-4 py-1.5 text-xs md:text-sm rounded-md transition-colors duration-150 active:scale-95 ${
+                          darkMode ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                        }`}
+                      >
+                        Join with code
+                      </button>
+                      <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="px-4 py-1.5 text-xs md:text-sm rounded-md bg-green-600 text-white hover:bg-green-500 transition-colors duration-150 active:scale-95"
+                      >
+                        + Create
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex flex-wrap gap-2 mb-8">
                   {(["ALL", "UPCOMING", "LIVE", "ENDED"] as const).map((tab) => (
                     <button
@@ -175,7 +287,6 @@ function Contest() {
                     </button>
                   ))}
                 </div>
-
                 {isLoading ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[0, 1, 2].map((i) => (
@@ -184,8 +295,14 @@ function Contest() {
                   </div>
                 ) : filteredContests.length === 0 ? (
                   <div className="text-center py-16">
-                    <p className="text-gray-400 mb-1">No contests in this category yet.</p>
-                    <p className="text-sm text-gray-500">Check back soon, or try a different filter.</p>
+                    <p className="text-gray-400 mb-1">
+                      {scope === "private" ? "No private leagues yet." : "No contests in this category yet."}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {scope === "private"
+                        ? "Create one above or join with an invite code."
+                        : "Check back soon, or try a different filter."}
+                    </p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -204,21 +321,33 @@ function Contest() {
                               : `${cardBg} border ${darkMode ? "border-gray-800" : "border-gray-200"}`
                           }`}
                         >
-                          {contest.imageUrl && (
-                            <img src={contest.imageUrl} alt="" className="w-full h-28 object-cover" />
-                          )}
+                          {contest.imageUrl && <img src={contest.imageUrl} alt="" className="w-full h-28 object-cover" />}
                           <div className="flex flex-col flex-1 p-5">
                             <div className="flex justify-between items-start mb-2 gap-2">
                               <h2 className="text-base font-bold truncate">{contest.name}</h2>
-                              <span
-                                className={`shrink-0 text-xs px-2 py-0.5 rounded-full text-white ${STATUS_STYLES[contest.status]}`}
-                              >
+                              <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full text-white ${STATUS_STYLES[contest.status]}`}>
                                 {contest.status}
                               </span>
                             </div>
 
-                            {contest.prize && (
-                              <p className="text-sm text-blue-400 mb-2 truncate">🏆 {contest.prize}</p>
+                            <div className="flex flex-wrap gap-2 mb-2 text-xs">
+                              <span className={`px-2 py-0.5 rounded-full ${darkMode ? "bg-gray-800 text-gray-300" : "bg-gray-200 text-gray-700"}`}>
+                                {contest.visibility === "PRIVATE" ? "Private league" : "Public contest"}
+                              </span>
+                              {contest.isOwner && <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white">Host</span>}
+                            </div>
+
+                            {contest.prize && <p className="text-sm text-blue-400 mb-2 truncate">🏆 {contest.prize}</p>}
+                            {contest.visibility === "PRIVATE" && contest.inviteCode && (
+                              <div className="flex items-center gap-2 mb-2">
+                                <p className="text-xs text-gray-400">Invite code: {contest.inviteCode}</p>
+                                <button
+                                  onClick={() => handleCopyInviteCode(contest.inviteCode)}
+                                  className="text-xs text-blue-500 hover:underline"
+                                >
+                                  Copy
+                                </button>
+                              </div>
                             )}
 
                             <div className="flex items-center gap-1 text-sm text-gray-400 mb-3 tabular-nums">
@@ -250,7 +379,7 @@ function Contest() {
                               >
                                 View
                               </button>
-                              {contest.status !== "ENDED" && (
+                              {scope === "public" && contest.status !== "ENDED" && !contest.isJoined && (
                                 <button
                                   className="flex-1 px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-500 transition-colors duration-150 active:scale-95 disabled:opacity-50"
                                   disabled={isJoining}
@@ -275,6 +404,8 @@ function Contest() {
                     setSelectedContest(null);
                     setStandings([]);
                     setContestPortfolio(null);
+                    setBuyTarget(null);
+                    setSellTarget(null);
                   }}
                   className="text-sm text-blue-500 hover:underline mb-4"
                 >
@@ -290,34 +421,46 @@ function Contest() {
                 ) : (
                   <>
                     {selectedContest.imageUrl && (
-                      <img
-                        src={selectedContest.imageUrl}
-                        alt=""
-                        className="w-full h-40 md:h-52 object-cover rounded-xl mb-4"
-                      />
+                      <img src={selectedContest.imageUrl} alt="" className="w-full h-40 md:h-52 object-cover rounded-xl mb-4" />
                     )}
 
                     <div className="flex justify-between items-start mb-2 gap-2">
                       <div className="min-w-0">
                         <h2 className="text-lg font-bold truncate">{selectedContest.name}</h2>
-                        {selectedContest.prize && (
-                          <p className="text-sm text-blue-400 mt-0.5">🏆 {selectedContest.prize}</p>
-                        )}
+                        {selectedContest.prize && <p className="text-sm text-blue-400 mt-0.5">🏆 {selectedContest.prize}</p>}
                       </div>
-                      <span
-                        className={`shrink-0 text-xs px-2 py-1 rounded-full text-white ${STATUS_STYLES[selectedContest.status]}`}
-                      >
+                      <span className={`shrink-0 text-xs px-2 py-1 rounded-full text-white ${STATUS_STYLES[selectedContest.status]}`}>
                         {selectedContest.status}
                       </span>
                     </div>
 
+                    <div className="flex flex-wrap gap-2 mb-2 text-xs">
+                      <span className={`px-2 py-0.5 rounded-full ${darkMode ? "bg-gray-800 text-gray-300" : "bg-gray-200 text-gray-700"}`}>
+                        {selectedContest.visibility === "PRIVATE" ? "Private league" : "Public contest"}
+                      </span>
+                      {selectedContest.isOwner && <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white">Host</span>}
+                    </div>
+
+                    {selectedContest.visibility === "PRIVATE" && selectedContest.inviteCode && (
+                      <div className={`mb-4 rounded-xl px-4 py-3 border flex items-center justify-between gap-3 ${darkMode ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-white"}`}>
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-gray-400">Invite code</p>
+                          <p className="font-semibold tracking-widest">{selectedContest.inviteCode}</p>
+                        </div>
+                        <button
+                          onClick={() => handleCopyInviteCode(selectedContest.inviteCode)}
+                          className={`shrink-0 px-3 py-1.5 text-xs rounded-md transition-colors duration-150 active:scale-95 ${
+                            darkMode ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                          }`}
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    )}
+
                     <p className="text-sm text-gray-400 mb-1">
-                      {selectedContest.status === "UPCOMING" && (
-                        <Countdown target={selectedContest.startAt} label="Starts in" />
-                      )}
-                      {selectedContest.status === "LIVE" && (
-                        <Countdown target={selectedContest.endAt} label="Ends in" />
-                      )}
+                      {selectedContest.status === "UPCOMING" && <Countdown target={selectedContest.startAt} label="Starts in" />}
+                      {selectedContest.status === "LIVE" && <Countdown target={selectedContest.endAt} label="Ends in" />}
                       {selectedContest.status === "ENDED" && "This contest has ended - final results below."}
                     </p>
 
@@ -337,11 +480,11 @@ function Contest() {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between mb-6 gap-3">
                       <p className="text-sm text-gray-400 tabular-nums">
                         {selectedContest._count.entries} participant{selectedContest._count.entries === 1 ? "" : "s"}
                       </p>
-                      {selectedContest.status !== "ENDED" &&
+                      {selectedContest.visibility === "PUBLIC" && selectedContest.status !== "ENDED" &&
                         (hasJoined ? (
                           <span className="text-sm text-green-500 font-semibold">You're in ✓</span>
                         ) : (
@@ -355,7 +498,7 @@ function Contest() {
                         ))}
                     </div>
 
-                    <h3 className="text-sm font-semibold mb-3">Standings</h3>
+                    <h3 className="text-sm font-semibold mb-3">League leaderboard</h3>
                     {standings.length === 0 ? (
                       <p className="text-gray-400 text-sm">No one has joined yet - be the first.</p>
                     ) : (
@@ -386,9 +529,7 @@ function Contest() {
                                       : "border-gray-200 hover:bg-gray-100"
                                   }`}
                                 >
-                                  <td className="p-3 text-sm tabular-nums">
-                                    {entry.rank <= 3 ? MEDALS[entry.rank - 1] : entry.rank}
-                                  </td>
+                                  <td className="p-3 text-sm tabular-nums">{entry.rank <= 3 ? MEDALS[entry.rank - 1] : entry.rank}</td>
                                   <td className="p-3">
                                     <div className="flex items-center gap-2">
                                       <img src={entry.avatar} alt="" className="w-8 h-8 rounded-full shrink-0" />
@@ -417,7 +558,7 @@ function Contest() {
 
                     {hasJoined && contestPortfolio && (
                       <div className="mt-8 pt-6 border-t border-gray-500/20">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between mb-4 gap-3">
                           <h3 className="text-sm font-semibold">My Contest Portfolio</h3>
                           <div className="text-sm tabular-nums">
                             <span className="text-gray-400">Cash: </span>
@@ -426,9 +567,7 @@ function Contest() {
                         </div>
 
                         {contestPortfolio.holdings.length === 0 ? (
-                          <p className="text-gray-400 text-sm mb-4">
-                            No holdings yet - buy from the stock universe below.
-                          </p>
+                          <p className="text-gray-400 text-sm mb-4">No holdings yet - buy from the stock universe below.</p>
                         ) : (
                           <div className="overflow-x-auto mb-4">
                             <table className="w-full text-left border-collapse text-sm">
@@ -447,21 +586,12 @@ function Contest() {
                                   const pnl = holding.unrealizedPnl !== null ? Number(holding.unrealizedPnl) : null;
                                   const pnlPositive = pnl !== null && pnl >= 0;
                                   return (
-                                    <tr
-                                      key={holding.id}
-                                      className={darkMode ? "border-b border-gray-800" : "border-b border-gray-200"}
-                                    >
+                                    <tr key={holding.id} className={darkMode ? "border-b border-gray-800" : "border-b border-gray-200"}>
                                       <td className="py-2 px-3 font-medium">{holding.symbol}</td>
                                       <td className="py-2 px-3 tabular-nums">{holding.quantity}</td>
                                       <td className="py-2 px-3 tabular-nums">{formatInr(holding.avgBuyPrice)}</td>
-                                      <td className="py-2 px-3 tabular-nums">
-                                        {holding.currentPrice !== null ? formatInr(holding.currentPrice) : "-"}
-                                      </td>
-                                      <td
-                                        className={`py-2 px-3 tabular-nums font-semibold ${
-                                          pnl === null ? "" : pnlPositive ? "text-green-500" : "text-red-500"
-                                        }`}
-                                      >
+                                      <td className="py-2 px-3 tabular-nums">{holding.currentPrice !== null ? formatInr(holding.currentPrice) : "-"}</td>
+                                      <td className={`py-2 px-3 tabular-nums font-semibold ${pnl === null ? "" : pnlPositive ? "text-green-500" : "text-red-500"}`}>
                                         {pnl === null ? "-" : formatSignedInr(pnl)}
                                       </td>
                                       <td className="py-2 px-3">
@@ -538,6 +668,22 @@ function Contest() {
           contestId={selectedContestId}
           onClose={() => setSellTarget(null)}
           onSuccess={() => fetchContestDetail(selectedContestId)}
+        />
+      )}
+      {showJoinModal && (
+        <JoinPrivateContestModal
+          darkMode={darkMode}
+          isJoining={isJoiningPrivate}
+          onJoin={handleJoinPrivate}
+          onClose={() => setShowJoinModal(false)}
+        />
+      )}
+      {showCreateModal && (
+        <CreatePrivateContestModal
+          darkMode={darkMode}
+          isCreating={isCreatingPrivate}
+          onCreate={handleCreatePrivate}
+          onClose={() => setShowCreateModal(false)}
         />
       )}
     </>

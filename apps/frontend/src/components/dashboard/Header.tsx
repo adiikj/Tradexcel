@@ -12,6 +12,7 @@ import dark from "../../assets/dark.png";
 import lighty from "../../assets/light-y.png";
 import Alerts from "../alerts/Alerts"; // Importing Alerts component
 import GlobalSearch from "../layout/GlobalSearch";
+import AchievementsBadge from "../layout/AchievementsBadge";
 import { getAvatar } from "../../api/api";
 
 const Header = ({ darkMode, toggleDarkMode }) => {
@@ -90,6 +91,9 @@ const Header = ({ darkMode, toggleDarkMode }) => {
             className="w-5 h-5 sm:w-6 sm:h-6"
           />
         </button>
+
+        {/* Achievements */}
+        <AchievementsBadge darkMode={darkMode} />
 
         {/* Alerts Component */}
         <Alerts darkMode={darkMode} />

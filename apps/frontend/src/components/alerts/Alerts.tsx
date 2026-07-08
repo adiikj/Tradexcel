@@ -166,9 +166,9 @@ const Alerts = ({ darkMode }) => {
 
       {alertsOpen && (
         <div
-          className={`absolute w-72 sm:w-96 md:w-80 lg:w-96 ${
+          className={`absolute right-0 top-10 sm:top-12 w-72 sm:w-96 md:w-80 lg:w-96 max-w-[calc(100vw-2rem)] ${
             darkMode ? "bg-gray-800 text-white" : "bg-white text-black"
-          } rounded-md shadow-lg z-10 p-4 max-h-80 overflow-y-auto top-10 sm:top-12 md:left-0 left-1/2 transform -translate-x-1/2`}
+          } rounded-md shadow-lg z-10 p-4 max-h-80 overflow-y-auto`}
         >
           <h4 className="font-bold text-base md:text-lg mb-4">Notifications</h4>
           <ul className="space-y-4">

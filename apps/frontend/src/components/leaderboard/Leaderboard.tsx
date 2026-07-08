@@ -6,22 +6,28 @@ import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import ThemeContext from "../../context/ThemeContext";
 import { Helmet } from "react-helmet";
-import { getLeaderboard, getFriendsLeaderboard } from "../../api/api";
+import { getLeaderboard, getFriendsLeaderboard, getHallOfFame } from "../../api/api";
 import { formatInr, formatPercent } from "../../utils/format";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 // Real podium order: 2nd, 1st, 3rd, with the #1 slot tallest.
 const PODIUM_ORDER = [1, 0, 2];
 
+type Scope = "global" | "friends" | "contestChampions" | "weeklyChampions";
+
 function Leaderboard() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
-  const [scope, setScope] = useState<"global" | "friends">("global");
+  const [scope, setScope] = useState<Scope>("global");
   const [entries, setEntries] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [totalPlayers, setTotalPlayers] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [contestChampions, setContestChampions] = useState<any[]>([]);
+  const [weeklyChampions, setWeeklyChampions] = useState<any[]>([]);
+  const [isLoadingHallOfFame, setIsLoadingHallOfFame] = useState(true);
 
   const fetchLeaderboard = useCallback(async (nextScope: "global" | "friends") => {
     try {
@@ -39,8 +45,22 @@ function Leaderboard() {
   }, []);
 
   useEffect(() => {
-    fetchLeaderboard(scope);
+    if (scope === "global" || scope === "friends") {
+      fetchLeaderboard(scope);
+    }
   }, [fetchLeaderboard, scope]);
+
+  // Contest/weekly champions come from one combined endpoint - fetch once,
+  // independent of which tab is active, rather than refetching per switch.
+  useEffect(() => {
+    getHallOfFame()
+      .then((response) => {
+        setContestChampions(response?.data?.contestChampions || []);
+        setWeeklyChampions(response?.data?.weeklyChampions || []);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingHallOfFame(false));
+  }, []);
 
   const isCurrentUserVisible = entries.some((entry) => entry.userId === currentUser?.userId);
   const top3 = entries.slice(0, 3);
@@ -67,24 +87,33 @@ function Leaderboard() {
             <h1 className="text-2xl md:text-3xl font-bold">Leaderboard</h1>
             <div className="h-2 w-44 bg-blue-500 rounded-full mb-6 animate-line"></div>
 
-            <div className="flex gap-2 mb-6">
-              {(["global", "friends"] as const).map((option) => (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {(
+                [
+                  { key: "global", label: "Global" },
+                  { key: "friends", label: "Following" },
+                  { key: "contestChampions", label: "🏆 Contest Champions" },
+                  { key: "weeklyChampions", label: "👑 Weekly Champions" },
+                ] as const
+              ).map((option) => (
                 <button
-                  key={option}
-                  onClick={() => setScope(option)}
-                  className={`px-4 py-1.5 text-sm font-semibold rounded-full capitalize transition-colors ${
-                    scope === option
+                  key={option.key}
+                  onClick={() => setScope(option.key)}
+                  className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${
+                    scope === option.key
                       ? "bg-blue-500 text-white"
                       : darkMode
                       ? "bg-gray-700 text-gray-300"
                       : "bg-gray-200 text-gray-700"
                   }`}
                 >
-                  {option === "friends" ? "Following" : "Global"}
+                  {option.label}
                 </button>
               ))}
             </div>
 
+            {(scope === "global" || scope === "friends") && (
+              <>
             {error && (
               <div className="mb-4 flex items-center gap-3">
                 <p className="text-red-500">{error}</p>
@@ -248,6 +277,70 @@ function Leaderboard() {
                   </div>
                 )}
               </>
+            )}
+              </>
+            )}
+
+            {scope === "contestChampions" && (
+              isLoadingHallOfFame ? (
+                <div className={`h-64 rounded-2xl animate-pulse ${cardBg}`} />
+              ) : contestChampions.length === 0 ? (
+                <p className="text-gray-400 text-sm py-10 text-center">No contests have finished yet.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {contestChampions.map((champion) => (
+                    <li
+                      key={champion.contestId}
+                      className={`flex items-center gap-3 p-3 rounded-lg ${cardBg}`}
+                    >
+                      <img src={champion.user.avatar} alt="" className="w-9 h-9 rounded-full shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm truncate">
+                          <Link href={`/u/${champion.user.username}`} className="font-semibold hover:underline">
+                            {champion.user.name}
+                          </Link>
+                          <span className="text-gray-400"> won </span>
+                          {champion.contestName}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {new Date(champion.endAt).toLocaleDateString()}
+                          {champion.prize ? ` · ${champion.prize}` : ""}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )
+            )}
+
+            {scope === "weeklyChampions" && (
+              isLoadingHallOfFame ? (
+                <div className={`h-64 rounded-2xl animate-pulse ${cardBg}`} />
+              ) : weeklyChampions.length === 0 ? (
+                <p className="text-gray-400 text-sm py-10 text-center">No weeks have completed yet.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {weeklyChampions.map((champion) => (
+                    <li
+                      key={`${champion.user.id}-${champion.weekStart}`}
+                      className={`flex items-center gap-3 p-3 rounded-lg ${cardBg}`}
+                    >
+                      <img src={champion.user.avatar} alt="" className="w-9 h-9 rounded-full shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <Link href={`/u/${champion.user.username}`} className="text-sm font-semibold hover:underline">
+                          {champion.user.name}
+                        </Link>
+                        <p className="text-xs text-gray-400">
+                          Week of {new Date(champion.weekStart).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <p className="text-sm font-semibold tabular-nums text-green-500 shrink-0">
+                        {formatPercent(champion.pnlPercent)}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )
             )}
           </main>
         </div>

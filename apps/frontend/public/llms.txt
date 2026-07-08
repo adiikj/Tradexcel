@@ -1,0 +1,240 @@
+# Tradexcel
+
+> Tradexcel is a gamified stock-trading simulator: users buy and sell real,
+> live-priced Indian (NSE) equities using virtual money only — no real money
+> ever changes hands. It combines a correctness-critical trading engine with
+> social features, private/public contests, weekly seasons, achievements, and
+> a real-time price feed, built as a portfolio/demonstration project rather
+> than a commercial product.
+
+Tradexcel lets a signed-up user start with ₹1,00,000 in virtual cash, trade
+live-quoted NSE stocks against real market prices, track a portfolio and net
+worth over time, compete on global/friends leaderboards, join or host
+time-boxed contests (public and invite-only private "leagues"), follow other
+players, earn persistent achievement badges, and watch prices update live via
+WebSockets while the market is open. Real-money-adjacent stock simulators are
+legally restricted in India, so this product deliberately never touches real
+currency, payments, or withdrawals — every balance is virtual and reset
+mechanics (see "Weekly seasons" below) are part of the game design, not a
+financial instrument.
+
+This file follows the llms.txt convention (https://llmstxt.org) to give
+language models and AI agents a structured, accurate map of the product,
+its data model, and its API surface, for question-answering, integration, or
+automated evaluation purposes.
+
+## Core product pages (frontend)
+
+- [Dashboard](/dashboard): Post-login home. Net-worth hero card (live),
+  today's quote, Top Gainers/Losers panel (live, full ~258-stock universe,
+  toggle between the two).
+- [Market](/market): Browse/search the full NSE stock universe, view a
+  30-day price chart per stock, live price ticking, buy/sell via modal,
+  filter by All/Gainers/Losers/My Holdings.
+- [Portfolio](/portfolio): Current holdings with live price/P&L, net worth,
+  cash/holdings allocation bar, per-stock detail view (chart + buy/sell),
+  reachable directly at `/portfolio?symbol=SYMBOL.NS`.
+- [Wallet](/wallet): Cash balance and transaction history.
+- [Leaderboard](/leaderboard): Four tabs in one page — Global net-worth
+  ranking, Following (friends-only ranking), Contest Champions (past contest
+  #1 finishers), and Weekly Champions (best weekly % return per week).
+- [Contest](/contest): Browse/join public (admin-created) contests, or
+  create/join private invite-only contests ("leagues") via a share code.
+  Each contest has its own isolated virtual wallet/holdings and a standings
+  leaderboard scoped to just that contest's members.
+- [Achievements](/achievements): Personal badge collection — locked/unlocked
+  grid of all achievement badges with unlock dates. Also surfaced as a
+  trophy icon + live earned-count badge in the top header (not the sidebar),
+  since achievements are meant to be noticed.
+- [Activity](/activity): Social activity feed of trades/contest results from
+  users you follow.
+- [Alerts](/alerts): Create/manage price alerts (above/below a target price)
+  that email you when triggered; also the source of the notification bell.
+- [Public profile](/u/USERNAME): Any player's public profile — net worth,
+  rank, login streak, earned achievement badges, weekly performance history,
+  follow/unfollow, viewable while logged out (drives signup growth loop).
+- [Your Profile](/your-profile): Own-account settings (avatar, password/PIN).
+- [News](/news): Market news feed.
+- [Sign up](/signup) / [Sign in](/signin): Email+password or PIN auth, OTP
+  email verification, Google OAuth.
+- [Admin contests](/admin/contests) / [Admin login](/admin/login): Separate
+  admin-only auth and contest-management surface for public contests.
+
+## Trading engine & data model
+
+- **Wallet**: one per user, starts at ₹1,00,000 (`STARTING_BALANCE`),
+  `apps/backend/src/services/tradeMath.ts`.
+- **Holding**: symbol + quantity + weighted-average buy price, unique per
+  (user, symbol). Buys recompute the weighted average; sells reduce
+  quantity and delete the row at zero.
+- **Transaction**: immutable ledger row per buy/sell (symbol, side, qty,
+  price, total, timestamp).
+- All trade math uses `Prisma.Decimal`, never floats, and every buy/sell runs
+  inside a single Prisma `$transaction`. Insufficient funds and oversell are
+  rejected server-side (`apps/backend/src/controllers/trade.controller.ts`).
+- Live prices are fetched from Yahoo Finance's unofficial chart/quote
+  endpoints, cached in-memory 12s during market hours (30 minutes when the
+  market's closed), see `apps/backend/src/services/pricing.ts`.
+- Market-hours awareness: NSE regular session is treated as Mon-Fri,
+  9:15 AM-3:30 PM IST (`apps/backend/src/services/marketHours.ts`); outside
+  those hours, no new Yahoo calls are made and the UI shows a "Market
+  Closed" banner with the next-open time instead of pretending prices are
+  ticking.
+
+## Weekly seasons (reset mechanic)
+
+- Every Monday 00:00 UTC, a scheduled job (`apps/backend/src/jobs/weeklyReset.ts`,
+  cron `node-cron`) closes out the prior week for every user: computes final
+  net worth (cash + mark-to-market holdings), writes a `WeeklySnapshot` row
+  (start/end net worth, `pnlPercent`), force-liquidates all holdings to cash,
+  and resets the wallet back to a fresh ₹1,00,000. This gives every player a
+  clean, comparable weekly performance number (shown on their public profile)
+  without ever letting balances compound into unbounded numbers.
+- The best `pnlPercent` of any player each week automatically earns the
+  `weekly_champion` achievement badge, and feeds the Leaderboard's Weekly
+  Champions tab.
+
+## Contests (public and private)
+
+- Data model: `Contest` (name, start/end, starting balance, fixed stock
+  universe, `visibility: PUBLIC | PRIVATE`, optional `inviteCode`, optional
+  `ownerId`), `ContestEntry` (one isolated virtual wallet per user per
+  contest, `finalRank`/`finalNetWorth` once settled), `ContestHolding`,
+  `ContestTransaction` — fully decoupled from the user's main
+  Wallet/Holding/Transaction so contest trading never touches real progress.
+- Public contests are admin-created and open to anyone to join and browse.
+- Private contests ("leagues") are self-serve: any user can create one (name,
+  schedule, starting balance, a picked stock universe), which mints a short
+  invite code and auto-joins the creator as owner/host. Others join with
+  `POST /api/v1/contests/private/join` + the code. A private contest is
+  invisible in the public contest list and its standings/detail require
+  either ownership or an existing entry (`assertContestAccess` in
+  `apps/backend/src/controllers/contest.controller.ts`).
+- A contest can optionally be a historical "replay" (trades price off
+  cached historical closes for a past date range instead of live quotes).
+- Settlement: a per-minute cron (`apps/backend/src/jobs/contestSettlement.ts`)
+  freezes `finalRank`/`finalNetWorth` for contests past their end time, and
+  awards `contest_champion` (rank 1) / `podium_finish` (rank ≤ 3) badges.
+
+## Gamification: achievements + Hall of Fame data
+
+- 14 persistent achievement badges defined in code
+  (`apps/backend/src/services/achievements.ts`), covering first trade,
+  profitability milestones, diversification, login streaks (3/7/30 days),
+  contest results, weekly performance, global leaderboard rank #1, hosting a
+  private contest, and social follower count. Earned records are stored
+  (`UserBadge`), never recomputed away once unlocked.
+- Awarding is fire-and-forget from four hook points so it never adds latency
+  to a request: login, buy/sell, contest settlement, weekly reset.
+- Every new badge creates a notification, surfaced through the existing
+  notification bell (chime sound + icon-ring animation, 20s poll) rather
+  than a bespoke unlock modal.
+- "Hall of Fame" is not a separate page — it's folded into the Leaderboard's
+  Contest Champions / Weekly Champions tabs, backed by `GET /api/v1/hall-of-fame`.
+
+## Social layer
+
+- Follow/unfollow between users (`Follow` model), followers/following lists,
+  an activity feed of followed users' trades and contest results, and public
+  profiles that work for logged-out visitors (to support shareable profile
+  links and a signup growth loop).
+- Global player search (`GET /api/v1/social/search`) reachable from a header
+  search bar, alongside stock search, on every page.
+
+## Real-time price streaming (WebSockets)
+
+- `apps/backend/src/realtime/priceSocket.ts`: a Socket.IO server attached to
+  the same HTTP server as the REST API. Clients subscribe/unsubscribe to
+  per-symbol "rooms"; a single centralized 5-second broadcast loop (not
+  per-client polling) fetches quotes once for the union of symbols anyone is
+  watching and emits a `price` event only when a value actually changed.
+- Ref-counted client-side subscriptions (`apps/frontend/src/lib/socket.ts`)
+  so multiple components on one page (e.g. Market's list + a detail view)
+  sharing one socket connection don't clobber each other's subscriptions on
+  unmount.
+- A `marketStatus` event tells clients when the market is open/closed and the
+  next open time, so the UI never shows a misleading "Live" indicator when no
+  ticks will arrive.
+- Live prices currently power the Market page, Portfolio page, and the
+  Dashboard/Top-Gainers-Losers panels.
+
+## Notifications
+
+- `Notification` model (`FOLLOW` | `ACHIEVEMENT` types), surfaced via a bell
+  icon in the header: 20s poll, unread count badge, a synthesized Web-Audio
+  chime and a bell-ring animation on genuinely new arrivals (not on first
+  load), mark-all-read on open.
+
+## Authentication & security
+
+- JWT access + refresh tokens (`apps/backend/src/utils/auth.ts`), httpOnly
+  cookies plus a bearer token path for the SPA client.
+- Email OTP verification (Resend) at signup; Google OAuth login.
+- Daily login streak tracking (`currentStreak`/`longestStreak`), advanced
+  only on explicit logins, not silent token refreshes.
+- Rate limiting (`express-rate-limit`) tiered by sensitivity: a global
+  baseline limiter on every request, a tighter auth-tier limiter on
+  login/OTP/password-change, a public-endpoint limiter on unauthenticated
+  routes (stock quotes, player search, public profiles), a mutation limiter
+  on account-changing actions, and a trade-specific limiter on buy/sell.
+- `helmet` for baseline security headers; CORS restricted to the configured
+  frontend origin.
+- Admin auth is a fully separate credential/token path from user auth.
+
+## API reference (backend, mounted under `/api/v1`)
+
+- `/users/*` — register, login (password or PIN), Google login, OTP verify,
+  refresh token, profile, avatar, password/PIN change.
+- `/finance/stock/:symbol`, `/finance/quotes?symbols=A,B,C` — single and
+  batched live-quote + 30-day-chart lookups (public, rate-limited).
+- `/trade/buy`, `/trade/sell` — main-wallet trading.
+- `/wallet`, `/portfolio`, `/transactions` — main-account reads.
+- `/leaderboard`, `/leaderboard/friends` — cached global/friends rankings.
+- `/contests`, `/contests/:id`, `/contests/:id/join`, `/contests/:id/standings`,
+  `/contests/:id/trade/buy|sell`, `/contests/:id/portfolio`,
+  `/contests/private` (create), `/contests/private/join` (join by code).
+- `/alerts` — CRUD for price alerts.
+- `/social/search`, `/users/:username/profile`, `/users/:username/follow`,
+  `/users/:username/followers`, `/users/:username/following`,
+  `/social/activity`.
+- `/notifications`, `/notifications/read-all`.
+- `/achievements` — full badge catalog + the caller's earned status.
+- `/hall-of-fame` — top net worth, contest champions, weekly champions.
+- `/news` — market news feed.
+- `/admin/login`, `/admin/contests/*` — admin-only contest management.
+- WebSocket (Socket.IO, same host, no separate path prefix): `subscribe`,
+  `unsubscribe`, `price`, `marketStatus` events.
+
+## Architecture & tech stack
+
+- pnpm monorepo: `apps/frontend` (Next.js 16, App Router, TypeScript, Redux
+  Toolkit, Tailwind CSS, Chart.js, Socket.IO client), `apps/backend`
+  (Express + TypeScript, Prisma ORM, Socket.IO server, node-cron),
+  `packages/shared` (shared TypeScript types between both apps).
+- Database: PostgreSQL hosted on Neon, accessed exclusively through Prisma;
+  schema at `apps/backend/prisma/schema.prisma`, migrations in
+  `apps/backend/prisma/migrations/`.
+- Deployment: frontend on Vercel; backend on an always-on host (Azure VM),
+  chosen specifically because it tolerates persistent WebSocket connections
+  and background cron jobs without the cold-start behavior of serverless/
+  free-tier platforms.
+- Background jobs (all `node-cron`, run in-process on the backend): contest
+  settlement (every minute), price-alert checker (every 2 minutes, skipped
+  entirely outside market hours), weekly reset (Monday 00:00 UTC).
+
+## Project positioning
+
+- This is a resume/portfolio engineering project, not a commercial product:
+  optimized to demonstrate real trading-engine correctness, clean
+  architecture, and full-stack breadth to engineering reviewers — not to
+  monetize. No paid tiers, no real payments, no withdrawal of virtual funds
+  exist or are planned.
+- Product name: "Tradexcel" (lowercase x). Not to be confused with earlier
+  internal working names used during development.
+
+## Optional
+
+- [Source repository](https://github.com/adiikj/Mocket): Full source, commit
+  history, and issue tracker. The repository is still named "Mocket" from an
+  earlier development phase and has not yet been renamed to match the
+  current product name, Tradexcel.

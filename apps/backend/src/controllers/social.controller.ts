@@ -7,6 +7,8 @@ import prisma from "../db/prisma.js";
 import { computeNetWorths } from "../services/netWorth.js";
 import { getRankings } from "./leaderboard.controller.js";
 import { STARTING_BALANCE } from "../services/tradeMath.js";
+import { BADGE_CATALOG } from "../services/achievements.js";
+import { getTitle } from "../services/titles.js";
 
 interface AuthRequest {
   user?: { id: string; name?: string; username?: string };
@@ -33,23 +35,30 @@ async function findUserByUsername(username: string) {
   return user;
 }
 
-function badgesFor(streak: number, rank: number | null): string[] {
-  const badges: string[] = [];
-  if (streak >= 30) badges.push("30-Day Streak");
-  else if (streak >= 7) badges.push("7-Day Streak");
-  else if (streak >= 3) badges.push("3-Day Streak");
+const BADGE_MAP = new Map(BADGE_CATALOG.map((b) => [b.id, b]));
 
-  if (rank === 1) badges.push("#1 Trader");
-  else if (rank !== null && rank <= 10) badges.push("Top 10");
+// Real, persisted achievements (see services/achievements.ts) - replaces the
+// old ephemeral badgesFor(), which recomputed from live stats and so could
+// silently vanish the moment a streak reset or a rank dropped.
+async function earnedBadgesFor(userId: string) {
+  const earned = await prisma.userBadge.findMany({
+    where: { userId },
+    orderBy: { earnedAt: "desc" },
+  });
 
-  return badges;
+  return earned
+    .map((e) => {
+      const badge = BADGE_MAP.get(e.badgeId);
+      return badge ? { ...badge, earnedAt: e.earnedAt } : null;
+    })
+    .filter((b): b is NonNullable<typeof b> => b !== null);
 }
 
 const getPublicProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
   const viewerId = req.user?.id;
   const target = await findUserByUsername(req.params.username);
 
-  const [netWorths, rankings, followersCount, followingCount, followRow, weeklyPerformance] = await Promise.all([
+  const [netWorths, rankings, followersCount, followingCount, followRow, weeklyPerformance, badges] = await Promise.all([
     computeNetWorths([target.id]),
     getRankings(),
     prisma.follow.count({ where: { followingId: target.id } }),
@@ -64,11 +73,13 @@ const getPublicProfile = asyncHandler(async (req: AuthRequest, res: Response) =>
       orderBy: { weekStart: "desc" },
       take: 8,
     }),
+    earnedBadgesFor(target.id),
   ]);
 
   const netWorth = netWorths.get(target.id)?.toNumber() ?? STARTING_BALANCE;
   const totalPnlPercent = ((netWorth - STARTING_BALANCE) / STARTING_BALANCE) * 100;
   const rankEntry = rankings.find((entry) => entry.userId === target.id) ?? null;
+  const title = getTitle(totalPnlPercent, rankEntry?.rank ?? null);
 
   return res.status(200).json(
     new ApiResponse(200, "Profile fetched successfully", {
@@ -80,13 +91,14 @@ const getPublicProfile = asyncHandler(async (req: AuthRequest, res: Response) =>
       netWorth,
       totalPnlPercent,
       rank: rankEntry?.rank ?? null,
+      title,
       currentStreak: target.currentStreak,
       longestStreak: target.longestStreak,
       followersCount,
       followingCount,
       isFollowing: Boolean(followRow),
       isSelf: target.id === viewerId,
-      badges: badgesFor(target.currentStreak, rankEntry?.rank ?? null),
+      badges,
       weeklyPerformance: weeklyPerformance.map((w) => ({
         weekStart: w.weekStart,
         weekEnd: w.weekEnd,

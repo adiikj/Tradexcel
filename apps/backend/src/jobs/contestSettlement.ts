@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import prisma from "../db/prisma.js";
 import { computeContestNetWorths } from "../services/contestNetWorth.js";
+import { checkAndAwardAchievements } from "../services/achievements.js";
 
 // Freezes final standings for contests past endAt: ranks entrants by delta
 // from startingBalance, writes finalRank/finalNetWorth, flips status to ENDED.
@@ -33,6 +34,14 @@ export async function settleDueContests(): Promise<number> {
           })
         )
       );
+
+      // contest_champion/podium_finish - fire-and-forget per entrant, doesn't
+      // block settling the rest of this (or other) contests.
+      for (const { entry } of ranked) {
+        checkAndAwardAchievements(entry.userId).catch((error) =>
+          console.error(`Error checking achievements for ${entry.userId}:`, error)
+        );
+      }
     }
 
     await prisma.contest.update({ where: { id: contest.id }, data: { status: "ENDED" } });

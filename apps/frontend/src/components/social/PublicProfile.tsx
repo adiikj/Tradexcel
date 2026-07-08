@@ -15,6 +15,7 @@ import { formatInr, formatPercent } from "../../utils/format";
 import logo from "../../assets/logo-icon-transparent.png";
 import wordmarkLight from "../../assets/tradexcel-wordmark-light.png";
 import wordmarkDark from "../../assets/tradexcel-wordmark-dark.png";
+import { getBadgeIconSrc } from "../achievements/badgeIcons";
 
 interface PublicProfileProps {
   username: string;
@@ -68,9 +69,10 @@ function PlaySignupCta({ username, darkMode }: { username: string; darkMode: boo
 }
 
 function PublicProfile({ username }: PublicProfileProps) {
-  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
+  const { darkMode: appDarkMode, toggleDarkMode } = useContext(ThemeContext);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const darkMode = isAuthenticated ? appDarkMode : false;
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -154,18 +156,17 @@ function PublicProfile({ username }: PublicProfileProps) {
                     <div className="flex-1 text-center sm:text-left">
                       <h1 className="text-2xl font-bold">{profile.name}</h1>
                       <p className="text-gray-400">@{profile.username}</p>
-                      {profile.badges?.length > 0 && (
-                        <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
-                          {profile.badges.map((badge: string) => (
-                            <span
-                              key={badge}
-                              className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                                darkMode ? "bg-amber-900/40 text-amber-300" : "bg-amber-100 text-amber-700"
-                              }`}
-                            >
-                              🔥 {badge}
-                            </span>
-                          ))}
+                      {profile.title && (
+                        <div className="flex justify-center sm:justify-start mt-2">
+                          <span
+                            title="Current standing - updates as net worth and rank change"
+                            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                              darkMode ? "bg-blue-900/40 text-blue-300" : "bg-blue-100 text-blue-700"
+                            }`}
+                          >
+                            <span>{profile.title.icon}</span>
+                            {profile.title.name}
+                          </span>
                         </div>
                       )}
                       <div className="flex justify-center sm:justify-start gap-6 mt-4 text-sm">
@@ -194,7 +195,7 @@ function PublicProfile({ username }: PublicProfileProps) {
                         )}
                       </div>
                     </div>
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-row items-center gap-2">
                       {isAuthenticated && !profile.isSelf && (
                         <FollowButton
                           username={profile.username}
@@ -253,6 +254,37 @@ function PublicProfile({ username }: PublicProfileProps) {
                     </div>
                   </div>
                 </div>
+
+                {profile.badges?.length > 0 && (
+                  <div className={`rounded-2xl p-6 mt-6 ${cardBg}`}>
+                    <h2 className="font-bold mb-4">Achievements</h2>
+                    <div className="flex flex-wrap gap-5">
+                      {profile.badges.map((badge: any) => {
+                        const iconSrc = getBadgeIconSrc(badge.id);
+                        return (
+                          <div
+                            key={badge.id}
+                            title={`${badge.description} - earned ${new Date(badge.earnedAt).toLocaleDateString()}`}
+                            className="flex flex-col items-center text-center gap-2 w-20"
+                          >
+                            <div
+                              className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex items-center justify-center shadow-sm ${
+                                darkMode ? "bg-gray-800" : "bg-white"
+                              }`}
+                            >
+                              {iconSrc ? (
+                                <img src={iconSrc} alt={badge.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-4xl">{badge.icon}</span>
+                              )}
+                            </div>
+                            <p className="text-xs font-semibold leading-tight">{badge.name}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {profile.weeklyPerformance?.length > 0 && (
                   <div className={`rounded-2xl p-6 mt-6 ${cardBg}`}>

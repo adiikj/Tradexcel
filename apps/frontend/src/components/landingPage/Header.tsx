@@ -23,7 +23,7 @@ function Header() {
       <div className="flex items-center gap-12">
         <Link href="/">
           <div className="flex flex-row items-center gap-2.5 py-2">
-            <img className="h-8 w-8 md:w-9 md:h-9" src={((logo)?.src || (logo)) as string} alt="" />
+            <img className="h-8 w-8 md:w-8 md:h-8" src={((logo)?.src || (logo)) as string} alt="" />
             <img className="hidden md:block h-5 w-auto" src={((wordmark)?.src || (wordmark)) as string} alt="Tradexcel" />
           </div>
         </Link>

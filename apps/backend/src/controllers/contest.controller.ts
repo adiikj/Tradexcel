@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { z } from "zod";
 import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
@@ -19,6 +20,8 @@ interface AuthRequest {
 }
 
 const MS_PER_DAY = 86_400_000;
+const INVITE_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const INVITE_CODE_LENGTH = 8;
 
 // Derives status + simulatedDate and drops the internal historicalDates array.
 function toContestResponse<T extends { startAt: Date; endAt: Date; historicalDates: Date[] }>(
@@ -32,6 +35,80 @@ function toContestResponse<T extends { startAt: Date; endAt: Date; historicalDat
   };
 }
 
+function serializeContestForUser(contest: any, userId: string) {
+  const { entries, ...rest } = toContestResponse(contest);
+  return {
+    ...rest,
+    isJoined: Array.isArray(entries) && entries.length > 0,
+    isOwner: contest.ownerId === userId,
+  };
+}
+
+function buildContestSelectForUser(userId: string) {
+  return {
+    id: true,
+    name: true,
+    startAt: true,
+    endAt: true,
+    startingBalance: true,
+    symbols: true,
+    status: true,
+    visibility: true,
+    prize: true,
+    imageUrl: true,
+    inviteCode: true,
+    ownerId: true,
+    historicalStartDate: true,
+    historicalDates: true,
+    createdAt: true,
+    _count: { select: { entries: true } },
+    entries: {
+      where: { userId },
+      select: { id: true },
+      take: 1,
+    },
+  } as const;
+}
+
+async function assertContestAccess(
+  contest: { id: string; visibility: "PUBLIC" | "PRIVATE"; ownerId: string | null },
+  userId: string
+) {
+  if (contest.visibility === "PUBLIC" || contest.ownerId === userId) {
+    return;
+  }
+
+  const entry = await prisma.contestEntry.findUnique({
+    where: { contestId_userId: { contestId: contest.id, userId } },
+    select: { id: true },
+  });
+
+  if (!entry) {
+    throw new ApiError(403, "You don't have access to this private league");
+  }
+}
+
+function makeInviteCode() {
+  const bytes = crypto.randomBytes(INVITE_CODE_LENGTH);
+  let code = "";
+  for (let i = 0; i < INVITE_CODE_LENGTH; i += 1) {
+    code += INVITE_CODE_ALPHABET[bytes[i] % INVITE_CODE_ALPHABET.length];
+  }
+  return code;
+}
+
+async function generateUniqueInviteCode() {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const inviteCode = makeInviteCode();
+    const existing = await prisma.contest.findUnique({ where: { inviteCode }, select: { id: true } });
+    if (!existing) {
+      return inviteCode;
+    }
+  }
+
+  throw new ApiError(500, "Unable to generate an invite code right now");
+}
+
 // The DB status only ever starts UPCOMING; what a client sees is derived from the clock.
 export function deriveStatus(contest: { startAt: Date; endAt: Date }): "UPCOMING" | "LIVE" | "ENDED" {
   const now = Date.now();
@@ -40,24 +117,7 @@ export function deriveStatus(contest: { startAt: Date; endAt: Date }): "UPCOMING
   return "ENDED";
 }
 
-const CONTEST_LIST_FIELDS = {
-  id: true,
-  name: true,
-  startAt: true,
-  endAt: true,
-  startingBalance: true,
-  symbols: true,
-  status: true,
-  prize: true,
-  imageUrl: true,
-  historicalStartDate: true,
-  historicalDates: true,
-  createdAt: true,
-  _count: { select: { entries: true } },
-} as const;
-
-// Contest creation is admin-only; see admin.routes.ts's verifyAdmin-gated routes.
-const createContestSchema = z
+const contestInputSchema = z
   .object({
     name: z.string().trim().min(1, "name is required").max(100),
     startAt: z.coerce.date(),
@@ -69,8 +129,6 @@ const createContestSchema = z
       .max(50, "at most 50 symbols allowed")
       .transform((symbols) => [...new Set(symbols.map((s) => s.toUpperCase()))]),
     prize: z.string().trim().max(200).optional(),
-    // Presence turns this into a "past event" replay contest - trades price
-    // off historical closes instead of live quotes. See ingestContestHistory.
     historicalStartDate: z.coerce.date().optional(),
   })
   .refine((data) => data.endAt > data.startAt, {
@@ -78,21 +136,41 @@ const createContestSchema = z
     path: ["endAt"],
   });
 
+const contestScopeSchema = z.object({
+  scope: z.enum(["public", "private"]).default("public"),
+});
+
+const joinPrivateContestSchema = z.object({
+  inviteCode: z.string().trim().min(6).max(20).transform((value) => value.toUpperCase()),
+});
+
+async function resolveHistoricalDates(
+  symbols: string[],
+  startAt: Date,
+  endAt: Date,
+  historicalStartDate?: Date
+) {
+  if (!historicalStartDate) {
+    return [] as Date[];
+  }
+
+  const numDays = Math.ceil((endAt.getTime() - startAt.getTime()) / MS_PER_DAY);
+  const historicalDates = await ingestContestHistory(symbols, historicalStartDate, numDays);
+  if (historicalDates.length === 0) {
+    throw new ApiError(400, "Couldn't find historical price data for this symbol/date range");
+  }
+  return historicalDates;
+}
+
+// Contest creation is admin-only; see admin.routes.ts's verifyAdmin-gated routes.
 const createContest = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const parsed = createContestSchema.safeParse(req.body);
+  const parsed = contestInputSchema.safeParse(req.body);
   if (!parsed.success) {
     throw new ApiError(400, "Invalid input", parsed.error.issues);
   }
   const { name, startAt, endAt, startingBalance, symbols, prize, historicalStartDate } = parsed.data;
 
-  let historicalDates: Date[] = [];
-  if (historicalStartDate) {
-    const numDays = Math.ceil((endAt.getTime() - startAt.getTime()) / MS_PER_DAY);
-    historicalDates = await ingestContestHistory(symbols, historicalStartDate, numDays);
-    if (historicalDates.length === 0) {
-      throw new ApiError(400, "Couldn't find historical price data for this symbol/date range");
-    }
-  }
+  const historicalDates = await resolveHistoricalDates(symbols, startAt, endAt, historicalStartDate);
 
   const contest = await prisma.contest.create({
     data: {
@@ -104,10 +182,58 @@ const createContest = asyncHandler(async (req: AuthRequest, res: Response) => {
       prize,
       historicalStartDate: historicalStartDate ?? null,
       historicalDates,
+      visibility: "PUBLIC",
     },
   });
 
   return res.status(200).json(new ApiResponse(200, "Contest created successfully", toContestResponse(contest)));
+});
+
+const createPrivateContest = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const parsed = contestInputSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ApiError(400, "Invalid input", parsed.error.issues);
+  }
+
+  const userId = req.user!.id;
+  const { name, startAt, endAt, startingBalance, symbols, prize, historicalStartDate } = parsed.data;
+  const historicalDates = await resolveHistoricalDates(symbols, startAt, endAt, historicalStartDate);
+  const inviteCode = await generateUniqueInviteCode();
+
+  const contest = await prisma.$transaction(async (tx) => {
+    const created = await tx.contest.create({
+      data: {
+        name,
+        startAt,
+        endAt,
+        symbols,
+        ...(startingBalance !== undefined ? { startingBalance } : {}),
+        prize,
+        historicalStartDate: historicalStartDate ?? null,
+        historicalDates,
+        visibility: "PRIVATE",
+        ownerId: userId,
+        inviteCode,
+      },
+    });
+
+    await tx.contestEntry.create({
+      data: {
+        contestId: created.id,
+        userId,
+        balance: created.startingBalance,
+      },
+    });
+
+    return tx.contest.findUnique({
+      where: { id: created.id },
+      select: buildContestSelectForUser(userId),
+    });
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Private league created successfully", serializeContestForUser(contest, userId)));
 });
 
 // Omits historicalStartDate: a replay contest's schedule is fixed at creation.
@@ -183,26 +309,44 @@ const updateContestImage = asyncHandler(async (req: AuthRequest, res: Response) 
     .json(new ApiResponse(200, "Contest image updated successfully", toContestResponse(contest)));
 });
 
-const getContests = asyncHandler(async (_req: AuthRequest, res: Response) => {
+const getContests = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const parsed = contestScopeSchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new ApiError(400, "Invalid query parameters", parsed.error.issues);
+  }
+
+  const userId = req.user!.id;
+  const where =
+    parsed.data.scope === "private"
+      ? {
+          visibility: "PRIVATE" as const,
+          OR: [{ ownerId: userId }, { entries: { some: { userId } } }],
+        }
+      : { visibility: "PUBLIC" as const };
+
   const contests = await prisma.contest.findMany({
-    select: CONTEST_LIST_FIELDS,
-    orderBy: { startAt: "asc" },
+    where,
+    select: buildContestSelectForUser(userId),
+    orderBy: [{ startAt: "asc" }, { createdAt: "desc" }],
   });
 
-  const withStatus = contests.map((c) => toContestResponse(c));
+  const withStatus = contests.map((contest) => serializeContestForUser(contest, userId));
 
   return res.status(200).json(new ApiResponse(200, "Contests fetched successfully", withStatus));
 });
 
 const getContest = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.id;
   const contest = await prisma.contest.findUnique({
     where: { id: req.params.id },
-    select: CONTEST_LIST_FIELDS,
+    select: buildContestSelectForUser(userId),
   });
 
   if (!contest) {
     throw new ApiError(404, "Contest not found");
   }
+
+  await assertContestAccess(contest as any, userId);
 
   const simulatedDate = resolveSimulatedDate(contest);
   let todaysPrices: Record<string, number> | undefined;
@@ -211,17 +355,18 @@ const getContest = asyncHandler(async (req: AuthRequest, res: Response) => {
     const rows = await prisma.contestHistoricalPrice.findMany({
       where: { symbol: { in: contest.symbols }, date: simulatedDate },
     });
-    todaysPrices = Object.fromEntries(rows.map((r) => [r.symbol, r.close.toNumber()]));
+    todaysPrices = Object.fromEntries(rows.map((row) => [row.symbol, row.close.toNumber()]));
   } else if (contest.symbols.length > 0) {
     const quotes = await getQuotes(contest.symbols);
-    todaysPrices = Object.fromEntries(
-      contest.symbols.filter((s) => quotes[s]).map((s) => [s, quotes[s]!.price])
-    );
+    todaysPrices = Object.fromEntries(contest.symbols.filter((symbol) => quotes[symbol]).map((symbol) => [symbol, quotes[symbol]!.price]));
   }
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, "Contest fetched successfully", { ...toContestResponse(contest), todaysPrices }));
+  return res.status(200).json(
+    new ApiResponse(200, "Contest fetched successfully", {
+      ...serializeContestForUser(contest, userId),
+      todaysPrices,
+    })
+  );
 });
 
 const joinContest = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -230,6 +375,9 @@ const joinContest = asyncHandler(async (req: AuthRequest, res: Response) => {
 
   if (!contest) {
     throw new ApiError(404, "Contest not found");
+  }
+  if (contest.visibility === "PRIVATE") {
+    throw new ApiError(400, "Private leagues must be joined with an invite code");
   }
   if (deriveStatus(contest) === "ENDED") {
     throw new ApiError(400, "This contest has already ended");
@@ -249,11 +397,60 @@ const joinContest = asyncHandler(async (req: AuthRequest, res: Response) => {
   return res.status(200).json(new ApiResponse(200, "Joined contest successfully", entry));
 });
 
+const joinPrivateContest = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const parsed = joinPrivateContestSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ApiError(400, "Invalid input", parsed.error.issues);
+  }
+
+  const userId = req.user!.id;
+  const contest = await prisma.contest.findUnique({
+    where: { inviteCode: parsed.data.inviteCode },
+    select: buildContestSelectForUser(userId),
+  });
+
+  if (!contest || contest.visibility !== "PRIVATE") {
+    throw new ApiError(404, "Private league not found");
+  }
+  if (deriveStatus(contest) === "ENDED") {
+    throw new ApiError(400, "This league has already ended");
+  }
+  if (contest.ownerId === userId || contest.entries.length > 0) {
+    throw new ApiError(400, "You're already in this private league");
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const entry = await tx.contestEntry.create({
+      data: { contestId: contest.id, userId, balance: contest.startingBalance },
+    });
+
+    const updatedContest = await tx.contest.findUnique({
+      where: { id: contest.id },
+      select: buildContestSelectForUser(userId),
+    });
+
+    return { entry, contest: updatedContest };
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, "Joined private league successfully", {
+      entry: result.entry,
+      contest: serializeContestForUser(result.contest, userId),
+    })
+  );
+});
+
 const getStandings = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const contest = await prisma.contest.findUnique({ where: { id: req.params.id } });
+  const userId = req.user!.id;
+  const contest = await prisma.contest.findUnique({
+    where: { id: req.params.id },
+    select: { id: true, visibility: true, ownerId: true, startingBalance: true, startAt: true, endAt: true },
+  });
   if (!contest) {
     throw new ApiError(404, "Contest not found");
   }
+
+  await assertContestAccess(contest as any, userId);
 
   const entries = await prisma.contestEntry.findMany({
     where: { contestId: contest.id },
@@ -266,8 +463,7 @@ const getStandings = asyncHandler(async (req: AuthRequest, res: Response) => {
     );
   }
 
-  // Once settled, finalRank/finalNetWorth are frozen; no need to recompute live prices.
-  const isSettled = entries.every((e) => e.finalRank !== null);
+  const isSettled = entries.every((entry) => entry.finalRank !== null);
 
   let standings;
   if (isSettled) {
@@ -305,4 +501,14 @@ const getStandings = asyncHandler(async (req: AuthRequest, res: Response) => {
     .json(new ApiResponse(200, "Standings fetched successfully", { status: deriveStatus(contest), standings }));
 });
 
-export { createContest, updateContest, updateContestImage, getContests, getContest, joinContest, getStandings };
+export {
+  createContest,
+  createPrivateContest,
+  updateContest,
+  updateContestImage,
+  getContests,
+  getContest,
+  joinContest,
+  joinPrivateContest,
+  getStandings,
+};
