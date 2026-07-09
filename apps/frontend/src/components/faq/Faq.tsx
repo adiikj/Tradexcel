@@ -47,7 +47,7 @@ function Faq() {
         <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <div className="flex">
           <Vheader darkMode={darkMode} className=" noscroller" />
-          <main className="flex-1 pb-24 md:pb-0 p-6 m-2 md:m-10">
+          <main className="flex-1 min-w-0 pb-24 md:pb-0 p-6 m-2 md:m-10">
             <h1 className="text-2xl md:text-3xl font-bold">Frequently Asked Questions</h1>
             <div className="h-2 w-32 md:w-36 bg-blue-500 rounded-full mb-2 animate-line"></div>
             <p className="text-sm text-gray-400 mb-8 max-w-2xl">

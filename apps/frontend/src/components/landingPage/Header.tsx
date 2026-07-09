@@ -3,6 +3,14 @@ import React, { useState } from "react";
 import Link from "next/link";
 import logo from "../../assets/logo-icon-transparent.png";
 import wordmark from "../../assets/tradexcel-wordmark-light.png";
+import { FiMenu, FiX, FiChevronRight } from "react-icons/fi";
+
+const navLinks = [
+  { href: "/about", label: "About Us" },
+  { href: "/why-us", label: "Why Us?" },
+  { href: "/blog", label: "Blog" },
+  { href: "/contactus", label: "Contact Us" },
+];
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState<any>(false);
@@ -66,92 +74,69 @@ function Header() {
       <div className="lg:hidden flex items-center">
         <button
           onClick={toggleMenu}
-          className="text-gray-400 focus:outline-none"
+          className="text-gray-500 focus:outline-none"
           aria-label="Toggle navigation menu"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            className={`w-6 h-6 transition-transform duration-300 ${isMenuOpen ? "rotate-45" : ""}`}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
+          <FiMenu className="w-6 h-6" />
         </button>
       </div>
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden fixed top-0 right-0 w-full h-screen bg-white z-50 transition-transform duration-500 ease-in-out ${
-          isMenuOpen ? "transform translate-x-0" : "transform translate-x-full"
+        className={`lg:hidden fixed inset-0 w-full h-[100dvh] bg-white z-50 flex flex-col transition-transform duration-300 ease-in-out ${
+          isMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Close button */}
-        <div className="flex justify-end mr-16 p-4">
-          <button onClick={toggleMenu} aria-label="Close navigation menu">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+        {/* Top bar: logo + close, matches header height */}
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100 shrink-0">
+          <Link href="/" onClick={closeMenu} className="flex items-center gap-2.5">
+            <img className="h-7 w-7" src={((logo)?.src || (logo)) as string} alt="" />
+            <img className="h-4 w-auto" src={((wordmark)?.src || (wordmark)) as string} alt="Tradexcel" />
+          </Link>
+          <button
+            onClick={toggleMenu}
+            className="p-2 -mr-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+            aria-label="Close navigation menu"
+          >
+            <FiX className="w-6 h-6" />
           </button>
         </div>
 
-        <ul className="flex flex-col items-center space-y-6 mt-8 text-gray-400">
-          <li>
-            <Link href="/about" onClick={closeMenu}>
-              About Us
-            </Link>
-          </li>
-          <li>
-            <Link href="/why-us" onClick={closeMenu}>
-              Why Us?
-            </Link>
-          </li>
-          <li>
-            <Link href="/blog" onClick={closeMenu}>
-              Blog
-            </Link>
-          </li>
-          <li>
-            <Link href="/contactus" onClick={closeMenu}>
-              Contact Us
-            </Link>
-          </li>
-          <li className="my-2">
-            <Link
-              href="/signup"
-              className="px-6 py-2.5 rounded-lg font-semibold text-sm text-gray-700 border-2 border-gray-200 hover:border-blue-300 hover:text-blue-600 transition-colors duration-200 active:scale-95"
-              onClick={closeMenu}
-            >
-              Sign Up
-            </Link>
-          </li>
-          <li className="my-2">
-            <Link
-              href="/signin"
-              className="px-6 py-2.5 rounded-lg font-semibold text-sm text-white bg-btn-blue hover:bg-blue-600 transition-colors duration-200 active:scale-95"
-              onClick={closeMenu}
-            >
-              Sign In
-            </Link>
-          </li>
-        </ul>
+        {/* Nav links */}
+        <nav className="flex-1 overflow-y-auto px-6 py-4">
+          <ul className="flex flex-col divide-y divide-gray-100">
+            {navLinks.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={closeMenu}
+                  className="flex items-center justify-between py-4 text-lg font-medium font-pop text-gray-700 hover:text-blue-600 transition-colors duration-200"
+                >
+                  {item.label}
+                  <FiChevronRight className="text-gray-300" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* CTA buttons pinned to the bottom */}
+        <div className="px-6 pt-4 pb-8 border-t border-gray-100 flex flex-col gap-3 shrink-0">
+          <Link
+            href="/signup"
+            className="w-full text-center px-6 py-3.5 rounded-xl font-semibold text-sm text-gray-700 border-2 border-gray-200 hover:border-blue-300 hover:text-blue-600 transition-colors duration-200 active:scale-95"
+            onClick={closeMenu}
+          >
+            Sign Up
+          </Link>
+          <Link
+            href="/signin"
+            className="w-full text-center px-6 py-3.5 rounded-xl font-semibold text-sm text-white bg-btn-blue hover:bg-blue-600 transition-colors duration-200 active:scale-95"
+            onClick={closeMenu}
+          >
+            Sign In
+          </Link>
+        </div>
       </div>
     </section>
   );

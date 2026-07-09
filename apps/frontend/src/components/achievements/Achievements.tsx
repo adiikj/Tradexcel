@@ -52,7 +52,7 @@ function Achievements() {
         <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <div className="flex flex-col lg:flex-row">
           <Vheader darkMode={darkMode} />
-          <main className="flex-1 pb-24 md:pb-0 p-6 m-2 md:m-12">
+          <main className="flex-1 min-w-0 pb-24 md:pb-0 p-6 m-2 md:m-12">
             <h1 className="text-xl md:text-2xl font-bold">Achievements</h1>
             <div className="h-2 w-32 md:w-36 bg-blue-500 rounded-full mb-6 animate-line"></div>
 

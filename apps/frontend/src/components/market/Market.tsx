@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useContext, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import Stock from "../market/Stocks";
@@ -19,6 +19,7 @@ import MarketClosedBanner from "../layout/MarketClosedBanner";
 
 function Market() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [balance, setBalance] = useState(0);
   const [isLoadingBalance, setIsLoadingBalance] = useState(true);
@@ -92,10 +93,22 @@ function Market() {
 
   useEffect(() => {
     const symbol = searchParams.get("symbol");
-    if (!symbol || stocks.length === 0) return;
+    if (!symbol) {
+      setSelectedStock(null);
+      return;
+    }
+    if (stocks.length === 0) return;
     const match = stocks.find((stock) => stock.symbol === symbol);
-    if (match) setSelectedStock(match);
+    setSelectedStock(match || null);
   }, [searchParams, stocks]);
+
+  const openStock = (symbol: string) => {
+    router.push(`/market?symbol=${encodeURIComponent(symbol)}`);
+  };
+
+  const closeStock = () => {
+    router.push("/market");
+  };
 
   const { quotes: liveQuotes, connected: liveConnected } = useLiveQuotes(
     stocks.map((stock: any) => stock.symbol)
@@ -147,7 +160,7 @@ function Market() {
       <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       <div className="flex flex-col md:flex-row">
         <Vheader darkMode={darkMode} />
-        <div className="p-6 flex-1 mx-0 mb-20 md:mb-0 m-2 lg:m-10">
+        <div className="p-6 flex-1 min-w-0 mx-0 mb-20 md:mb-0 m-2 lg:m-10">
             <h1 className="text-2xl md:text-3xl font-bold">Market</h1>
           <div className="h-2 w-28 bg-blue-500 rounded-full mb-6 animate-line"></div>
           <MarketClosedBanner darkMode={darkMode} />
@@ -165,7 +178,7 @@ function Market() {
           </p>
           {selectedStock && (
               <button
-                onClick={() => setSelectedStock(null)}
+                onClick={closeStock}
                 className="px-4 py-2 text-xs md:text-base bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 active:scale-95"
               >
                 Back to Stocks
@@ -239,7 +252,7 @@ function Market() {
                 style={{ maxHeight: "640px" }} // Set max-height for the scrollable area
               >
                 <AllStocks
-                  setSelectedStock={setSelectedStock}
+                  onSelectStock={(stock) => openStock(stock.symbol)}
                   darkMode={darkMode}
                   filteredStocks={filteredStocks}
                   isLoading={isLoadingStocks}

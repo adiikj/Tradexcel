@@ -138,7 +138,7 @@ function PublicProfile({ username }: PublicProfileProps) {
         {isAuthenticated ? <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} /> : <PublicNavBar darkMode={darkMode} />}
         <div className="flex flex-col md:flex-row">
           {isAuthenticated && <Vheader darkMode={darkMode} />}
-          <main className={`flex-1 p-4 m-4 md:m-10 mb-20 md:mb-10 ${isAuthenticated ? "" : "max-w-2xl md:mx-auto"}`}>
+          <main className={`flex-1 min-w-0 p-4 m-4 md:m-10 mb-20 md:mb-10 ${isAuthenticated ? "" : "max-w-2xl md:mx-auto"}`}>
             {isLoading ? (
               <div className={`h-64 rounded-2xl animate-pulse ${cardBg}`} />
             ) : error ? (

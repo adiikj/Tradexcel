@@ -1,12 +1,9 @@
 import { io, Socket } from "socket.io-client";
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
-
 let socket: Socket | null = null;
 const refCounts = new Map<string, number>();
 
-// Lazily created singleton - every page that wants live prices shares one
-// underlying connection instead of opening a new socket per component.
 export function getSocket(): Socket {
   if (!socket) {
     socket = io(SOCKET_URL, {

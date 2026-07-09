@@ -134,6 +134,18 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
     </svg>
   );
 
+  const closeIcon = (
+    <svg
+      className="w-4 h-4 shrink-0"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+
   const dropdown = showDropdown && (
     <div
       className={`absolute left-0 right-0 top-full mt-2 rounded-md shadow-lg z-20 max-h-80 overflow-y-auto ${
@@ -230,23 +242,35 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
       </div>
 
       {/* Mobile icon-triggered search */}
-      <div ref={mobileRef} className="relative sm:hidden">
+      <div ref={mobileRef} className="sm:hidden">
         <button
           onClick={() => setMobileOpen((prev) => !prev)}
-          className={`p-2 rounded-md ${darkMode ? "text-white" : "text-black"}`}
-          aria-label="Search"
+          className={`p-2 rounded-full transition-colors duration-200 ${
+            mobileOpen
+              ? darkMode
+                ? "bg-gray-800 text-white"
+                : "bg-gray-100 text-black"
+              : darkMode
+              ? "text-gray-300"
+              : "text-gray-600"
+          }`}
+          aria-label={mobileOpen ? "Close search" : "Search"}
         >
-          {searchIcon}
+          {mobileOpen ? closeIcon : searchIcon}
         </button>
-        {mobileOpen && (
-          <div
-            className={`fixed left-2 right-2 top-14 rounded-md shadow-lg z-20 p-2 ${
-              darkMode ? "bg-gray-800" : "bg-white"
-            }`}
-          >
+      </div>
+
+      {/* Mobile search bar - full-width row attached directly under the header */}
+      {mobileOpen && (
+        <div
+          className={`sm:hidden fixed left-0 right-0 top-14 md:top-16 z-20 border-t ${
+            darkMode ? "bg-gray-900 border-gray-800" : "bg-grey border-gray-200"
+          }`}
+        >
+          <div className="px-4 py-3">
             <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${
-                darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-500"
+              className={`flex items-center gap-2 px-3 py-2 rounded-full ${
+                darkMode ? "bg-gray-800 text-gray-300" : "bg-white text-gray-500"
               }`}
             >
               {searchIcon}
@@ -260,10 +284,10 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
                 className={`w-full bg-transparent outline-none text-sm ${darkMode ? "text-white placeholder-gray-400" : "text-black placeholder-gray-400"}`}
               />
             </div>
-            <div className="relative">{dropdown}</div>
           </div>
-        )}
-      </div>
+          <div className="relative">{dropdown}</div>
+        </div>
+      )}
     </>
   );
 };

@@ -3,7 +3,7 @@ import React from "react";
 import ShortStock from "../dashboard/Stocks";
 
 // Purely presentational - Market.tsx owns the single data fetch and passes the result down as filteredStocks.
-function AllStocks({ setSelectedStock, darkMode, filteredStocks, isLoading }: any) {
+function AllStocks({ onSelectStock, darkMode, filteredStocks, isLoading }: any) {
   const stocksToDisplay = filteredStocks || [];
 
   return (
@@ -21,7 +21,7 @@ function AllStocks({ setSelectedStock, darkMode, filteredStocks, isLoading }: an
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {stocksToDisplay.map((stock, index) => (
-            <div key={index} className="cursor-pointer [&>div]:mb-0 [&>div]:h-full" onClick={() => setSelectedStock(stock)}>
+            <div key={index} className="cursor-pointer [&>div]:mb-0 [&>div]:h-full" onClick={() => onSelectStock(stock)}>
               <ShortStock
                 shortName={stock.shortName}
                 fullName={stock.fullName}

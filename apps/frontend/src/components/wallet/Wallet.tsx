@@ -90,7 +90,7 @@ function Wallet() {
         <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <div className="flex flex-col font-pop md:flex-row">
           <Vheader darkMode={darkMode} />
-          <main className="flex-grow p-4 md:p-6 m-4 pb-24 md:m-10">
+          <main className="flex-grow min-w-0 p-4 md:p-6 m-4 pb-24 md:m-10">
             <h1 className="text-2xl md:text-3xl font-bold">Wallet</h1>
             <div className="h-2 w-20 md:w-32 bg-blue-500 rounded-full mb-6 animate-line"></div>
 

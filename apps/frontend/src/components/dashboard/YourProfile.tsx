@@ -269,7 +269,7 @@ function YourProfile() {
         <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <div className="flex flex-col lg:flex-row mb-16 md:mb-0">
           <Vheader darkMode={darkMode} />
-          <main className="flex-1 p-6 md:m-10">
+          <main className="flex-1 min-w-0 p-6 md:m-10">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h1 className={`text-2xl md:text-3xl font-bold transition-all duration-300 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
                 Your Profile

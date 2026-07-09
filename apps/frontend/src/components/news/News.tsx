@@ -91,7 +91,7 @@ function News() {
         <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <div className="flex flex-col md:flex-row">
           <Vheader darkMode={darkMode} />
-          <main className="flex-1 p-4 m-4 md:m-10 mb-20 md:mb-10">
+          <main className="flex-1 min-w-0 p-4 m-4 md:m-10 mb-20 md:mb-10">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl md:text-3xl font-bold">News</h1>
               {!isLoading && personalized && (

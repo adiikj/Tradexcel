@@ -1,19 +1,16 @@
 "use client";
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Header from '../dashboard/Header';
 import Vheader from '../dashboard/Vheader';
-import Stock from '../market/Stocks';
 import ThemeContext from "../../context/ThemeContext";
 import { Helmet } from 'react-helmet';
-import { getPortfolio, getStockData } from '../../api/api';
-import stockList from '../market/StockData.json';
+import { getPortfolio } from '../../api/api';
 import TradeModal from '../trade/TradeModal';
 import { formatInr, formatSignedInr, formatPercent } from '../../utils/format';
 import { useLiveQuotes } from '../../hooks/useLiveQuotes';
 import { useMarketStatus } from '../../hooks/useMarketStatus';
-import { tickToStockFields } from '../../utils/liveQuote';
 import LiveStatusBadge from '../layout/LiveStatusBadge';
 import MarketClosedBanner from '../layout/MarketClosedBanner';
 
@@ -26,17 +23,12 @@ const ALLOCATION_COLORS = [
 function Portfolio() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [holdings, setHoldings] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [tradeModal, setTradeModal] = useState<{ symbol: string; side: "BUY" | "SELL"; initialPrice: number; availableQty: number } | null>(null);
-
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
-  const [selectedStockDetail, setSelectedStockDetail] = useState<any>(null);
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
 
   const fetchPortfolio = useCallback(async () => {
     try {
@@ -55,54 +47,8 @@ function Portfolio() {
     fetchPortfolio();
   }, [fetchPortfolio]);
 
-  useEffect(() => {
-    setSelectedSymbol(searchParams.get('symbol'));
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (!selectedSymbol) {
-      setSelectedStockDetail(null);
-      return;
-    }
-
-    let cancelled = false;
-    setIsLoadingDetail(true);
-
-    getStockData(selectedSymbol)
-      .then((data) => {
-        if (cancelled) return;
-        const meta = stockList.find((s) => s.symbol === selectedSymbol);
-        setSelectedStockDetail({
-          symbol: selectedSymbol,
-          shortName: meta?.shortName || selectedSymbol,
-          fullName: meta?.fullName || selectedSymbol,
-          currentPrice: data?.currentPrice ?? 0,
-          percentageChange: data?.percentageChange ?? 'N/A',
-          todayChange: data?.todayChange ?? 'N/A',
-          stockPrices: data?.stockPrices || Array(30).fill(0),
-          dates: data?.dates || null,
-        });
-      })
-      .catch(() => {
-        if (!cancelled) setSelectedStockDetail(null);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoadingDetail(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedSymbol]);
-
-  const { quotes: detailLiveQuotes } = useLiveQuotes(selectedSymbol ? [selectedSymbol] : []);
-
   const openStockDetail = (symbol: string) => {
-    router.push(`/portfolio?symbol=${encodeURIComponent(symbol)}`);
-  };
-
-  const closeStockDetail = () => {
-    router.push('/portfolio');
+    router.push(`/market?symbol=${encodeURIComponent(symbol)}`);
   };
 
   const { quotes: liveQuotes, connected: liveConnected } = useLiveQuotes(
@@ -144,21 +90,6 @@ function Portfolio() {
   const netWorth = walletBalance + totalCurrentValue;
   const isPnlPositive = totalPnl >= 0;
 
-  const displayedSelectedStock = (() => {
-    if (!selectedStockDetail) return null;
-    const tick = detailLiveQuotes[selectedStockDetail.symbol];
-    if (!tick) return selectedStockDetail;
-    return {
-      ...selectedStockDetail,
-      currentPrice: tick.price,
-      ...tickToStockFields(tick),
-    };
-  })();
-
-  const ownedQuantityForSelected = selectedSymbol
-    ? liveHoldings.find((h) => h.symbol === selectedSymbol)?.quantity || 0
-    : 0;
-
   const allocation = [
     ...liveHoldings.map((h, i) => ({
       label: h.symbol,
@@ -179,7 +110,7 @@ function Portfolio() {
         <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <div className="flex">
           <Vheader darkMode={darkMode} />
-          <main className="flex-1 p-6 m-0 md:m-10">
+          <main className="flex-1 min-w-0 p-6 m-0 md:m-10">
             <h1 className="text-2xl md:text-3xl font-bold">Your Portfolio</h1>
             <div className="h-2 w-44 bg-blue-500 rounded-full mb-6 animate-line"></div>
             <MarketClosedBanner darkMode={darkMode} />
@@ -258,49 +189,7 @@ function Portfolio() {
                   )}
                 </section>
 
-                {/* Stock detail view - replaces the holdings table when a symbol is selected */}
-                {selectedSymbol ? (
-                  <section className="mt-8">
-                    <button
-                      onClick={closeStockDetail}
-                      className="mb-4 px-4 py-2 text-xs md:text-base bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200 active:scale-95"
-                    >
-                      Back to Portfolio
-                    </button>
-                    {isLoadingDetail || !displayedSelectedStock ? (
-                      <div className={`h-96 rounded-2xl animate-pulse ${cardBg}`} />
-                    ) : (
-                      <Stock
-                        shortName={displayedSelectedStock.shortName}
-                        fullName={displayedSelectedStock.fullName}
-                        price={`₹ ${Number(displayedSelectedStock.currentPrice).toFixed(2)}`}
-                        stockPrices={displayedSelectedStock.stockPrices}
-                        percentageChange={`${displayedSelectedStock.percentageChange}%`}
-                        todayChange={displayedSelectedStock.todayChange}
-                        labels={displayedSelectedStock.dates || Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`)}
-                        darkMode={darkMode}
-                        ownedQuantity={ownedQuantityForSelected}
-                        onBuy={() =>
-                          setTradeModal({
-                            symbol: selectedSymbol,
-                            side: "BUY",
-                            initialPrice: Number(displayedSelectedStock.currentPrice),
-                            availableQty: ownedQuantityForSelected,
-                          })
-                        }
-                        onSell={() =>
-                          setTradeModal({
-                            symbol: selectedSymbol,
-                            side: "SELL",
-                            initialPrice: Number(displayedSelectedStock.currentPrice),
-                            availableQty: ownedQuantityForSelected,
-                          })
-                        }
-                      />
-                    )}
-                  </section>
-                ) : (
-                /* Stock Holdings Section */
+                {/* Stock Holdings Section */}
                 <section className={`mt-8 w-full p-6 rounded-2xl shadow-lg ${cardBg} transition-colors duration-300`}>
                   <h2 className="text-lg md:text-xl font-semibold mb-6">Stock Holdings</h2>
                   {holdings.length === 0 ? (
@@ -393,7 +282,6 @@ function Portfolio() {
                     </div>
                   )}
                 </section>
-                )}
               </>
             )}
           </main>

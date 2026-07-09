@@ -3,6 +3,8 @@ import Card from './Card';
 import Banner from './Banner';
 import person from '../../assets/person.png';
 import Newsletter from './Newsletter';
+import DashboardShowcase from './DashboardShowcase';
+import BrowserFrame from './BrowserFrame';
 import Link from "next/link";
 import card1 from '../../assets/card1.png';
 import card2 from '../../assets/card2.png';
@@ -11,7 +13,8 @@ import banner2 from '../../assets/banner2.png';
 import dashboard from "../../assets/dashboard.png";
 import dashboard2 from "../../assets/dashboard2.png";
 import { motion } from 'framer-motion';
-import { FiUserPlus, FiDollarSign, FiActivity, FiAward, FiStar, FiCheck, FiTrendingUp, FiArrowRight, FiPlayCircle } from "react-icons/fi";
+import { FiUserPlus, FiActivity, FiAward, FiStar, FiCheck, FiTrendingUp, FiArrowRight, FiPlayCircle } from "react-icons/fi";
+import { TbCurrencyRupee } from "react-icons/tb";
 
 const stats = [
   { value: "₹1,00,000", label: "Virtual cash to start" },
@@ -22,7 +25,7 @@ const stats = [
 
 const steps = [
   { icon: FiUserPlus, title: "Sign up free", desc: "Create your account in under a minute, no payment details needed." },
-  { icon: FiDollarSign, title: "Get virtual cash", desc: "Your wallet is instantly funded with ₹1,00,000 to invest." },
+  { icon: TbCurrencyRupee, title: "Get virtual cash", desc: "Your wallet is instantly funded with ₹1,00,000 to invest." },
   { icon: FiActivity, title: "Trade live stocks", desc: "Buy and sell at real market prices and track your portfolio." },
   { icon: FiAward, title: "Climb the ranks", desc: "Compete in contests and rise up the Tradexcel leaderboard." },
 ];
@@ -93,16 +96,18 @@ function Home() {
           transition={{ duration: 0.8 }}
         >
           <div className="hidden sm:block relative w-full aspect-[3/2]">
-            <img
-              src={((dashboard)?.src || (dashboard)) as string}
-              alt="Dashboard dark mode"
-              className="absolute top-0 left-0 z-0 hover:z-20 w-[85%] h-auto object-cover border-2 rounded-2xl border-btn-blue shadow-xl transition-transform duration-300 hover:scale-[1.02]"
-            />
-            <img
-              src={((dashboard2)?.src || (dashboard2)) as string}
-              alt="Dashboard light mode"
-              className="absolute bottom-0 right-0 z-10 hover:z-20 w-[85%] h-auto object-cover border-2 rounded-2xl border-btn-blue shadow-xl transition-transform duration-300 hover:scale-[1.02]"
-            />
+            <div className="absolute top-0 left-0 z-0 hover:z-20 w-[85%] transition-transform duration-300 hover:scale-[1.02]">
+              <BrowserFrame
+                src={((dashboard)?.src || (dashboard)) as string}
+                alt="Dashboard dark mode"
+              />
+            </div>
+            <div className="absolute bottom-0 right-0 z-10 hover:z-20 w-[85%] transition-transform duration-300 hover:scale-[1.02]">
+              <BrowserFrame
+                src={((dashboard2)?.src || (dashboard2)) as string}
+                alt="Dashboard light mode"
+              />
+            </div>
           </div>
         </motion.div>
       </motion.div>
@@ -183,6 +188,16 @@ function Home() {
             See How It Works
           </button>
         </Link>
+      </motion.div>
+
+      {/* Dashboard Showcase Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        <DashboardShowcase />
       </motion.div>
 
       {/* Banner Section */}
