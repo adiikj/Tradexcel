@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Epilogue:wght@400;500;700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Epilogue:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -135,4 +135,15 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
   height: 0;
+}
+
+@keyframes showcase-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="showcase-progress"] {
+    animation: none !important;
+  }
 }

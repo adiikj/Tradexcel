@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiBriefcase,
@@ -18,7 +18,7 @@ import contests from "../../assets/tradexcel/dash-contests.png";
 import leaderboard from "../../assets/tradexcel/dash-leaderboard.png";
 import achievements from "../../assets/tradexcel/dash-achievements.png";
 import news from "../../assets/tradexcel/dash-news.png";
-import profile from "../../assets/tradexcel/dash-profile-public.png";
+import profile from "../../assets/tradexcel/dash-profile.png";
 
 const tabs = [
   {
@@ -82,17 +82,35 @@ const tabs = [
     label: "Profile",
     icon: FiUsers,
     img: profile,
-    heading: "A shareable public profile",
-    desc: "Every trader gets a public profile with rank, badges, and weekly performance — shareable in one click.",
+    heading: "Your trading identity, all in one place",
+    desc: "Net worth, rank, login streak, and every badge you've earned, plus a weekly performance breakdown.",
   },
 ];
 
+const AUTO_ADVANCE_MS = 3000;
+
 function DashboardShowcase() {
   const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
   const activeTab = tabs[active];
 
+  useEffect(() => {
+    if (paused) return;
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    const id = setTimeout(() => {
+      setActive((prev) => (prev + 1) % tabs.length);
+    }, AUTO_ADVANCE_MS);
+    return () => clearTimeout(id);
+  }, [active, paused]);
+
   return (
-    <div className="bg-white w-full relative overflow-hidden px-6 sm:px-10 md:px-12 lg:px-20 py-16 md:py-20">
+    <div
+      className="bg-white w-full relative overflow-hidden px-6 sm:px-10 md:px-12 lg:px-20 py-16 md:py-20"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       {/* decorative backdrop */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 -left-16 w-96 h-96 rounded-full bg-blue-100/60 blur-3xl" />
@@ -121,14 +139,24 @@ function DashboardShowcase() {
             <button
               key={t.key}
               onClick={() => setActive(i)}
-              className={`flex items-center gap-2 shrink-0 px-4 py-2.5 rounded-full text-sm font-medium font-pop transition-colors duration-200 ${
+              className={`relative overflow-hidden flex items-center gap-2 shrink-0 px-4 py-2.5 rounded-full text-sm font-medium font-pop transition-colors duration-200 ${
                 isActive
                   ? "bg-btn-blue text-white"
                   : "bg-grey text-gray-600 hover:text-blue-600"
               }`}
             >
-              <Icon className="text-base" />
-              {t.label}
+              {isActive && (
+                <span
+                  key={active}
+                  className="absolute inset-0 bg-white/25 origin-left"
+                  style={{
+                    animation: `showcase-progress ${AUTO_ADVANCE_MS}ms linear forwards`,
+                    animationPlayState: paused ? "paused" : "running",
+                  }}
+                />
+              )}
+              <Icon className="relative text-base" />
+              <span className="relative">{t.label}</span>
             </button>
           );
         })}

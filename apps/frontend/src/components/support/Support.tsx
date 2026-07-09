@@ -6,6 +6,7 @@ import { FiCheckCircle, FiHelpCircle, FiMail } from "react-icons/fi";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import ThemeContext from "../../context/ThemeContext";
+import { sendSupportMessage } from "../../api/api";
 
 const SUBJECTS = ["Bug report", "Account issue", "Trading question", "Contest issue", "Something else"];
 
@@ -14,10 +15,21 @@ function Support() {
   const [subject, setSubject] = useState(SUBJECTS[0]);
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
+    setError("");
+    setSending(true);
+    try {
+      await sendSupportMessage(subject, message);
+      setSent(true);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const cardBg = darkMode ? "bg-gray-900" : "bg-gray-100";
@@ -63,7 +75,7 @@ function Support() {
                   <FiMail className="text-blue-500 text-xl shrink-0" />
                   <div>
                     <p className="text-sm font-semibold">Email us directly</p>
-                    <p className="text-xs text-gray-400">contact@tradexcel.app</p>
+                    <p className="text-xs text-gray-400">contact@tradexcel.site</p>
                   </div>
                 </div>
               </div>
@@ -108,11 +120,13 @@ function Support() {
                         className={`${inputClasses} resize-none`}
                       />
                     </div>
+                    {error && <p className="text-sm text-red-500">{error}</p>}
                     <button
                       type="submit"
-                      className="px-8 py-3 rounded-lg bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-colors duration-200"
+                      disabled={sending}
+                      className="px-8 py-3 rounded-lg bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                      Send request
+                      {sending ? "Sending..." : "Send request"}
                     </button>
                   </form>
                 )}

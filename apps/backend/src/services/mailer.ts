@@ -5,6 +5,7 @@ interface SendEmailArgs {
   subject: string;
   html: string;
   text: string;
+  replyTo?: string;
 }
 
 // Lazily constructed so a missing RESEND_API_KEY doesn't crash the server at
@@ -17,13 +18,14 @@ function getResendClient(): Resend {
   return resend;
 }
 
-export async function sendEmail({ to, subject, html, text }: SendEmailArgs): Promise<void> {
+export async function sendEmail({ to, subject, html, text, replyTo }: SendEmailArgs): Promise<void> {
   const { error } = await getResendClient().emails.send({
     from: process.env.RESEND_FROM_EMAIL as string,
     to,
     subject,
     html,
     text,
+    ...(replyTo ? { replyTo } : {}),
   });
 
   if (error) {

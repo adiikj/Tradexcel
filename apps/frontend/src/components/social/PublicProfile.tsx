@@ -55,7 +55,7 @@ function PlaySignupCta({ username, darkMode }: { username: string; darkMode: boo
     >
       <p className="text-lg font-bold">Think you can beat @{username}?</p>
       <p className="text-sm text-gray-400 mt-1">
-        Join Tradexcel and start trading with ₹1,00,000 in virtual cash — no risk, real market prices.
+        Join Tradexcel and start trading with ₹1,00,000 in virtual cash, no risk, real market prices.
       </p>
       <Link
         href="/signup"

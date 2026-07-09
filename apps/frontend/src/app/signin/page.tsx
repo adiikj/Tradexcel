@@ -12,7 +12,7 @@ export default function Page() {
   }, [router]);
 
   return (
-    <MainLayout footerBgColor={undefined as any}>
+    <MainLayout>
         <SignIn />
       </MainLayout>
   );

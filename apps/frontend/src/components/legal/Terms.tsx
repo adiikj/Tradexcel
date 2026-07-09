@@ -43,7 +43,7 @@ const sections: LegalSection[] = [
   {
     heading: "Contact",
     body: [
-      "Questions about these terms? Reach us at contact@tradexcel.app.",
+      "Questions about these terms? Reach us at contact@tradexcel.site.",
     ],
   },
 ];

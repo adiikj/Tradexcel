@@ -81,3 +81,15 @@ export const refreshLimiter = rateLimit({
     next(new ApiError(429, "Too many requests. Please slow down."));
   },
 });
+
+// Contact-us form: unauthenticated, forwards an email per submission, so it's
+// capped tightly per IP rather than per-minute like the other public routes.
+export const contactLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  limit: 2,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, _res, next) => {
+    next(new ApiError(429, "You've reached the daily limit for contact messages. Please try again tomorrow."));
+  },
+});

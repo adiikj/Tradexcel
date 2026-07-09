@@ -653,3 +653,27 @@ export const getHallOfFame = async () => {
   }
 };
 
+export const sendContactMessage = async (name: string, email: string, message: string) => {
+  try {
+    const response = await axios.post(`${BASE_TRADE_URL}/contact`, { name, email, message });
+    return response.data;
+  } catch (error) {
+    const message2 = error?.response?.data?.message || error.message || "Failed to send message";
+    throw new Error(message2);
+  }
+};
+
+export const sendSupportMessage = async (subject: string, message: string) => {
+  try {
+    const response = await axios.post(
+      `${BASE_TRADE_URL}/support`,
+      { subject, message },
+      { headers: authHeaders() }
+    );
+    return response.data;
+  } catch (error) {
+    const message2 = error?.response?.data?.message || error.message || "Failed to send message";
+    throw new Error(message2);
+  }
+};
+

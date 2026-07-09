@@ -91,6 +91,10 @@ import hallOfFameRouter from './routes/hallOfFame.routes.js';
 
 app.use('/api/v1', hallOfFameRouter);
 
+import contactRouter from './routes/contact.routes.js';
+
+app.use('/api/v1', contactRouter);
+
 import { errorHandler } from './middlewares/error.middleware.js';
 
 app.use(errorHandler);

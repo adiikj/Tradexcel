@@ -1,25 +1,36 @@
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { FiMail, FiMapPin, FiPhone, FiCheckCircle } from "react-icons/fi";
+import { FiMail, FiMapPin, FiCheckCircle } from "react-icons/fi";
+import { sendContactMessage } from "../../api/api";
 
 const details = [
-  { icon: FiMail, label: "Email", value: "contact@tradexcel.app" },
+  { icon: FiMail, label: "Email", value: "contact@tradexcel.site" },
   { icon: FiMapPin, label: "Office", value: "New Delhi, India" },
-  { icon: FiPhone, label: "Phone", value: "+91 9876 543 210" },
 ];
 
 function Contact() {
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({ name: "", email: "", message: "" });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
+    setError("");
+    setSending(true);
+    try {
+      await sendContactMessage(form.name, form.email, form.message);
+      setSent(true);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -145,11 +156,13 @@ function Contact() {
                     className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   />
                 </div>
+                {error && <p className="text-sm text-red-500">{error}</p>}
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-10 py-3.5 rounded-lg bg-btn-blue text-white text-sm font-medium hover:bg-blue-500 transition-colors"
+                  disabled={sending}
+                  className="w-full sm:w-auto px-10 py-3.5 rounded-lg bg-btn-blue text-white text-sm font-medium hover:bg-blue-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Send Message
+                  {sending ? "Sending..." : "Send Message"}
                 </button>
               </form>
             )}
