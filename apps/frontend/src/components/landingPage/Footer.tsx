@@ -92,6 +92,17 @@ export default function Footer() {
           <span>© {new Date().getFullYear()} Tradexcel. All rights reserved.</span>
           <span>Virtual trading only. No real money, ever.</span>
         </div>
+        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 pb-6 flex justify-center sm:justify-end text-sm text-gray-500">
+          Designed and developed by{' '}
+          <a
+            href="https://adiikj.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-gray-700 hover:text-blue-600 transition-colors duration-200 ml-1"
+          >
+            Aditya
+          </a>
+        </div>
       </div>
     </footer>
   );
