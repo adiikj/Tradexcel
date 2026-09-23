@@ -1,6 +1,7 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import rawStockList from "../market/StockData.json";
+import Modal from "../ui/Modal";
 
 const DEFAULT_FORM = {
   name: "",
@@ -17,47 +18,30 @@ const STOCK_UNIVERSE = Array.from(
   new Map((rawStockList as { shortName: string; fullName: string; symbol: string }[]).map((s) => [s.symbol, s])).values()
 );
 
-interface ModalShellProps {
-  onClose: () => void;
-  maxWidth?: string;
-  children: React.ReactNode;
-}
-
-function ModalShell({ onClose, maxWidth = "max-w-md", children }: ModalShellProps) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className={`w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-2xl p-6 shadow-xl bg-white dark:bg-gray-900`} onClick={(e) => e.stopPropagation()}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 interface JoinPrivateContestModalProps {
-  darkMode: boolean;
   isJoining: boolean;
   onJoin: (inviteCode: string) => Promise<void>;
   onClose: () => void;
 }
 
-export function JoinPrivateContestModal({ darkMode, isJoining, onJoin, onClose }: JoinPrivateContestModalProps) {
+export function JoinPrivateContestModal({ isJoining, onJoin, onClose }: JoinPrivateContestModalProps) {
   const [inviteCode, setInviteCode] = useState("");
 
   return (
-    <ModalShell onClose={onClose}>
-      <div className={darkMode ? "text-white" : "text-black"}>
+    <Modal onClose={onClose} label="Join a private contest" className={`rounded-2xl p-6 bg-white dark:bg-gray-900`}>
+      <div className="text-black dark:text-white">
         <div className="flex justify-between items-start mb-2">
           <h2 className="text-base font-bold">Join a private contest</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-200 text-xl leading-none">&times;</button>
+          <button type="button" onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-200 text-xl leading-none">&times;</button>
         </div>
         <p className="text-sm text-gray-400 mb-4">Paste a room code from a friend to join their private leaderboard.</p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <input
+          <input aria-label="Invite code"
             autoFocus
             value={inviteCode}
             onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
             placeholder="Enter invite code"
-            className={`flex-1 rounded-lg px-4 py-3 outline-none border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}
+            className={`flex-1 rounded-lg px-4 py-3 outline-none border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
           />
           <button
             disabled={isJoining || !inviteCode.trim()}
@@ -70,12 +54,11 @@ export function JoinPrivateContestModal({ darkMode, isJoining, onJoin, onClose }
           </button>
         </div>
       </div>
-    </ModalShell>
+    </Modal>
   );
 }
 
 interface CreatePrivateContestModalProps {
-  darkMode: boolean;
   isCreating: boolean;
   onCreate: (payload: {
     name: string;
@@ -88,7 +71,7 @@ interface CreatePrivateContestModalProps {
   onClose: () => void;
 }
 
-export function CreatePrivateContestModal({ darkMode, isCreating, onCreate, onClose }: CreatePrivateContestModalProps) {
+export function CreatePrivateContestModal({ isCreating, onCreate, onClose }: CreatePrivateContestModalProps) {
   const [form, setForm] = useState(DEFAULT_FORM);
   const [symbolSearch, setSymbolSearch] = useState("");
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
@@ -110,58 +93,59 @@ export function CreatePrivateContestModal({ darkMode, isCreating, onCreate, onCl
   };
 
   return (
-    <ModalShell onClose={onClose} maxWidth="max-w-2xl">
-      <div className={darkMode ? "text-white" : "text-black"}>
+    <Modal onClose={onClose} label="Create a private contest" maxWidth="max-w-2xl" className={`rounded-2xl p-6 bg-white dark:bg-gray-900`}>
+      <div className="text-black dark:text-white">
         <div className="flex justify-between items-start mb-2">
           <h2 className="text-base font-bold">Create a private contest</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-200 text-xl leading-none">&times;</button>
+          <button type="button" onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-200 text-xl leading-none">&times;</button>
         </div>
         <p className="text-sm text-gray-400 mb-4">Start a room, share the invite code, and compete in a members-only contest.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <input
+          <input aria-label="Contest name"
             value={form.name}
             onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
             placeholder="Contest name"
-            className={`rounded-lg px-4 py-3 outline-none border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}
+            className={`rounded-lg px-4 py-3 outline-none border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
           />
-          <input
+          <input aria-label="Prize or stakes"
             value={form.prize}
             onChange={(event) => setForm((current) => ({ ...current, prize: event.target.value }))}
             placeholder="Prize or stakes (optional)"
-            className={`rounded-lg px-4 py-3 outline-none border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}
+            className={`rounded-lg px-4 py-3 outline-none border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
           />
-          <input
+          <input aria-label="Starts at"
             type="datetime-local"
             value={form.startAt}
             onChange={(event) => setForm((current) => ({ ...current, startAt: event.target.value }))}
-            className={`rounded-lg px-4 py-3 outline-none border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}
+            className={`rounded-lg px-4 py-3 outline-none border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
           />
-          <input
+          <input aria-label="Ends at"
             type="datetime-local"
             value={form.endAt}
             onChange={(event) => setForm((current) => ({ ...current, endAt: event.target.value }))}
-            className={`rounded-lg px-4 py-3 outline-none border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}
+            className={`rounded-lg px-4 py-3 outline-none border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
           />
-          <input
+          <input aria-label="Starting balance"
             value={form.startingBalance}
             onChange={(event) => setForm((current) => ({ ...current, startingBalance: event.target.value }))}
             placeholder="Starting balance"
-            className={`rounded-lg px-4 py-3 outline-none border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}
+            className={`rounded-lg px-4 py-3 outline-none border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
           />
         </div>
 
         <div className="mt-3">
-          <label className="text-xs uppercase tracking-wide text-gray-400">
+          <label htmlFor="private-league-tools-stock-universe-selected" className="text-xs uppercase tracking-wide text-gray-400">
             Stock universe ({selectedSymbols.length}/{MAX_SYMBOLS} selected)
           </label>
           <input
+            id="private-league-tools-stock-universe-selected"
             value={symbolSearch}
             onChange={(event) => setSymbolSearch(event.target.value)}
             placeholder="Search stocks to add..."
-            className={`w-full mt-1.5 rounded-lg px-4 py-2.5 outline-none border ${darkMode ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-200"}`}
+            className={`w-full mt-1.5 rounded-lg px-4 py-2.5 outline-none border bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
           />
-          <div className={`mt-2 max-h-40 overflow-y-auto rounded-lg border ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+          <div className={`mt-2 max-h-40 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700`}>
             {filteredStocks.length === 0 ? (
               <p className="text-sm text-gray-400 p-3">No matches.</p>
             ) : (
@@ -171,7 +155,7 @@ export function CreatePrivateContestModal({ darkMode, isCreating, onCreate, onCl
                   <label
                     key={stock.symbol}
                     className={`flex items-center gap-2 px-3 py-2 text-sm cursor-pointer ${
-                      darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+                      "hover:bg-gray-100 dark:hover:bg-gray-800"
                     }`}
                   >
                     <input type="checkbox" checked={checked} onChange={() => toggleSymbol(stock.symbol)} />
@@ -188,11 +172,11 @@ export function CreatePrivateContestModal({ darkMode, isCreating, onCreate, onCl
                 <span
                   key={symbol}
                   className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
-                    darkMode ? "bg-gray-800 text-gray-200" : "bg-gray-200 text-gray-800"
+                    "bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
                   }`}
                 >
                   {symbol}
-                  <button onClick={() => toggleSymbol(symbol)} className="text-gray-400 hover:text-red-500">
+                  <button type="button" onClick={() => toggleSymbol(symbol)} aria-label={`Remove ${symbol}`} className="text-gray-400 hover:text-red-500">
                     &times;
                   </button>
                 </span>
@@ -218,6 +202,6 @@ export function CreatePrivateContestModal({ darkMode, isCreating, onCreate, onCl
           {isCreating ? "Creating..." : "Create private contest"}
         </button>
       </div>
-    </ModalShell>
+    </Modal>
   );
 }
