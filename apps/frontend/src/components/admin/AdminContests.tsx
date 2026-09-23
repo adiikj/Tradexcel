@@ -1,11 +1,15 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Helmet } from "react-helmet";
-import { adminCreateContest, adminUpdateContest, adminUploadContestImage, adminGetContests } from "../../api/adminApi";
+import { adminCreateContest, adminUpdateContest, adminUploadContestImage, adminGetContests, adminLogout } from "../../api/adminApi";
 import wordmark from "../../assets/tradexcel-wordmark-dark.png";
 import rawStockList from "../market/StockData.json";
+import { useAsyncEffect } from "../../hooks/useAsyncEffect";
+import Image from "next/image";
+import RemoteImage from "../ui/RemoteImage";
+import { apiErrorMessage } from "../../api/http";
+import type { Contest } from "@tradexcel/shared";
 
 const STATUS_STYLES: Record<string, string> = {
   UPCOMING: "bg-yellow-500",
@@ -98,14 +102,15 @@ function toLocalInputValue(date: Date) {
 
 function AdminContests() {
   const router = useRouter();
-  const [contests, setContests] = useState<any[]>([]);
+  const [contests, setContests] = useState<Contest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [name, setName] = useState("");
-  const [startAt, setStartAt] = useState("");
-  const [endAt, setEndAt] = useState("");
+  // Same defaults resetForm() restores: starts in an hour, runs a week.
+  const [startAt, setStartAt] = useState(() => toLocalInputValue(new Date(Date.now() + 60 * 60 * 1000)));
+  const [endAt, setEndAt] = useState(() => toLocalInputValue(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)));
   const [startingBalance, setStartingBalance] = useState("");
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
   const [symbolFilter, setSymbolFilter] = useState("");
@@ -131,7 +136,7 @@ function AdminContests() {
     setEndAt(toLocalInputValue(new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)));
   };
 
-  const startEdit = (contest: any) => {
+  const startEdit = (contest: Contest) => {
     setEditingContestId(contest.id);
     setName(contest.name);
     setStartAt(toLocalInputValue(new Date(contest.startAt)));
@@ -173,27 +178,34 @@ function AdminContests() {
     return stock.shortName.toLowerCase().includes(q) || stock.fullName.toLowerCase().includes(q) || stock.symbol.toLowerCase().includes(q);
   });
 
-  const fetchContests = useCallback(async () => {
+  // State is only set after the first await, so effects can call this directly.
+  const loadContests = useCallback(async (isActive: () => boolean = () => true) => {
     try {
-      setIsLoading(true);
-      setError("");
       const response = await adminGetContests();
+      if (!isActive()) return;
       setContests(response?.data || []);
-    } catch (err: any) {
-      setError(err.message || "Failed to load contests.");
+    } catch (err) {
+      if (!isActive()) return;
+      setError(apiErrorMessage(err, "Failed to load contests."));
     } finally {
-      setIsLoading(false);
+      if (isActive()) setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    resetForm();
-    fetchContests();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchContests]);
+  // For buttons/handlers: show the loading state, then load.
+  const fetchContests = useCallback(
+    () => {
+      setIsLoading(true);
+      setError("");
+      return loadContests();
+    },
+    [loadContests]
+  );
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminToken");
+  useAsyncEffect((isActive) => loadContests(isActive), [loadContests]);
+
+  const handleLogout = async () => {
+    await adminLogout().catch(() => {});
     router.push("/admin/login");
   };
 
@@ -237,8 +249,8 @@ function AdminContests() {
       toast.success(editingContestId ? "Contest updated" : "Contest created");
       resetForm();
       await fetchContests();
-    } catch (err: any) {
-      toast.error(err.message || (editingContestId ? "Failed to update contest" : "Failed to create contest"));
+    } catch (err) {
+      toast.error(apiErrorMessage(err, editingContestId ? "Failed to update contest" : "Failed to create contest"));
     } finally {
       setIsSubmitting(false);
     }
@@ -246,13 +258,10 @@ function AdminContests() {
 
   return (
     <>
-      <Helmet>
-        <title>Admin - Contests</title>
-      </Helmet>
       <div className="bg-gray-900 text-white min-h-screen font-pop">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
           <div className="flex items-center gap-2">
-            <img className="h-5 w-auto" src={((wordmark)?.src || (wordmark)) as string} alt="Tradexcel" />
+            <Image className="h-5 w-auto" src={wordmark} alt="Tradexcel" />
             <span className="text-sm text-gray-400">Admin</span>
           </div>
           <button onClick={handleLogout} className="text-sm text-gray-400 hover:text-white underline">
@@ -267,8 +276,9 @@ function AdminContests() {
             </h2>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="text-gray-300 text-sm mb-1 block">Name</label>
+                <label htmlFor="admin-contests-name" className="text-gray-300 text-sm mb-1 block">Name</label>
                 <input
+                  id="admin-contests-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -280,8 +290,9 @@ function AdminContests() {
               </div>
 
               <div>
-                <label className="text-gray-300 text-sm mb-1 block">Starts at</label>
+                <label htmlFor="admin-contests-starts-at" className="text-gray-300 text-sm mb-1 block">Starts at</label>
                 <input
+                  id="admin-contests-starts-at"
                   type="datetime-local"
                   value={startAt}
                   onChange={(e) => setStartAt(e.target.value)}
@@ -291,8 +302,9 @@ function AdminContests() {
               </div>
 
               <div>
-                <label className="text-gray-300 text-sm mb-1 block">Ends at</label>
+                <label htmlFor="admin-contests-ends-at" className="text-gray-300 text-sm mb-1 block">Ends at</label>
                 <input
+                  id="admin-contests-ends-at"
                   type="datetime-local"
                   value={endAt}
                   onChange={(e) => setEndAt(e.target.value)}
@@ -302,8 +314,9 @@ function AdminContests() {
               </div>
 
               <div>
-                <label className="text-gray-300 text-sm mb-1 block">Starting balance (optional)</label>
+                <label htmlFor="admin-contests-starting-balance-optional" className="text-gray-300 text-sm mb-1 block">Starting balance (optional)</label>
                 <input
+                  id="admin-contests-starting-balance-optional"
                   type="number"
                   min="1"
                   step="any"
@@ -349,7 +362,7 @@ function AdminContests() {
                   )}
                 </div>
 
-                <input
+                <input aria-label="Filter stocks"
                   type="text"
                   value={symbolFilter}
                   onChange={(e) => setSymbolFilter(e.target.value)}
@@ -382,8 +395,9 @@ function AdminContests() {
               </div>
 
               <div>
-                <label className="text-gray-300 text-sm mb-1 block">Prize (optional)</label>
+                <label htmlFor="admin-contests-prize-optional" className="text-gray-300 text-sm mb-1 block">Prize (optional)</label>
                 <input
+                  id="admin-contests-prize-optional"
                   type="text"
                   value={prize}
                   onChange={(e) => setPrize(e.target.value)}
@@ -397,13 +411,12 @@ function AdminContests() {
                 <label className="text-gray-300 text-sm mb-1 block">Cover image (optional)</label>
                 <div className="flex items-center gap-3">
                   {imagePreviewUrl && (
-                    <img
+                    <RemoteImage
                       src={imagePreviewUrl}
                       alt=""
-                      className="w-16 h-16 rounded-lg object-cover border border-gray-600 shrink-0"
-                    />
+                      className="w-16 h-16 rounded-lg object-cover border border-gray-600 shrink-0" width={64} height={64} />
                   )}
-                  <input
+                  <input aria-label="Cover image"
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/gif"
                     onChange={handleImageChange}
@@ -417,10 +430,11 @@ function AdminContests() {
 
               {!editingContestId && (
                 <div className="md:col-span-2">
-                  <label className="text-gray-300 text-sm mb-1 block">
+                  <label htmlFor="admin-contests-historical-replay-start-date-o" className="text-gray-300 text-sm mb-1 block">
                     Historical replay start date (optional)
                   </label>
                   <input
+                    id="admin-contests-historical-replay-start-date-o"
                     type="date"
                     value={historicalStartDate}
                     onChange={(e) => setHistoricalStartDate(e.target.value)}
@@ -428,8 +442,8 @@ function AdminContests() {
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Leave blank for a normal live-price contest. Set this to replay a past event - the
-                    contest's real duration will step through that many historical trading days starting here.
-                    Can't be changed once a contest is created.
+                    contest&apos;s real duration will step through that many historical trading days starting here.
+                    Can&apos;t be changed once a contest is created.
                   </p>
                 </div>
               )}
@@ -491,11 +505,10 @@ function AdminContests() {
                       <tr key={contest.id} className="border-t border-gray-700">
                         <td className="p-3">
                           {contest.imageUrl ? (
-                            <img
+                            <RemoteImage
                               src={contest.imageUrl}
                               alt=""
-                              className="w-10 h-10 rounded-lg object-cover border border-gray-700"
-                            />
+                              className="w-10 h-10 rounded-lg object-cover border border-gray-700" width={40} height={40} />
                           ) : (
                             <div className="w-10 h-10 rounded-lg bg-gray-800 border border-gray-700" />
                           )}

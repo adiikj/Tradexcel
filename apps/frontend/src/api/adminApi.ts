@@ -1,33 +1,51 @@
 import axios from "axios";
+import { apiErrorMessage } from "./http";
+import { clearAdminSession } from "../utils/sessionFlag";
 
-// Separate from api.ts: uses its own adminToken so admin/user sessions never mix.
+// Separate from api.ts so admin and user sessions never mix: the admin JWT is
+// an httpOnly cookie scoped to /api/v1/admin, and this instance has no
+// user-token refresh logic - an admin 401 just ends the admin session.
 const BASE_URL = process.env.NEXT_PUBLIC_API_TRADE_URL;
+const adminHttp = axios.create({ withCredentials: true });
 
-const adminAuthHeaders = () => {
-  const token = typeof window !== "undefined" ? localStorage.getItem("adminToken") : null;
-  if (!token) {
-    throw new Error("Admin session missing. Please log in again.");
+adminHttp.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      clearAdminSession();
+      // Expired mid-session: back to the admin login (full reload resets the panel).
+      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin/contests")) {
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.assign("/admin/login");
+      }
+    }
+    return Promise.reject(error);
   }
-  return { Authorization: `Bearer ${token}` };
-};
+);
 
 export const adminLogin = async (password: string) => {
   try {
-    const response = await axios.post(`${BASE_URL}/admin/login`, { password });
+    const response = await adminHttp.post<{ data: { expiresAt: number } }>(`${BASE_URL}/admin/login`, { password });
     return response.data;
-  } catch (error: any) {
-    const message = error?.response?.data?.message || error.message || "Failed to log in";
-    throw new Error(message);
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "Failed to log in"));
+  }
+};
+
+export const adminLogout = async () => {
+  try {
+    await adminHttp.post(`${BASE_URL}/admin/logout`);
+  } finally {
+    clearAdminSession();
   }
 };
 
 export const adminGetContests = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/admin/contests`, { headers: adminAuthHeaders() });
+    const response = await adminHttp.get(`${BASE_URL}/admin/contests`);
     return response.data;
-  } catch (error: any) {
-    const message = error?.response?.data?.message || error.message || "Failed to fetch contests";
-    throw new Error(message);
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "Failed to fetch contests"));
   }
 };
 
@@ -41,11 +59,10 @@ export const adminCreateContest = async (payload: {
   historicalStartDate?: string;
 }) => {
   try {
-    const response = await axios.post(`${BASE_URL}/admin/contests`, payload, { headers: adminAuthHeaders() });
+    const response = await adminHttp.post(`${BASE_URL}/admin/contests`, payload);
     return response.data;
-  } catch (error: any) {
-    const message = error?.response?.data?.message || error.message || "Failed to create contest";
-    throw new Error(message);
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "Failed to create contest"));
   }
 };
 
@@ -62,13 +79,10 @@ export const adminUpdateContest = async (
   }
 ) => {
   try {
-    const response = await axios.patch(`${BASE_URL}/admin/contests/${contestId}`, payload, {
-      headers: adminAuthHeaders(),
-    });
+    const response = await adminHttp.patch(`${BASE_URL}/admin/contests/${contestId}`, payload);
     return response.data;
-  } catch (error: any) {
-    const message = error?.response?.data?.message || error.message || "Failed to update contest";
-    throw new Error(message);
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "Failed to update contest"));
   }
 };
 
@@ -77,12 +91,9 @@ export const adminUploadContestImage = async (contestId: string, file: File) => 
   try {
     const formData = new FormData();
     formData.append("image", file);
-    const response = await axios.post(`${BASE_URL}/admin/contests/${contestId}/image`, formData, {
-      headers: adminAuthHeaders(),
-    });
+    const response = await adminHttp.post(`${BASE_URL}/admin/contests/${contestId}/image`, formData);
     return response.data;
-  } catch (error: any) {
-    const message = error?.response?.data?.message || error.message || "Failed to upload contest image";
-    throw new Error(message);
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "Failed to upload contest image"));
   }
 };

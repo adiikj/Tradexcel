@@ -7,23 +7,25 @@ import { useDispatch, useSelector } from "react-redux";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { motion } from "framer-motion";
 import GoogleAuthButton from "./GoogleAuthButton";
-import { persistSession } from "../../utils/authSession";
+import { persistSession, postLoginPath } from "../../utils/authSession";
+import { apiErrorMessage } from "../../api/http";
+import type { RootState } from "../../redux/store";
 
 function SignIn() {
-  const [emailOrUsername, setEmailOrUsername] = useState<any>("");
-  const [credential, setCredential] = useState<any>("");
+  const [emailOrUsername, setEmailOrUsername] = useState("");
+  const [credential, setCredential] = useState("");
   const [mode, setMode] = useState<"password" | "pin">("pin");
-  const [error, setError] = useState<any>(null);
-  const [showCredential, setShowCredential] = useState<any>(false);
-  const [isLoading, setIsLoading] = useState<any>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showCredential, setShowCredential] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useRouter();
   const dispatch = useDispatch();
 
-  const isAuthenticated = useSelector((state: any) => state.auth.isAuthenticated);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate.push("/dashboard");
+      navigate.push(postLoginPath());
     }
   }, [isAuthenticated, navigate]);
 
@@ -33,18 +35,17 @@ function SignIn() {
     setError(null);
   };
 
-  const handleSignIn = async (e) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
       setIsLoading(true);
       const response = await loginUser(emailOrUsername, credential, mode);
-      const accessToken = response?.data?.accessToken;
-      if (!accessToken) throw new Error("Access Token not found");
+      if (!response?.data?.user) throw new Error("Login succeeded but no session was returned.");
 
-      persistSession(dispatch, accessToken);
+      persistSession(dispatch);
     } catch (err) {
-      setError(err?.message || "Something went wrong. Please try again.");
+      setError(apiErrorMessage(err, "Something went wrong. Please try again."));
     } finally {
       setIsLoading(false);
     }
@@ -106,10 +107,11 @@ function SignIn() {
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <label className="text-gray-800 text-sm mb-2 block">
+              <label htmlFor="sign-in-emailOrUsername" className="text-gray-800 text-sm mb-2 block">
                 Email or Username
               </label>
               <input
+                id="sign-in-emailOrUsername"
                 name="emailOrUsername"
                 type="text"
                 value={emailOrUsername}
@@ -138,7 +140,7 @@ function SignIn() {
                 </button>
               </div>
               <div className="relative">
-                <input
+                <input aria-label={mode === "password" ? "Password" : "4-digit PIN"}
                   name="credential"
                   type={showCredential ? "text" : "password"}
                   inputMode={mode === "pin" ? "numeric" : "text"}
@@ -149,12 +151,14 @@ function SignIn() {
                   placeholder={mode === "password" ? "Enter password" : "Enter your 4-digit PIN"}
                   required
                 />
-                <span
+                <button
+                  type="button"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
                   onClick={() => setShowCredential(!showCredential)}
+                  aria-label={showCredential ? "Hide password" : "Show password"}
                 >
-                  {showCredential ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-                </span>
+                  {showCredential ? <AiOutlineEyeInvisible aria-hidden="true" /> : <AiOutlineEye aria-hidden="true" />}
+                </button>
               </div>
             </motion.div>
           </div>
@@ -174,7 +178,7 @@ function SignIn() {
           </motion.button>
         </form>
         <p className="text-gray-800 text-md mt-6 text-center">
-          Don't have an account?
+          Don&apos;t have an account?
           <Link href="/signup" className="text-blue-500 hover:underline font-semibold group ml-1">
             Sign up here
           </Link>

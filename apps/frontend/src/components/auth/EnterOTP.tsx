@@ -7,9 +7,11 @@ import logo from "../../assets/logo-icon-transparent.png";
 import wordmark from "../../assets/tradexcel-wordmark-light.png";
 import { verifyOTP } from "../../api/api";
 import { persistSession } from "../../utils/authSession";
+import Image from "next/image";
+import { apiErrorMessage } from "../../api/http";
 
 function EnterOTP() {
-  const [isLoading, setIsLoading] = useState<any>(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useRouter();
   const dispatch = useDispatch();
   const searchParams = useSearchParams();
@@ -22,15 +24,15 @@ function EnterOTP() {
     }
   }, [allowOTP, email, navigate]);
 
-  const [otp, setOtp] = useState<any>(["", "", "", "", "", ""]);
-  const [error, setError] = useState<any>("");
+  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const firstInput = document.getElementById(`otp-input-0`);
     if (firstInput) firstInput.focus();
   }, []);
 
-  const handleChange = (e, index) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const value = e.target.value;
     if (!/^\d?$/.test(value)) return;
     const newOtp = [...otp];
@@ -45,7 +47,7 @@ function EnterOTP() {
   };
 
   // Backspace on an empty box never fires onChange, so handle it here: step back and clear.
-  const handleKeyDown = (e, index) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       e.preventDefault();
       const newOtp = [...otp];
@@ -56,7 +58,7 @@ function EnterOTP() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -69,13 +71,12 @@ function EnterOTP() {
     try {
       setIsLoading(true);
       const response = await verifyOTP(email, enteredOtp);
-      const accessToken = response?.data?.accessToken;
-      if (!accessToken) throw new Error("Verification succeeded but no session was returned.");
+      if (!response?.data?.user) throw new Error("Verification succeeded but no session was returned.");
 
-      persistSession(dispatch, accessToken);
+      persistSession(dispatch);
       navigate.push("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Invalid OTP. Please try again.");
+      setError(apiErrorMessage(err, "Invalid OTP. Please try again."));
     } finally {
       setIsLoading(false);
     }
@@ -94,8 +95,8 @@ function EnterOTP() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
       >
-        <img className="w-8 sm:w-10 h-8 sm:h-10" src={((logo)?.src || (logo)) as string} alt="" />
-        <img className="h-6 sm:h-7 w-auto" src={((wordmark)?.src || (wordmark)) as string} alt="Tradexcel" />
+        <Image className="w-8 sm:w-10 h-8 sm:h-10" src={logo} alt="" />
+        <Image className="h-6 sm:h-7 w-auto" src={wordmark} alt="Tradexcel" />
       </motion.div>
 
       <motion.div
@@ -129,6 +130,9 @@ function EnterOTP() {
                     key={index}
                     id={`otp-input-${index}`}
                     type="text"
+                    inputMode="numeric"
+                    autoComplete={index === 0 ? "one-time-code" : "off"}
+                    aria-label={`Digit ${index + 1} of ${otp.length}`}
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleChange(e, index)}

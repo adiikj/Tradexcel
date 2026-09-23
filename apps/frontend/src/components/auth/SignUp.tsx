@@ -6,15 +6,16 @@ import { registerUser } from "../../api/api";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { motion } from "framer-motion";
 import GoogleAuthButton from "./GoogleAuthButton";
+import { apiErrorMessage } from "../../api/http";
 
 function SignUp() {
   const navigate = useRouter();
 
-  const [showPassword, setShowPassword] = useState<any>(false);
-  const [showPin, setShowPin] = useState<any>(false);
-  const [isLoading, setIsLoading] = useState<any>(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState({
     name: "",
     username: "",
     email: "",
@@ -22,13 +23,13 @@ function SignUp() {
     pin: "",
   });
 
-  const [error, setError] = useState<any>("");
+  const [error, setError] = useState("");
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -71,8 +72,7 @@ function SignUp() {
         navigate.push("/signup/otp?" + queryParams);
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.message || "Error registering. Please try again.";
-      setError(errorMsg);
+      setError(apiErrorMessage(err, "Error registering. Please try again."));
     } finally {
       setIsLoading(false);
     }
@@ -140,8 +140,9 @@ function SignUp() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <label className="text-gray-800 text-sm mb-2 block">Your Name</label>
+                <label htmlFor="sign-up-name" className="text-gray-800 text-sm mb-2 block">Your Name</label>
                 <input
+                  id="sign-up-name"
                   name="name"
                   type="text"
                   className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
@@ -155,8 +156,9 @@ function SignUp() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
-                <label className="text-gray-800 text-sm mb-2 block">Your Username</label>
+                <label htmlFor="sign-up-username" className="text-gray-800 text-sm mb-2 block">Your Username</label>
                 <input
+                  id="sign-up-username"
                   name="username"
                   type="text"
                   className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
@@ -170,8 +172,9 @@ function SignUp() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
-                <label className="text-gray-800 text-sm mb-2 block">Email ID</label>
+                <label htmlFor="sign-up-email" className="text-gray-800 text-sm mb-2 block">Email ID</label>
                 <input
+                  id="sign-up-email"
                   name="email"
                   type="text"
                   className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
@@ -186,8 +189,9 @@ function SignUp() {
                 transition={{ duration: 0.5, delay: 0.5 }}
                 className="relative"
               >
-                <label className="text-gray-800 text-sm mb-2 block">Password</label>
+                <label htmlFor="sign-up-password" className="text-gray-800 text-sm mb-2 block">Password</label>
                 <input
+                  id="sign-up-password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
@@ -195,12 +199,14 @@ function SignUp() {
                   value={formData.password}
                   onChange={handleChange}
                 />
-                <span
+                <button
+                  type="button"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer pt-6"
                   onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-                </span>
+                  {showPassword ? <AiOutlineEyeInvisible aria-hidden="true" /> : <AiOutlineEye aria-hidden="true" />}
+                </button>
               </motion.div>
               <motion.div
                 initial={{ x: -50, opacity: 0 }}
@@ -212,7 +218,7 @@ function SignUp() {
                 <p className="text-gray-500 text-xs mb-2">
                   A quick way to log in later, instead of your password.
                 </p>
-                <input
+                <input aria-label="4-digit PIN"
                   name="pin"
                   type={showPin ? "text" : "password"}
                   inputMode="numeric"
@@ -222,12 +228,14 @@ function SignUp() {
                   value={formData.pin}
                   onChange={handleChange}
                 />
-                <span
+                <button
+                  type="button"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer pt-6"
                   onClick={togglePinVisibility}
+                  aria-label={showPin ? "Hide password" : "Show password"}
                 >
-                  {showPin ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-                </span>
+                  {showPin ? <AiOutlineEyeInvisible aria-hidden="true" /> : <AiOutlineEye aria-hidden="true" />}
+                </button>
               </motion.div>
 
               <motion.button
