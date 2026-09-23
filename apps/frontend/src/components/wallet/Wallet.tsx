@@ -1,74 +1,80 @@
 "use client";
-import React, { useCallback, useContext, useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 import Link from 'next/link';
 import Header from '../dashboard/Header';
 import Vheader from '../dashboard/Vheader';
-import { Helmet } from 'react-helmet';
-import ThemeContext from '../../context/ThemeContext';
 import { getUserName, getAvatar, getWallet, getTransactions } from '../../api/api';
 import { formatInr } from '../../utils/format';
+import { useAsyncEffect } from "../../hooks/useAsyncEffect";
+import Avatar from "../ui/Avatar";
+import { apiErrorMessage } from "../../api/http";
+import type { TransactionRecord } from "@tradexcel/shared";
 
 function Wallet() {
-  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
-  const [userName, setUserName] = useState<any>('');
+  const [userName, setUserName] = useState('');
   const [isLoadingUserName, setIsLoadingUserName] = useState(true);
-  const [avatar, setAvatar] = useState<any>(null);
-  const [error, setError] = useState<any>('');
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   const [balance, setBalance] = useState<number | null>(null);
   const [currency, setCurrency] = useState('INR');
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'All' | 'BUY' | 'SELL'>('All');
 
-  const fetchWalletAndTransactions = useCallback(async () => {
+  // State is only set after the first await, so effects can call this directly.
+  const loadWalletAndTransactions = useCallback(async (isActive: () => boolean = () => true) => {
     try {
-      setIsLoading(true);
-      setError('');
       const [walletResponse, transactionsResponse] = await Promise.all([
         getWallet(),
         getTransactions(),
       ]);
+      if (!isActive()) return;
       setBalance(Number(walletResponse?.data?.balance ?? 0));
       setCurrency(walletResponse?.data?.currency ?? 'INR');
       setTransactions(transactionsResponse?.data?.transactions || []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load wallet.');
+    } catch (err) {
+      if (!isActive()) return;
+      setError(apiErrorMessage(err, 'Failed to load wallet.'));
     } finally {
-      setIsLoading(false);
+      if (isActive()) setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    const fetchUserName = async () => {
-      try {
-        const authToken = (typeof window !== 'undefined' ? localStorage.getItem("authToken") : null);
-        if (!authToken) {
-          throw new Error("Authentication token is missing. Please log in again.");
-        }
+  // For buttons/handlers: show the loading state, then load.
+  const fetchWalletAndTransactions = useCallback(
+    () => {
+      setIsLoading(true);
+      setError('');
+      return loadWalletAndTransactions();
+    },
+    [loadWalletAndTransactions]
+  );
 
-        const name = await getUserName();
-        setUserName(name.data.name);
-      } catch (error) {
-        setUserName('User');
-      } finally {
-        setIsLoadingUserName(false);
-      }
-    };
-
-    const fetchAvatar = async () => {
-      try {
-        const data = await getAvatar();
-        setAvatar(data?.data?.avatar || null);
-      } catch (err) {
-        // Avatar stays null; the placeholder image covers this.
-      }
-    };
-
-    fetchAvatar();
-    fetchUserName();
-    fetchWalletAndTransactions();
-  }, [fetchWalletAndTransactions]);
+  useAsyncEffect(
+    (isActive) =>
+      Promise.all([
+        getAvatar()
+          .then((data) => {
+            if (isActive()) setAvatar(data?.data?.avatar || null);
+          })
+          .catch(() => {
+            // Avatar stays null; the placeholder image covers this.
+          }),
+        getUserName()
+          .then((name) => {
+            if (isActive()) setUserName(name.data.name);
+          })
+          .catch(() => {
+            if (isActive()) setUserName('User');
+          })
+          .finally(() => {
+            if (isActive()) setIsLoadingUserName(false);
+          }),
+        loadWalletAndTransactions(isActive),
+      ]),
+    [loadWalletAndTransactions]
+  );
 
   const filteredTransactions =
     activeTab === 'All'
@@ -77,19 +83,14 @@ function Wallet() {
 
   return (
     <>
-      <Helmet>
-        <title>Wallet</title>
-      </Helmet>
       <div
         className={`${
-          darkMode
-            ? "bg-gray-800 text-white"
-            : "bg-white text-black"
+          "bg-white text-black dark:bg-gray-800 dark:text-white"
         } min-h-screen transition-colors duration-300`}
       >
-        <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        <Header />
         <div className="flex flex-col font-pop md:flex-row">
-          <Vheader darkMode={darkMode} />
+          <Vheader />
           <main className="flex-grow min-w-0 p-4 md:p-6 m-4 pb-24 md:m-10">
             <h1 className="text-2xl md:text-3xl font-bold">Wallet</h1>
             <div className="h-2 w-20 md:w-32 bg-blue-500 rounded-full mb-6 animate-line"></div>
@@ -106,25 +107,25 @@ function Wallet() {
             {/* Profile Section */}
             <div
               className={`rounded-lg p-4 mb-6 transition-colors duration-300 ${
-                darkMode ? "bg-gray-900" : "bg-gray-100 shadow"
+                "bg-gray-100 shadow dark:bg-gray-900 dark:shadow-none"
               }`}
             >
               <div className="flex items-center">
                 <Link
                   href="/your-profile"
                   className={`shrink-0 rounded-full transition-transform duration-200 hover:scale-105 ${
-                    darkMode ? "bg-blue-500 text-gray-100" : "bg-blue-100 text-blue-700"
+                    "bg-blue-100 text-blue-700 dark:bg-blue-500 dark:text-gray-100"
                   }`}
                 >
-                  <img
+                  <Avatar
+                    src={avatar}
+                    size={64}
                     className="w-10 h-10 md:w-16 md:h-16 cursor-pointer rounded-full overflow-hidden object-cover"
-                    src={avatar || "https://via.placeholder.com/120x120.png?text=No+Avatar"}
-                    alt=""
                   />
                 </Link>
                 <div className="ml-4">
                   {isLoadingUserName ? (
-                    <span className={`inline-block h-6 w-32 rounded animate-pulse ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
+                    <span className={`inline-block h-6 w-32 rounded animate-pulse bg-gray-300 dark:bg-gray-700`} />
                   ) : (
                     <h2 className="text-xl font-bold">{userName}</h2>
                   )}
@@ -136,14 +137,14 @@ function Wallet() {
             {/* Cash Balance */}
             <div
               className={`p-5 md:p-6 rounded-lg mb-6 transition-colors duration-300 ${
-                darkMode ? "bg-gray-900" : "bg-gray-100 shadow"
+                "bg-gray-100 shadow dark:bg-gray-900 dark:shadow-none"
               }`}
             >
               <div className="text-xs uppercase tracking-widest text-gray-400 mb-1">Cash Balance</div>
               <div className="flex flex-wrap items-baseline gap-2">
                 <span className="text-2xl md:text-3xl font-bold tabular-nums">
                   {isLoading ? (
-                    <span className={`inline-block h-8 md:h-10 w-40 rounded animate-pulse ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
+                    <span className={`inline-block h-8 md:h-10 w-40 rounded animate-pulse bg-gray-300 dark:bg-gray-700`} />
                   ) : (
                     formatInr(balance)
                   )}
@@ -155,12 +156,12 @@ function Wallet() {
             {/* Transactions List */}
             <div
               className={`rounded-lg p-4 transition-colors duration-300 ${
-                darkMode ? "bg-gray-900" : "bg-white shadow"
+                "bg-white shadow dark:bg-gray-900 dark:shadow-none"
               }`}
             >
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <h2 className="text-base md:text-xl font-semibold">Transactions</h2>
-                <div className={`flex p-1 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
+                <div className={`flex p-1 rounded-lg bg-gray-200 dark:bg-gray-800`}>
                   {(['All', 'BUY', 'SELL'] as const).map((tab) => (
                     <button
                       key={tab}
@@ -168,9 +169,7 @@ function Wallet() {
                       className={`px-4 py-1.5 text-xs md:text-sm rounded-md font-medium transition-colors duration-200 active:scale-95 ${
                         activeTab === tab
                           ? "bg-blue-500 text-white shadow"
-                          : darkMode
-                          ? "text-gray-300 hover:text-white"
-                          : "text-gray-600 hover:text-black"
+                          : "text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white"
                       }`}
                     >
                       {tab === 'All' ? 'All' : tab.charAt(0) + tab.slice(1).toLowerCase()}
@@ -181,7 +180,7 @@ function Wallet() {
               {isLoading ? (
                 <div className="space-y-4">
                   {[0, 1, 2].map((i) => (
-                    <div key={i} className={`h-16 rounded-lg animate-pulse ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`} />
+                    <div key={i} className={`h-16 rounded-lg animate-pulse bg-gray-100 dark:bg-gray-800`} />
                   ))}
                 </div>
               ) : filteredTransactions.length === 0 ? (
@@ -200,7 +199,7 @@ function Wallet() {
                     <div
                       key={transaction.id}
                       className={`flex flex-col md:flex-row justify-between items-start md:items-center p-4 rounded-lg transition-colors duration-200 ${
-                        darkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-100 hover:bg-gray-300"
+                        "bg-gray-100 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700"
                       }`}
                     >
                       <div>

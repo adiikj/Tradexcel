@@ -1,6 +1,11 @@
-// Ranks a stock universe by today's real price change and returns the top 5. Shared by TopGainers/TopLosers.
 
-type StockMeta = { shortName: string; fullName: string; symbol: string };
+import type { StockListing } from "../../types/market";
+import type { StockSnapshot } from "@tradexcel/shared";// Ranks a stock universe by today's real price change and returns the top 5. Shared by TopGainers/TopLosers.
+
+type StockMeta = StockListing;
+
+// Batch-quote fields for one symbol, possibly overlaid with a live tick.
+export type StockData = (Partial<StockSnapshot> & { percentageChange?: string | number; todayChange?: string | number }) | null;
 
 const LABELS = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
 
@@ -9,7 +14,7 @@ const LABELS = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
 // every price update instead of re-fetching.
 export function rankFromData(
   universe: StockMeta[],
-  dataMap: Record<string, any>,
+  dataMap: Record<string, StockData>,
   direction: "gainers" | "losers"
 ) {
   // The stock list has a few duplicate symbols; keep one entry each.
@@ -25,7 +30,7 @@ export function rankFromData(
       const data = dataMap[stock.symbol];
       if (!data) return null;
 
-      const magnitude = parseFloat(data.percentageChange) || 0;
+      const magnitude = parseFloat(String(data.percentageChange ?? 0)) || 0;
       // percentageChange is unsigned; the sign lives in todayChange.
       const isNegative = String(data.todayChange || "").trim().startsWith("-");
       const signedChange = isNegative ? -magnitude : magnitude;

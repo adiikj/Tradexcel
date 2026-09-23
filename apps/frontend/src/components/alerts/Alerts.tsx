@@ -4,6 +4,7 @@ import Link from "next/link";
 import alert from "../../assets/alerts.png";
 import alert_w from "../../assets/alerts-w.png";
 import { getAlerts, getNotifications, markNotificationsRead } from "../../api/api";
+import ThemedImage from "../ui/ThemedImage";
 
 const NOTIFICATION_POLL_MS = 20000;
 
@@ -12,7 +13,8 @@ const NOTIFICATION_POLL_MS = 20000;
 // has interacted with the page at least once - failures are swallowed.
 function playNotificationChime() {
   try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioCtx =
+      window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
     const now = ctx.currentTime;
@@ -37,12 +39,15 @@ function playNotificationChime() {
   }
 }
 
-const Alerts = ({ darkMode }) => {
-  const [alertsOpen, setAlertsOpen] = useState<any>(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+// One row in the bell dropdown: a triggered price alert or a social notification.
+type BellItem = { id: string; message: string; time: string; link: string | null };
+
+const Alerts = () => {
+  const [alertsOpen, setAlertsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<BellItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [justArrived, setJustArrived] = useState(false);
-  const alertsRef = useRef(null);
+  const alertsRef = useRef<HTMLDivElement>(null);
   const alertsOpenRef = useRef(false);
   const seenIdsRef = useRef<Set<string> | null>(null);
 
@@ -59,15 +64,15 @@ const Alerts = ({ darkMode }) => {
         if (cancelled) return;
 
         const triggeredAlerts = (alertsRes?.data || [])
-          .filter((a: any) => a.triggered)
-          .map((a: any) => ({
+          .filter((a) => a.triggered)
+          .map((a): BellItem => ({
             id: `alert-${a.id}`,
             message: `${a.symbol} went ${a.direction === "ABOVE" ? "above" : "below"} ₹${a.targetPrice}`,
-            time: a.triggeredAt,
+            time: a.triggeredAt ?? a.createdAt,
             link: null,
           }));
 
-        const followNotifications = (notificationsRes?.data?.notifications || []).map((n: any) => ({
+        const followNotifications = (notificationsRes?.data?.notifications || []).map((n): BellItem => ({
           id: `notif-${n.id}`,
           message: n.message,
           time: n.createdAt,
@@ -113,7 +118,7 @@ const Alerts = ({ darkMode }) => {
     }
   };
 
-  const handleClearNotification = (id) => {
+  const handleClearNotification = (id: string) => {
     setNotifications((prevNotifications) =>
       prevNotifications.filter((notification) => notification.id !== id)
     );
@@ -124,8 +129,8 @@ const Alerts = ({ darkMode }) => {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (alertsRef.current && !alertsRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (alertsRef.current && !alertsRef.current.contains(event.target as Node)) {
         setAlertsOpen(false);
       }
     };
@@ -136,25 +141,26 @@ const Alerts = ({ darkMode }) => {
 
   return (
     <div ref={alertsRef} className="relative">
-      <div
+      <button
+        type="button"
         onClick={handleAlertsClick}
+        aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
+        aria-expanded={alertsOpen}
         className={`relative flex items-center p-2 rounded-md cursor-pointer transition-all duration-300 ${
           alertsOpen
-            ? darkMode
-              ? "bg-gray-700 text-white"
-              : "bg-gray-200 text-black"
-            : darkMode
-            ? "text-white"
-            : "text-black"
+            ? "bg-gray-200 text-black dark:bg-gray-700 dark:text-white"
+            : "text-black dark:text-white"
         }`}
       >
-        <img
+        <ThemedImage
           className={`w-5 h-5 sm:w-6 sm:h-6 ${justArrived ? "animate-bell-ring" : ""}`}
-          src={((darkMode ? alert_w : alert)?.src || (darkMode ? alert_w : alert)) as string}
-          alt="Alerts"
+          light={alert}
+          dark={alert_w}
+          alt=""
         />
         {unreadCount > 0 && (
           <span
+            aria-hidden="true"
             className={`absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-semibold leading-none ${
               justArrived ? "scale-125" : "scale-100"
             } transition-transform duration-300`}
@@ -162,12 +168,12 @@ const Alerts = ({ darkMode }) => {
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
-      </div>
+      </button>
 
       {alertsOpen && (
         <div
           className={`absolute right-0 top-10 sm:top-12 w-72 sm:w-96 md:w-80 lg:w-96 max-w-[calc(100vw-2rem)] ${
-            darkMode ? "bg-gray-800 text-white" : "bg-white text-black"
+            "bg-white text-black dark:bg-gray-800 dark:text-white"
           } rounded-md shadow-lg z-10 p-4 max-h-80 overflow-y-auto`}
         >
           <h4 className="font-bold text-base md:text-lg mb-4">Notifications</h4>
@@ -187,7 +193,7 @@ const Alerts = ({ darkMode }) => {
                   <li
                     key={notification.id}
                     className={`flex justify-between items-start gap-2 p-3 rounded-md shadow-sm ${
-                      darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-100 hover:bg-gray-200"
+                      "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
                     } transition-all duration-300`}
                   >
                     {notification.link ? (
@@ -200,9 +206,7 @@ const Alerts = ({ darkMode }) => {
                     <button
                       onClick={() => handleClearNotification(notification.id)}
                       className={`text-sm md:text-sm px-3 py-1 rounded ${
-                        darkMode
-                          ? "bg-red-500 hover:bg-red-400 text-white"
-                          : "bg-red-100 hover:bg-red-200 text-red-600"
+                        "bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-500 dark:hover:bg-red-400 dark:text-white"
                       }`}
                     >
                       Clear
@@ -220,9 +224,7 @@ const Alerts = ({ darkMode }) => {
               <button
                 onClick={handleClearAllNotifications}
                 className={`px-4 py-2 rounded-md text-sm ${
-                  darkMode
-                    ? "bg-red-500 hover:bg-red-400 text-white"
-                    : "bg-red-100 hover:bg-red-200 text-red-600"
+                  "bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-500 dark:hover:bg-red-400 dark:text-white"
                 }`}
               >
                 Clear All

@@ -1,13 +1,15 @@
 "use client";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
-import ThemeContext from "../../context/ThemeContext";
-import { Helmet } from "react-helmet";
 import { getLeaderboard, getFriendsLeaderboard, getHallOfFame } from "../../api/api";
 import { formatInr, formatPercent } from "../../utils/format";
+import { useAsyncEffect } from "../../hooks/useAsyncEffect";
+import { apiErrorMessage } from "../../api/http";
+import type { ContestChampion, RankedUser, WeeklyChampion } from "@tradexcel/shared";
+import Avatar from "../ui/Avatar";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 // Real podium order: 2nd, 1st, 3rd, with the #1 slot tallest.
@@ -16,39 +18,57 @@ const PODIUM_ORDER = [1, 0, 2];
 type Scope = "global" | "friends" | "contestChampions" | "weeklyChampions";
 
 function Leaderboard() {
-  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
   const [scope, setScope] = useState<Scope>("global");
-  const [entries, setEntries] = useState<any[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [entries, setEntries] = useState<RankedUser[]>([]);
+  const [currentUser, setCurrentUser] = useState<RankedUser | null>(null);
   const [totalPlayers, setTotalPlayers] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [contestChampions, setContestChampions] = useState<any[]>([]);
-  const [weeklyChampions, setWeeklyChampions] = useState<any[]>([]);
+  const [contestChampions, setContestChampions] = useState<ContestChampion[]>([]);
+  const [weeklyChampions, setWeeklyChampions] = useState<WeeklyChampion[]>([]);
   const [isLoadingHallOfFame, setIsLoadingHallOfFame] = useState(true);
 
-  const fetchLeaderboard = useCallback(async (nextScope: "global" | "friends") => {
+  // State is only set after the first await, so effects can call this directly.
+  const loadLeaderboard = useCallback(async (nextScope: "global" | "friends", isActive: () => boolean = () => true) => {
     try {
-      setIsLoading(true);
-      setError("");
       const response = nextScope === "global" ? await getLeaderboard(20) : await getFriendsLeaderboard(20);
+      if (!isActive()) return;
       setEntries(response?.data?.leaderboard || []);
       setCurrentUser(response?.data?.currentUser || null);
       setTotalPlayers(response?.data?.totalPlayers || 0);
-    } catch (err: any) {
-      setError(err.message || "Failed to load leaderboard.");
+    } catch (err) {
+      if (!isActive()) return;
+      setError(apiErrorMessage(err, "Failed to load leaderboard."));
     } finally {
-      setIsLoading(false);
+      if (isActive()) setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    if (scope === "global" || scope === "friends") {
-      fetchLeaderboard(scope);
+  // For buttons/handlers: show the loading state, then load.
+  const fetchLeaderboard = useCallback(
+    (nextScope: "global" | "friends") => {
+      setIsLoading(true);
+      setError("");
+      return loadLeaderboard(nextScope);
+    },
+    [loadLeaderboard]
+  );
+
+  // Loading flips in the tab click, not synchronously inside the refetch effect.
+  const changeScope = (next: typeof scope) => {
+    if (next !== scope && (next === "global" || next === "friends")) {
+      setIsLoading(true);
+      setError("");
     }
-  }, [fetchLeaderboard, scope]);
+    setScope(next);
+  };
+
+  useAsyncEffect(
+    (isActive) => (scope === "global" || scope === "friends" ? loadLeaderboard(scope, isActive) : Promise.resolve()),
+    [loadLeaderboard, scope]
+  );
 
   // Contest/weekly champions come from one combined endpoint - fetch once,
   // independent of which tab is active, rather than refetching per switch.
@@ -66,23 +86,18 @@ function Leaderboard() {
   const top3 = entries.slice(0, 3);
   const rest = entries.slice(3);
   const leaderNetWorth = entries[0]?.netWorth || 1;
-  const cardBg = darkMode ? "bg-gray-900" : "bg-gray-50";
+  const cardBg = "bg-gray-50 dark:bg-gray-900";
 
   return (
     <>
-      <Helmet>
-        <title>Leaderboard</title>
-      </Helmet>
       <div
         className={
-          darkMode
-            ? "bg-gray-800 text-white min-h-screen transition-colors duration-300 font-pop"
-            : "bg-white text-black min-h-screen transition-colors duration-300 font-pop"
+          "bg-white text-black min-h-screen transition-colors duration-300 font-pop dark:bg-gray-800 dark:text-white"
         }
       >
-        <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        <Header />
         <div className="flex flex-col md:flex-row">
-          <Vheader darkMode={darkMode} className="" />
+          <Vheader />
           <main className="flex-1 min-w-0 p-4 m-4 md:m-10">
             <h1 className="text-2xl md:text-3xl font-bold">Leaderboard</h1>
             <div className="h-2 w-44 bg-blue-500 rounded-full mb-6 animate-line"></div>
@@ -98,13 +113,11 @@ function Leaderboard() {
               ).map((option) => (
                 <button
                   key={option.key}
-                  onClick={() => setScope(option.key)}
+                  onClick={() => changeScope(option.key)}
                   className={`px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ${
                     scope === option.key
                       ? "bg-blue-500 text-white"
-                      : darkMode
-                      ? "bg-gray-700 text-gray-300"
-                      : "bg-gray-200 text-gray-700"
+                      : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                   }`}
                 >
                   {option.label}
@@ -163,22 +176,14 @@ function Leaderboard() {
                           isFirst ? "pt-6 sm:pt-8" : "pt-3 sm:pt-4"
                         } ${isMe ? "ring-4 ring-blue-500" : ""} ${
                           isFirst
-                            ? darkMode
-                              ? "bg-gradient-to-b from-amber-900/40 to-gray-900 border border-amber-500/40"
-                              : "bg-gradient-to-b from-amber-100 to-blue-50 border border-amber-300"
-                            : darkMode
-                            ? "bg-slate-900 text-white"
-                            : "bg-blue-100 text-blue-700"
+                            ? "bg-gradient-to-b from-amber-100 to-blue-50 border border-amber-300 dark:from-amber-900/40 dark:to-gray-900 dark:border-amber-500/40"
+                            : "bg-blue-100 text-blue-700 dark:bg-slate-900 dark:text-white"
                         }`}
                         whileHover={{ scale: 1.03 }}
                       >
                         <span className={isFirst ? "text-3xl sm:text-4xl" : "text-xl sm:text-2xl"}>{MEDALS[i]}</span>
                         <Link href={`/u/${entry.username}`}>
-                          <img
-                            src={entry.avatar}
-                            alt=""
-                            className={`rounded-full my-2 ${isFirst ? "w-12 h-12 sm:w-14 sm:h-14" : "w-9 h-9 sm:w-10 sm:h-10"}`}
-                          />
+                          <Avatar src={entry.avatar} size={56} className={`rounded-full my-2 ${isFirst ? "w-12 h-12 sm:w-14 sm:h-14" : "w-9 h-9 sm:w-10 sm:h-10"}`} />
                         </Link>
                         <Link
                           href={`/u/${entry.username}`}
@@ -199,7 +204,7 @@ function Leaderboard() {
                 {/* Leaderboard Table */}
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse mb-6">
-                    <thead className={darkMode ? "bg-gray-700" : "bg-gray-200"}>
+                    <thead className="bg-gray-200 dark:bg-gray-700">
                       <tr>
                         <th className="p-3 text-sm">Rank</th>
                         <th className="p-3 text-sm">Player</th>
@@ -216,24 +221,20 @@ function Leaderboard() {
                             key={entry.userId}
                             className={`border-b transition-colors duration-150 ${
                               isMe
-                                ? darkMode
-                                  ? "bg-blue-900"
-                                  : "bg-blue-50"
-                                : darkMode
-                                ? "border-gray-700 hover:bg-gray-700"
-                                : "border-gray-200 hover:bg-gray-100"
+                                ? "bg-blue-50 dark:bg-blue-900"
+                                : "border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-700"
                             }`}
                           >
                             <td className="p-3 text-sm tabular-nums">{entry.rank}</td>
                             <td className="p-3">
                               <Link href={`/u/${entry.username}`} className="flex items-center gap-2 hover:underline">
-                                <img src={entry.avatar} alt="" className="w-8 h-8 rounded-full shrink-0" />
+                                <Avatar src={entry.avatar} size={32} className="w-8 h-8 rounded-full shrink-0" />
                                 <div className="min-w-0">
                                   <div className="text-sm truncate">
                                     {entry.name}
                                     {isMe && <span className="text-xs ml-1 text-blue-400">(You)</span>}
                                   </div>
-                                  <div className={`h-1 rounded-full mt-1 w-24 ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}>
+                                  <div className={`h-1 rounded-full mt-1 w-24 bg-gray-200 dark:bg-gray-700`}>
                                     <div
                                       className="h-1 rounded-full bg-blue-500"
                                       style={{ width: `${relativeShare}%` }}
@@ -257,14 +258,14 @@ function Leaderboard() {
                 {currentUser && !isCurrentUserVisible && (
                   <div
                     className={`mt-4 mb-16 md:mb-0 p-4 rounded-lg border-2 border-blue-500 ${
-                      darkMode ? "bg-gray-900" : "bg-blue-50"
+                      "bg-blue-50 dark:bg-gray-900"
                     }`}
                   >
                     <p className="text-sm text-gray-400 mb-2">Your rank</p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="font-bold tabular-nums">#{currentUser.rank}</span>
-                        <img src={currentUser.avatar} alt="" className="w-8 h-8 rounded-full" />
+                        <Avatar src={currentUser.avatar} size={32} className="w-8 h-8 rounded-full" />
                         <span className="text-sm">{currentUser.name}</span>
                       </div>
                       <div className="text-right">
@@ -293,7 +294,7 @@ function Leaderboard() {
                       key={champion.contestId}
                       className={`flex items-center gap-3 p-3 rounded-lg ${cardBg}`}
                     >
-                      <img src={champion.user.avatar} alt="" className="w-9 h-9 rounded-full shrink-0" />
+                      <Avatar src={champion.user.avatar} size={36} className="w-9 h-9 rounded-full shrink-0" />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm truncate">
                           <Link href={`/u/${champion.user.username}`} className="font-semibold hover:underline">
@@ -325,7 +326,7 @@ function Leaderboard() {
                       key={`${champion.user.id}-${champion.weekStart}`}
                       className={`flex items-center gap-3 p-3 rounded-lg ${cardBg}`}
                     >
-                      <img src={champion.user.avatar} alt="" className="w-9 h-9 rounded-full shrink-0" />
+                      <Avatar src={champion.user.avatar} size={36} className="w-9 h-9 rounded-full shrink-0" />
                       <div className="min-w-0 flex-1">
                         <Link href={`/u/${champion.user.username}`} className="text-sm font-semibold hover:underline">
                           {champion.user.name}

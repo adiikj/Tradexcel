@@ -9,12 +9,13 @@ import { useLiveQuotes } from "../../hooks/useLiveQuotes";
 import { useMarketStatus } from "../../hooks/useMarketStatus";
 import { tickToStockFields } from "../../utils/liveQuote";
 import LiveStatusBadge from "../layout/LiveStatusBadge";
+import type { StockData } from "./marketMovers";
 
 const allSymbols = [...new Set(stockUniverse.map((s) => s.symbol))];
 
-function TopLosers({ darkMode }: any) {
+function TopLosers() {
   const router = useRouter();
-  const [baseData, setBaseData] = useState<Record<string, any>>({});
+  const [baseData, setBaseData] = useState<Record<string, StockData>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ function TopLosers({ darkMode }: any) {
   const marketStatus = useMarketStatus();
 
   const losers = useMemo(() => {
-    const merged: Record<string, any> = {};
+    const merged: Record<string, StockData> = {};
     for (const symbol of Object.keys(baseData)) {
       const base = baseData[symbol];
       const tick = liveQuotes[symbol];
@@ -57,11 +58,11 @@ function TopLosers({ darkMode }: any) {
       {loading ? (
         <div className="space-y-2 md:space-y-4">
           {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} className={`h-14 rounded-lg animate-pulse ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`} />
+            <div key={i} className={`h-14 rounded-lg animate-pulse bg-gray-200 dark:bg-gray-800`} />
           ))}
         </div>
       ) : losers.length === 0 ? (
-        <p className="text-sm text-gray-400 py-6 text-center">No losers right now - the market's broadly up today.</p>
+        <p className="text-sm text-gray-400 py-6 text-center">No losers right now - the market&apos;s broadly up today.</p>
       ) : (
         losers.map((stock, index) => (
           <div
@@ -77,7 +78,6 @@ function TopLosers({ darkMode }: any) {
               percentageChange={stock.percentageChange}
               todayChange={stock.todayChange}
               labels={stock.labels} // Pass labels here for chart X-axis
-              darkMode={darkMode}
             />
           </div>
         ))

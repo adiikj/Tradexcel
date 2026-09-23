@@ -1,17 +1,17 @@
 "use client";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import toast from "react-hot-toast";
-import { Helmet } from "react-helmet";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
-import ThemeContext from "../../context/ThemeContext";
 import { getAlerts, createAlert, deleteAlert } from "../../api/api";
 import { formatInr } from "../../utils/format";
+import { useAsyncEffect } from "../../hooks/useAsyncEffect";
+import { apiErrorMessage } from "../../api/http";
+import type { PriceAlert } from "@tradexcel/shared";
 
 function PriceAlerts() {
-  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,22 +20,31 @@ function PriceAlerts() {
   const [targetPrice, setTargetPrice] = useState("");
   const [direction, setDirection] = useState<"ABOVE" | "BELOW">("ABOVE");
 
-  const fetchAlerts = useCallback(async () => {
+  // State is only set after the first await, so effects can call this directly.
+  const loadAlerts = useCallback(async (isActive: () => boolean = () => true) => {
     try {
-      setIsLoading(true);
-      setError("");
       const response = await getAlerts();
+      if (!isActive()) return;
       setAlerts(response?.data || []);
-    } catch (err: any) {
-      setError(err.message || "Failed to load alerts.");
+    } catch (err) {
+      if (!isActive()) return;
+      setError(apiErrorMessage(err, "Failed to load alerts."));
     } finally {
-      setIsLoading(false);
+      if (isActive()) setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchAlerts();
-  }, [fetchAlerts]);
+  // For buttons/handlers: show the loading state, then load.
+  const fetchAlerts = useCallback(
+    () => {
+      setIsLoading(true);
+      setError("");
+      return loadAlerts();
+    },
+    [loadAlerts]
+  );
+
+  useAsyncEffect((isActive) => loadAlerts(isActive), [loadAlerts]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,8 +63,8 @@ function PriceAlerts() {
       setSymbol("");
       setTargetPrice("");
       await fetchAlerts();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create alert.");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Failed to create alert."));
     } finally {
       setIsSubmitting(false);
     }
@@ -66,28 +75,23 @@ function PriceAlerts() {
       await deleteAlert(id);
       toast.success("Alert deleted.");
       setAlerts((prev) => prev.filter((a) => a.id !== id));
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete alert.");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Failed to delete alert."));
     }
   };
 
-  const cardBg = darkMode ? "bg-gray-900" : "bg-gray-100";
+  const cardBg = "bg-gray-100 dark:bg-gray-900";
 
   return (
     <>
-      <Helmet>
-        <title>Alerts</title>
-      </Helmet>
       <div
         className={
-          darkMode
-            ? "bg-gray-800 text-white min-h-screen transition-all duration-300 font-pop"
-            : "bg-white text-black min-h-screen transition-all duration-300 font-pop"
+          "bg-white text-black min-h-screen transition-all duration-300 font-pop dark:bg-gray-800 dark:text-white"
         }
       >
-        <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        <Header />
         <div className="flex flex-col md:flex-row">
-          <Vheader darkMode={darkMode} />
+          <Vheader />
           <main className="flex-1 min-w-0 pb-24 md:pb-0 p-6 m-2 md:m-10">
             <h1 className="text-2xl md:text-3xl font-bold">Price Alerts</h1>
             <div className="h-2 w-32 md:w-36 bg-blue-500 rounded-full mb-6 animate-line"></div>
@@ -98,24 +102,26 @@ function PriceAlerts() {
               className={`p-6 rounded-xl shadow-lg mb-8 flex flex-col sm:flex-row gap-4 items-end ${cardBg}`}
             >
               <div className="flex-1 w-full">
-                <label className="text-sm text-gray-400 mb-1 block">Symbol</label>
+                <label htmlFor="price-alerts-symbol" className="text-sm text-gray-400 mb-1 block">Symbol</label>
                 <input
+                  id="price-alerts-symbol"
                   type="text"
                   value={symbol}
                   onChange={(e) => setSymbol(e.target.value)}
                   placeholder="e.g. AAPL or RELIANCE.NS"
                   className={`w-full px-4 py-2 rounded-md border ${
-                    darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"
+                    "bg-white border-gray-300 dark:bg-gray-800 dark:border-gray-700"
                   }`}
                 />
               </div>
               <div className="w-full sm:w-40">
-                <label className="text-sm text-gray-400 mb-1 block">Direction</label>
+                <label htmlFor="price-alerts-direction" className="text-sm text-gray-400 mb-1 block">Direction</label>
                 <select
+                  id="price-alerts-direction"
                   value={direction}
                   onChange={(e) => setDirection(e.target.value as "ABOVE" | "BELOW")}
                   className={`w-full px-4 py-2 rounded-md border ${
-                    darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"
+                    "bg-white border-gray-300 dark:bg-gray-800 dark:border-gray-700"
                   }`}
                 >
                   <option value="ABOVE">Goes above</option>
@@ -123,8 +129,9 @@ function PriceAlerts() {
                 </select>
               </div>
               <div className="w-full sm:w-40">
-                <label className="text-sm text-gray-400 mb-1 block">Target Price (₹)</label>
+                <label htmlFor="price-alerts-target-price" className="text-sm text-gray-400 mb-1 block">Target Price (₹)</label>
                 <input
+                  id="price-alerts-target-price"
                   type="number"
                   min={0}
                   step="0.01"
@@ -132,7 +139,7 @@ function PriceAlerts() {
                   onChange={(e) => setTargetPrice(e.target.value)}
                   placeholder="0.00"
                   className={`w-full px-4 py-2 rounded-md border ${
-                    darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-300"
+                    "bg-white border-gray-300 dark:bg-gray-800 dark:border-gray-700"
                   }`}
                 />
               </div>
@@ -171,7 +178,7 @@ function PriceAlerts() {
                       </p>
                       <p className="text-xs text-gray-400">
                         {alert.triggered
-                          ? `Triggered ${new Date(alert.triggeredAt).toLocaleString("en-IN")}`
+                          ? `Triggered ${new Date(alert.triggeredAt ?? alert.createdAt).toLocaleString("en-IN")}`
                           : `Created ${new Date(alert.createdAt).toLocaleString("en-IN")}`}
                       </p>
                     </div>

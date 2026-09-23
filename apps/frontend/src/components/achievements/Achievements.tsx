@@ -1,57 +1,62 @@
 "use client";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
-import ThemeContext from "../../context/ThemeContext";
-import { Helmet } from "react-helmet";
 import { getAchievements } from "../../api/api";
 import { getBadgeIconSrc } from "./badgeIcons";
+import { useAsyncEffect } from "../../hooks/useAsyncEffect";
+import Image from "next/image";
+import { apiErrorMessage } from "../../api/http";
+import type { Badge } from "@tradexcel/shared";
 
 function Achievements() {
-  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
-  const [badges, setBadges] = useState<any[]>([]);
+  const [badges, setBadges] = useState<Badge[]>([]);
   const [earnedCount, setEarnedCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchAchievements = useCallback(async () => {
+  // State is only set after the first await, so effects can call this directly.
+  const loadAchievements = useCallback(async (isActive: () => boolean = () => true) => {
     try {
-      setIsLoading(true);
-      setError("");
       const response = await getAchievements();
+      if (!isActive()) return;
       setBadges(response?.data?.badges || []);
       setEarnedCount(response?.data?.earnedCount || 0);
       setTotalCount(response?.data?.totalCount || 0);
-    } catch (err: any) {
-      setError(err.message || "Failed to load achievements.");
+    } catch (err) {
+      if (!isActive()) return;
+      setError(apiErrorMessage(err, "Failed to load achievements."));
     } finally {
-      setIsLoading(false);
+      if (isActive()) setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchAchievements();
-  }, [fetchAchievements]);
+  // For buttons/handlers: show the loading state, then load.
+  const fetchAchievements = useCallback(
+    () => {
+      setIsLoading(true);
+      setError("");
+      return loadAchievements();
+    },
+    [loadAchievements]
+  );
 
-  const cardBg = darkMode ? "bg-gray-900" : "bg-gray-50";
+  useAsyncEffect((isActive) => loadAchievements(isActive), [loadAchievements]);
+
+  const cardBg = "bg-gray-50 dark:bg-gray-900";
 
   return (
     <>
-      <Helmet>
-        <title>Achievements</title>
-      </Helmet>
       <div
         className={
-          darkMode
-            ? "bg-gray-800 text-white min-h-screen transition-colors duration-300 font-pop"
-            : "bg-white text-black min-h-screen transition-colors duration-300 font-pop"
+          "bg-white text-black min-h-screen transition-colors duration-300 font-pop dark:bg-gray-800 dark:text-white"
         }
       >
-        <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        <Header />
         <div className="flex flex-col lg:flex-row">
-          <Vheader darkMode={darkMode} />
+          <Vheader />
           <main className="flex-1 min-w-0 pb-24 md:pb-0 p-6 m-2 md:m-12">
             <h1 className="text-xl md:text-2xl font-bold">Achievements</h1>
             <div className="h-2 w-32 md:w-36 bg-blue-500 rounded-full mb-6 animate-line"></div>
@@ -73,7 +78,7 @@ function Achievements() {
                     {earnedCount} / {totalCount}
                   </p>
                 </div>
-                <div className={`h-2 rounded-full overflow-hidden ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}>
+                <div className={`h-2 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700`}>
                   <div
                     className="h-2 rounded-full bg-blue-500"
                     style={{ width: `${totalCount > 0 ? (earnedCount / totalCount) * 100 : 0}%` }}
@@ -101,7 +106,7 @@ function Achievements() {
                     >
                       <div className="w-14 h-14 shrink-0 rounded-xl overflow-hidden bg-black/20 flex items-center justify-center">
                         {iconSrc ? (
-                          <img
+                          <Image
                             src={iconSrc}
                             alt={badge.name}
                             className={`w-full h-full object-cover ${badge.earned ? "" : "grayscale"}`}

@@ -1,11 +1,9 @@
 "use client";
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '../dashboard/Header';
 import Vheader from '../dashboard/Vheader';
-import ThemeContext from "../../context/ThemeContext";
-import { Helmet } from 'react-helmet';
 import { getPortfolio } from '../../api/api';
 import TradeModal from '../trade/TradeModal';
 import { formatInr, formatSignedInr, formatPercent } from '../../utils/format';
@@ -13,6 +11,10 @@ import { useLiveQuotes } from '../../hooks/useLiveQuotes';
 import { useMarketStatus } from '../../hooks/useMarketStatus';
 import LiveStatusBadge from '../layout/LiveStatusBadge';
 import MarketClosedBanner from '../layout/MarketClosedBanner';
+import { useAsyncEffect } from "../../hooks/useAsyncEffect";
+import { onActivateKey } from "../../utils/a11y";
+import { apiErrorMessage } from "../../api/http";
+import type { PortfolioHolding, PortfolioSummary } from "@tradexcel/shared";
 
 // Cycled across holdings for the allocation bar + row avatars; cash stays neutral gray.
 const ALLOCATION_COLORS = [
@@ -21,31 +23,39 @@ const ALLOCATION_COLORS = [
 ];
 
 function Portfolio() {
-  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const router = useRouter();
 
-  const [holdings, setHoldings] = useState<any[]>([]);
-  const [summary, setSummary] = useState<any>(null);
+  const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
+  const [summary, setSummary] = useState<PortfolioSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [tradeModal, setTradeModal] = useState<{ symbol: string; side: "BUY" | "SELL"; initialPrice: number; availableQty: number } | null>(null);
 
-  const fetchPortfolio = useCallback(async () => {
+  // State is only set after the first await, so effects can call this directly.
+  const loadPortfolio = useCallback(async (isActive: () => boolean = () => true) => {
     try {
-      setIsLoading(true);
       const response = await getPortfolio();
+      if (!isActive()) return;
       setHoldings(response?.data?.holdings || []);
       setSummary(response?.data?.summary || null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load portfolio.');
+    } catch (err) {
+      if (!isActive()) return;
+      setError(apiErrorMessage(err, 'Failed to load portfolio.'));
     } finally {
-      setIsLoading(false);
+      if (isActive()) setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchPortfolio();
-  }, [fetchPortfolio]);
+  // For buttons/handlers: show the loading state, then load.
+  const fetchPortfolio = useCallback(
+    () => {
+      setIsLoading(true);
+      return loadPortfolio();
+    },
+    [loadPortfolio]
+  );
+
+  useAsyncEffect((isActive) => loadPortfolio(isActive), [loadPortfolio]);
 
   const openStockDetail = (symbol: string) => {
     router.push(`/market?symbol=${encodeURIComponent(symbol)}`);
@@ -93,27 +103,24 @@ function Portfolio() {
   const allocation = [
     ...liveHoldings.map((h, i) => ({
       label: h.symbol,
-      value: Number(h.currentValue ?? h.avgBuyPrice * h.quantity),
+      value: Number(h.currentValue ?? Number(h.avgBuyPrice) * h.quantity),
       color: ALLOCATION_COLORS[i % ALLOCATION_COLORS.length],
     })),
-    { label: "Cash", value: walletBalance, color: darkMode ? "bg-gray-600" : "bg-gray-300" },
+    { label: "Cash", value: walletBalance, color: "bg-gray-300 dark:bg-gray-600" },
   ].filter((slice) => slice.value > 0);
 
-  const cardBg = darkMode ? "bg-gray-900" : "bg-gray-50";
+  const cardBg = "bg-gray-50 dark:bg-gray-900";
 
   return (
     <>
-      <Helmet>
-        <title>Portfolio</title>
-      </Helmet>
-      <div className={`${darkMode ? "bg-gray-800 text-white" : "bg-white text-black"} font-pop mb-16 md:mb-0 transition-colors duration-300`}>
-        <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      <div className={`bg-white text-black dark:bg-gray-800 dark:text-white font-pop mb-16 md:mb-0 transition-colors duration-300`}>
+        <Header />
         <div className="flex">
-          <Vheader darkMode={darkMode} />
+          <Vheader />
           <main className="flex-1 min-w-0 p-6 m-0 md:m-10">
             <h1 className="text-2xl md:text-3xl font-bold">Your Portfolio</h1>
             <div className="h-2 w-44 bg-blue-500 rounded-full mb-6 animate-line"></div>
-            <MarketClosedBanner darkMode={darkMode} />
+            <MarketClosedBanner />
 
             {error && (
               <div className="mb-4 flex items-center gap-3">
@@ -226,14 +233,17 @@ function Portfolio() {
                               <tr
                                 key={holding.id}
                                 onClick={() => openStockDetail(holding.symbol)}
-                                className={`border-b border-l-4 cursor-pointer ${
+                                onKeyDown={onActivateKey(() => openStockDetail(holding.symbol))}
+                                tabIndex={0}
+                                aria-label={`View ${holding.symbol}`}
+                                className={`border-b border-l-4 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                                   pnl === null
                                     ? "border-l-transparent"
                                     : pnlPositive
                                     ? "border-l-green-500"
                                     : "border-l-red-500"
                                 } ${
-                                  darkMode ? "dark:border-gray-700 hover:bg-gray-800" : "border-gray-200 hover:bg-gray-100"
+                                  "border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
                                 } transition-colors duration-150`}
                               >
                                 <td className="py-3 px-4 text-xs md:text-base font-medium">
@@ -269,7 +279,7 @@ function Portfolio() {
                                         availableQty: holding.quantity,
                                       });
                                     }}
-                                    className={`px-4 py-1.5 rounded text-white text-xs md:text-sm transition-colors duration-200 active:scale-95 ${darkMode ? "bg-red-600 hover:bg-red-500" : "bg-red-500 hover:bg-red-400"}`}
+                                    className={`px-4 py-1.5 rounded text-white text-xs md:text-sm transition-colors duration-200 active:scale-95 bg-red-500 hover:bg-red-400 dark:bg-red-600 dark:hover:bg-red-500`}
                                   >
                                     Sell
                                   </button>
@@ -294,7 +304,6 @@ function Portfolio() {
           initialPrice={tradeModal.initialPrice}
           availableCash={walletBalance}
           availableQty={tradeModal.availableQty}
-          darkMode={darkMode}
           onClose={() => setTradeModal(null)}
           onSuccess={fetchPortfolio}
         />

@@ -1,3 +1,4 @@
+import type { StaticImageData } from "next/image";
 import firstTrade from "../../assets/badges/first_trade.png";
 import inTheGreen from "../../assets/badges/in_the_green.png";
 import centuryClub from "../../assets/badges/century_club.png";
@@ -21,7 +22,7 @@ import networker from "../../assets/badges/networker.png";
 // Keyed by the same badgeId the backend catalog uses
 // (apps/backend/src/services/achievements.ts), so this is the one place to
 // touch when new badge art lands.
-const BADGE_ICONS: Record<string, any> = {
+const BADGE_ICONS: Record<string, StaticImageData> = {
   first_trade: firstTrade,
   in_the_green: inTheGreen,
   century_club: centuryClub,
@@ -44,8 +45,6 @@ const BADGE_ICONS: Record<string, any> = {
 
 // Returns the icon image src for a badge if art exists, or null so callers
 // can fall back to the emoji the backend already sends.
-export function getBadgeIconSrc(badgeId: string): string | null {
-  const asset = BADGE_ICONS[badgeId];
-  if (!asset) return null;
-  return (asset?.src || asset) as string;
+export function getBadgeIconSrc(badgeId: string): StaticImageData | null {
+  return BADGE_ICONS[badgeId] ?? null;
 }

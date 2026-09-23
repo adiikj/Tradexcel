@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { getSocket, subscribeSymbols } from "../lib/socket";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { getSocket, peekSocket, subscribeSymbols } from "../lib/socket";
 
 export interface LiveQuote {
   price: number;
@@ -9,29 +9,28 @@ export interface LiveQuote {
   timestamp: number;
 }
 
+// Connection status as an external store: subscribing opens the shared socket.
+function subscribeConnection(onChange: () => void) {
+  const socket = getSocket();
+  socket.on("connect", onChange);
+  socket.on("disconnect", onChange);
+  return () => {
+    socket.off("connect", onChange);
+    socket.off("disconnect", onChange);
+  };
+}
+
+const readConnected = () => peekSocket()?.connected ?? false;
+
 // Subscribes to live price ticks for a set of symbols over the shared socket
 // connection. Re-subscribes only when the actual symbol set changes (not on
 // every render, since callers typically pass a freshly-mapped array).
 export function useLiveQuotes(symbols: string[]) {
   const key = symbols.length ? [...new Set(symbols)].sort().join(",") : "";
   const [quotes, setQuotes] = useState<Record<string, LiveQuote>>({});
-  const [connected, setConnected] = useState(false);
+  const connected = useSyncExternalStore(subscribeConnection, readConnected, () => false);
   const subscribedRef = useRef<string[]>([]);
 
-  useEffect(() => {
-    const socket = getSocket();
-    setConnected(socket.connected);
-
-    const handleConnect = () => setConnected(true);
-    const handleDisconnect = () => setConnected(false);
-    socket.on("connect", handleConnect);
-    socket.on("disconnect", handleDisconnect);
-
-    return () => {
-      socket.off("connect", handleConnect);
-      socket.off("disconnect", handleDisconnect);
-    };
-  }, []);
 
   useEffect(() => {
     if (!key) return;

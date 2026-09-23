@@ -17,6 +17,8 @@ import portfolio_w from "../../assets/portfolio-w.png";
 import contest_w from "../../assets/contest-w.png";
 import faq_w from "../../assets/faq-w.png";
 import wallet_w from "../../assets/wallet-w.png";
+import Image, { type StaticImageData } from "next/image";
+import ThemedImage from "../ui/ThemedImage";
 
 // No dedicated PNG assets for Activity/News yet; rendered inline via currentColor instead.
 const ActivityIcon = ({ className }: { className?: string }) => (
@@ -84,21 +86,30 @@ const MoreIcon = ({ className }: { className?: string }) => (
 );
 
 // Shared icon renderer for every nav surface (mobile bar, "More" sheet, desktop sidebar).
-function ItemIcon({ item, darkMode, isActive, className }: any) {
+type NavItem = {
+  name: string;
+  path: string;
+  icon?: StaticImageData | null;
+  activeIcon?: StaticImageData | null;
+  svgIcon?: React.ComponentType<{ className?: string }>;
+};
+
+function ItemIcon({ item, isActive, className }: { item: NavItem; isActive: boolean; className?: string }) {
   if (item.svgIcon) {
     const Icon = item.svgIcon;
     return <Icon className={className} />;
   }
-  const src = (darkMode ? item.activeIcon : isActive ? item.activeIcon : item.icon)?.src
-    ?? (darkMode ? item.activeIcon : isActive ? item.activeIcon : item.icon);
-  return <img src={src as string} alt={item.name} className={className} />;
+  if (!item.icon || !item.activeIcon) return null;
+  // Active items and dark mode both use the white icon.
+  if (isActive) return <Image src={item.activeIcon} alt={item.name} className={className} />;
+  return <ThemedImage light={item.icon} dark={item.activeIcon} alt={item.name} className={className} />;
 }
 
 // Only the highest-frequency actions get a permanent slot on the mobile bar; the rest live behind "More".
 const PRIMARY_MOBILE_NAMES = ["Home", "Portfolio", "Wallet", "Market"];
 
-function Vheader({ darkMode, ...props }: any) {
-  const [menuOpen, setMenuOpen] = useState<any>(true);
+function Vheader() {
+  const [menuOpen, setMenuOpen] = useState(true);
   const [moreOpen, setMoreOpen] = useState(false);
   const location = usePathname(); // Hook to get the current location
 
@@ -121,7 +132,7 @@ function Vheader({ darkMode, ...props }: any) {
   return (
     <div
       className={`relative ${
-        darkMode ? 'bg-gray-900 text-white' : 'bg-grey text-black'
+        "bg-grey text-black dark:bg-gray-900 dark:text-white"
       } font-pop transition-all duration-300`}
     >
       <div>
@@ -129,7 +140,7 @@ function Vheader({ darkMode, ...props }: any) {
         <div className="lg:hidden fixed bottom-0 w-full z-10">
           <div
             className={`flex justify-around items-center py-2 ${
-              darkMode ? 'bg-gray-900' : 'bg-grey'
+              "bg-grey dark:bg-gray-900"
             }`}
           >
             {primaryMobileItems.map((item) => {
@@ -140,14 +151,11 @@ function Vheader({ darkMode, ...props }: any) {
                     className={`flex flex-col items-center ${
                       isActive
                         ? 'bg-blue-500 text-white'
-                        : darkMode
-                        ? 'bg-transparent text-white'
-                        : 'bg-transparent text-black'
+                        : "bg-transparent text-black dark:text-white"
                     } p-2 rounded-lg transition-all duration-300 ease-in-out`}
                   >
                     <ItemIcon
                       item={item}
-                      darkMode={darkMode}
                       isActive={isActive}
                       className={`w-6 h-6 sm:w-8 sm:h-8 transition-all duration-300 ease-in-out ${
                         isActive ? 'scale-110' : ''
@@ -155,7 +163,7 @@ function Vheader({ darkMode, ...props }: any) {
                     />
                     <span
                       className={`text-xs sm:text-sm font-medium mt-1 ${
-                        darkMode ? 'text-white' : isActive ? 'text-white' : 'text-black'
+                        isActive ? 'text-white' : 'text-black dark:text-white'
                       }`}
                     >
                       {item.name}
@@ -169,13 +177,11 @@ function Vheader({ darkMode, ...props }: any) {
                 className={`flex flex-col items-center ${
                   moreOpen
                     ? 'bg-blue-500 text-white'
-                    : darkMode
-                    ? 'bg-transparent text-white'
-                    : 'bg-transparent text-black'
+                    : "bg-transparent text-black dark:text-white"
                 } p-2 rounded-lg transition-all duration-300 ease-in-out`}
               >
                 <MoreIcon className="w-6 h-6 sm:w-8 sm:h-8 transition-all duration-300 ease-in-out" />
-                <span className={`text-xs sm:text-sm font-medium mt-1 ${darkMode ? 'text-white' : 'text-black'}`}>
+                <span className={`text-xs sm:text-sm font-medium mt-1 text-black dark:text-white`}>
                   More
                 </span>
               </span>
@@ -200,10 +206,10 @@ function Vheader({ darkMode, ...props }: any) {
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 32, stiffness: 320 }}
                 className={`lg:hidden fixed bottom-0 inset-x-0 z-30 rounded-t-3xl pt-3 pb-8 px-4 ${
-                  darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'
+                  "bg-white text-black dark:bg-gray-900 dark:text-white"
                 }`}
               >
-                <div className={`w-10 h-1.5 rounded-full mx-auto mb-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
+                <div className={`w-10 h-1.5 rounded-full mx-auto mb-4 bg-gray-300 dark:bg-gray-700`} />
                 <div className="grid grid-cols-3 gap-3">
                   {moreMobileItems.map((item) => {
                     const isActive = location === item.path;
@@ -213,10 +219,10 @@ function Vheader({ darkMode, ...props }: any) {
                         key={item.name}
                         onClick={() => setMoreOpen(false)}
                         className={`flex flex-col items-center gap-2 py-4 rounded-xl transition-colors duration-200 ${
-                          isActive ? 'bg-blue-500 text-white' : darkMode ? 'bg-gray-800' : 'bg-gray-100'
+                          isActive ? 'bg-blue-500 text-white' : "bg-gray-100 dark:bg-gray-800"
                         }`}
                       >
-                        <ItemIcon item={item} darkMode={darkMode} isActive={isActive} className="w-6 h-6" />
+                        <ItemIcon item={item} isActive={isActive} className="w-6 h-6" />
                         <span className="text-xs font-medium text-center">{item.name}</span>
                       </Link>
                     );
@@ -236,15 +242,18 @@ function Vheader({ darkMode, ...props }: any) {
       >
         <div className="flex flex-col items-center pb-6 font-bold text-xl">
           <button
-            className="focus:outline-none p-2 self-start"
-            onClick={() => setMenuOpen(!menuOpen)} // Toggle menu
+            type="button"
+            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded p-2 self-start"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? "Collapse sidebar" : "Expand sidebar"}
+            aria-expanded={menuOpen}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              className={`w-8 h-8 ${darkMode ? 'text-white' : 'text-black'}`}
+              className={`w-8 h-8 text-black dark:text-white`}
             >
               <path
                 strokeLinecap="round"
@@ -265,17 +274,15 @@ function Vheader({ darkMode, ...props }: any) {
                         className={`text-base font-medium text-center flex items-center gap-2 p-2 rounded-lg transition-all duration-500 ease-in-out ${
                           location === item.path
                             ? 'bg-blue-500 text-white'
-                            : darkMode
-                            ? 'bg-transparent text-white'
-                            : 'bg-transparent text-black'
+                            : "bg-transparent text-black dark:text-white"
                         }`}
                       >
                         {item.svgIcon ? (
                           <item.svgIcon className="w-6 h-6 transition-all duration-300 ease-in-out" />
                         ) : (
-                          <img
-                            src={((darkMode ? item.activeIcon : location === item.path ? item.activeIcon : item.icon)?.src || (darkMode ? item.activeIcon : location === item.path ? item.activeIcon : item.icon)) as string}
-                            alt={item.name}
+                          <ItemIcon
+                            item={item}
+                            isActive={location === item.path}
                             className="w-6 h-6 transition-all duration-300 ease-in-out"
                           />
                         )}
@@ -297,9 +304,9 @@ function Vheader({ darkMode, ...props }: any) {
                           }`}
                         />
                       ) : (
-                        <img
-                          src={((darkMode ? item.activeIcon : location === item.path ? item.activeIcon : item.icon)?.src || (darkMode ? item.activeIcon : location === item.path ? item.activeIcon : item.icon)) as string}
-                          alt={item.name}
+                        <ItemIcon
+                          item={item}
+                          isActive={location === item.path}
                           className={`m-1 mb-5 p-2 rounded-lg transition-all duration-500 ease-in-out ${
                             location === item.path
                               ? 'bg-blue-500 w-10 h-10 transform scale-110'

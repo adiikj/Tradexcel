@@ -1,17 +1,19 @@
 "use client";
 import React, { useRef, useEffect } from 'react';
 import { Chart, CategoryScale, LinearScale, LineElement, LineController, PointElement } from 'chart.js';
+import type { StockCardData } from "../../types/market";
 
 Chart.register(CategoryScale, LinearScale, LineElement, LineController, PointElement);
 
-function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, price, todayChange, darkMode  }: any) {
-  const chartRef = useRef(null);
-  const chartInstance = useRef(null);
+function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, price, todayChange }: StockCardData) {
+  const chartRef = useRef<HTMLCanvasElement>(null);
+  const chartInstance = useRef<Chart | null>(null);
 
   const isPositive = parseFloat(todayChange) >= 0;
 
   useEffect(() => {
-    const ctx = chartRef.current.getContext('2d');
+    const ctx = chartRef.current?.getContext('2d');
+    if (!ctx) return;
 
     if (chartInstance.current) {
       chartInstance.current.destroy();
@@ -86,18 +88,18 @@ function Stocks({ shortName, fullName, stockPrices, labels, percentageChange, pr
         chartInstance.current.destroy();
       }
     };
-  }, [percentageChange, shortName, stockPrices, labels, todayChange]);
+  }, [percentageChange, shortName, stockPrices, labels, todayChange, isPositive]);
 
   const formattedTodayChange = todayChange && todayChange !== 'NA' ? `${todayChange}` : 'NA';
   const formattedPercentageChange = percentageChange && percentageChange !== 'NA' ? `${percentageChange}` : 'NA';
 
   return (
-    <div className={`p-3 w-full flex flex-row sm:flex-row items-center rounded-lg shadow-md hover:shadow-lg mb-2 md:mb-4 ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'} transition-[background-color,box-shadow] duration-300`}>
+    <div className={`p-3 w-full flex flex-row sm:flex-row items-center rounded-lg shadow-md hover:shadow-lg mb-2 md:mb-4 bg-white text-black dark:bg-gray-800 dark:text-white transition-[background-color,box-shadow] duration-300`}>
       <div className="flex flex-col items-center w-full sm:w-1/3 mb-4 sm:mb-0">
         <div className="text-sm md:text-base font-semibold">{shortName}</div>
 
         <div
-          className={`text-xs md:text-sm ${darkMode ?  'text-gray-200' : ' text-gray-600'} transition-colors duration-300 overflow-hidden whitespace-nowrap text-ellipsis`}
+          className={`text-xs md:text-sm text-gray-600 dark:text-gray-200 transition-colors duration-300 overflow-hidden whitespace-nowrap text-ellipsis`}
           title={fullName}
         >
           {fullName.length > 15 ? `${fullName.substring(0, 15)}...` : fullName}

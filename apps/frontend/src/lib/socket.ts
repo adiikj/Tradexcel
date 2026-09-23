@@ -4,6 +4,11 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
 let socket: Socket | null = null;
 const refCounts = new Map<string, number>();
 
+// The shared socket if one exists yet - never creates it (safe during render).
+export function peekSocket(): Socket | null {
+  return socket;
+}
+
 export function getSocket(): Socket {
   if (!socket) {
     socket = io(SOCKET_URL, {

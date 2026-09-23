@@ -1,14 +1,16 @@
 "use client";
-import React, { useCallback, useContext, useEffect, useState } from "react";
-import { Helmet } from "react-helmet";
+import React, { useCallback, useState } from "react";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
-import ThemeContext from "../../context/ThemeContext";
 import { getNews } from "../../api/api";
 import { timeAgo } from "../../utils/format";
+import { useAsyncEffect } from "../../hooks/useAsyncEffect";
+import RemoteImage from "../ui/RemoteImage";
+import { apiErrorMessage } from "../../api/http";
+import type { NewsArticle } from "@tradexcel/shared";
 
-function NewsCard({ article, darkMode }: { article: any; darkMode: boolean }) {
-  const cardBg = darkMode ? "bg-gray-900" : "bg-gray-50";
+function NewsCard({ article }: { article: NewsArticle }) {
+  const cardBg = "bg-gray-50 dark:bg-gray-900";
 
   return (
     <a
@@ -16,11 +18,11 @@ function NewsCard({ article, darkMode }: { article: any; darkMode: boolean }) {
       target="_blank"
       rel="noopener noreferrer"
       className={`flex gap-4 rounded-xl p-4 transition-colors duration-200 ${cardBg} ${
-        darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"
+        "hover:bg-gray-100 dark:hover:bg-gray-700"
       }`}
     >
       {article.thumbnail && (
-        <img src={article.thumbnail} alt="" className="w-24 h-24 rounded-lg object-cover shrink-0 hidden sm:block" />
+        <RemoteImage src={article.thumbnail} alt="" className="w-24 h-24 rounded-lg object-cover shrink-0 hidden sm:block" width={96} height={96} />
       )}
       <div className="min-w-0 flex-1">
         <p className="font-semibold leading-snug line-clamp-2">{article.title}</p>
@@ -35,7 +37,7 @@ function NewsCard({ article, darkMode }: { article: any; darkMode: boolean }) {
               <span
                 key={ticker}
                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                  darkMode ? "bg-blue-900/40 text-blue-300" : "bg-blue-100 text-blue-700"
+                  "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
                 }`}
               >
                 {ticker}
@@ -49,55 +51,58 @@ function NewsCard({ article, darkMode }: { article: any; darkMode: boolean }) {
 }
 
 function News() {
-  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
-  const [articles, setArticles] = useState<any[]>([]);
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [personalized, setPersonalized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchNews = useCallback(async () => {
+  // State is only set after the first await, so effects can call this directly.
+  const loadNews = useCallback(async (isActive: () => boolean = () => true) => {
     try {
-      setIsLoading(true);
-      setError("");
       const response = await getNews();
+      if (!isActive()) return;
       setArticles(response?.data?.articles || []);
       setPersonalized(Boolean(response?.data?.personalized));
-    } catch (err: any) {
-      setError(err.message || "Failed to load news.");
+    } catch (err) {
+      if (!isActive()) return;
+      setError(apiErrorMessage(err, "Failed to load news."));
     } finally {
-      setIsLoading(false);
+      if (isActive()) setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchNews();
-  }, [fetchNews]);
+  // For buttons/handlers: show the loading state, then load.
+  const fetchNews = useCallback(
+    () => {
+      setIsLoading(true);
+      setError("");
+      return loadNews();
+    },
+    [loadNews]
+  );
 
-  const cardBg = darkMode ? "bg-gray-900" : "bg-gray-50";
+  useAsyncEffect((isActive) => loadNews(isActive), [loadNews]);
+
+  const cardBg = "bg-gray-50 dark:bg-gray-900";
 
   return (
     <>
-      <Helmet>
-        <title>News</title>
-      </Helmet>
       <div
         className={
-          darkMode
-            ? "bg-gray-800 text-white min-h-screen transition-colors duration-300 font-pop"
-            : "bg-white text-black min-h-screen transition-colors duration-300 font-pop"
+          "bg-white text-black min-h-screen transition-colors duration-300 font-pop dark:bg-gray-800 dark:text-white"
         }
       >
-        <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        <Header />
         <div className="flex flex-col md:flex-row">
-          <Vheader darkMode={darkMode} />
+          <Vheader />
           <main className="flex-1 min-w-0 p-4 m-4 md:m-10 mb-20 md:mb-10">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl md:text-3xl font-bold">News</h1>
               {!isLoading && personalized && (
                 <span
                   className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                    darkMode ? "bg-blue-900/40 text-blue-300" : "bg-blue-100 text-blue-700"
+                    "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
                   }`}
                 >
                   Personalized
@@ -126,7 +131,7 @@ function News() {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                 {articles.map((article) => (
-                  <NewsCard key={article.id} article={article} darkMode={darkMode} />
+                  <NewsCard key={article.id} article={article} />
                 ))}
               </div>
             )}

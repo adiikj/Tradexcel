@@ -1,19 +1,39 @@
 "use client";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { FaEdit, FaSave, FaEye, FaEyeSlash, FaTimes, FaUserCircle } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import Header from "./Header";
 import Vheader from "./Vheader";
-import ThemeContext from "../../context/ThemeContext";
-import { Helmet } from "react-helmet";
 import { getUserProfile, updateUserProfile, changePasswordAndPin, updateAvatar } from "../../api/api";
+import { useAsyncEffect } from "../../hooks/useAsyncEffect";
+import Avatar from "../ui/Avatar";
+
+type Section = "personal" | "security";
+
+type ProfileForm = {
+  name: string;
+  username: string;
+  email: string;
+  phoneNumber: string;
+  dob: string;
+  // A URL once saved, or the File the user just picked.
+  avatar: string | File | null;
+};
+
+type SecurityForm = {
+  oldPassword: string;
+  newPassword: string;
+  oldPin: string;
+  newPin: string;
+};
+
+type SecurityField = keyof SecurityForm;
 
 function YourProfile() {
-  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
-  const [activeSection, setActiveSection] = useState<any>("personal");
-  const [formData, setFormData] = useState<any>({
+  const [activeSection, setActiveSection] = useState<Section>("personal");
+  const [formData, setFormData] = useState<ProfileForm>({
     name: "",
     username: "",
     email: "",
@@ -22,31 +42,44 @@ function YourProfile() {
     avatar: null,
   });
 
-  const [securityData, setSecurityData] = useState<any>({
+  const [securityData, setSecurityData] = useState<SecurityForm>({
     oldPassword: "",
     newPassword: "",
     oldPin: "",
     newPin: "",
   });
 
-  const [initialData, setInitialData] = useState<any>({});
-  const [isEditing, setIsEditing] = useState<any>(false);
-  const [accountFlags, setAccountFlags] = useState<any>({
+  const [initialData, setInitialData] = useState<ProfileForm | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [accountFlags, setAccountFlags] = useState({
     hasGoogleLogin: false,
     hasPassword: false,
     hasPin: false,
   });
-  const [showPassword, setShowPassword] = useState<any>({
+  const [showPassword, setShowPassword] = useState<Record<SecurityField, boolean>>({
     oldPassword: false,
     newPassword: false,
     oldPin: false,
     newPin: false,
   });
-  const [streak, setStreak] = useState<any>({ currentStreak: 0, longestStreak: 0 });
+  const [streak, setStreak] = useState({ currentStreak: 0, longestStreak: 0 });
 
-  const fetchUserProfile = async () => {
+  // One object URL per picked file, released when it changes or on unmount
+  // (creating it inline leaked a new URL on every render).
+  const avatarPreviewUrl = useMemo(
+    () => (formData.avatar instanceof File ? URL.createObjectURL(formData.avatar) : null),
+    [formData.avatar]
+  );
+  useEffect(() => {
+    return () => {
+      if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
+    };
+  }, [avatarPreviewUrl]);
+
+  const fetchUserProfile = async (isActive: () => boolean = () => true) => {
     try {
       const response = await getUserProfile();
+      if (!isActive()) return;
       if (response.status === 200 && response.data) {
         const {
           name,
@@ -77,16 +110,16 @@ function YourProfile() {
         setAccountFlags({ hasGoogleLogin: !!hasGoogleLogin, hasPassword: !!hasPassword, hasPin: !!hasPin });
         setStreak({ currentStreak: currentStreak || 0, longestStreak: longestStreak || 0 });
       }
-    } catch (err) {
+    } catch {
       // Fields stay at their defaults; the form is still usable.
     }
   };
 
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
+  // Mount-only load; fetchUserProfile is recreated each render but only its
+  // first instance is needed here.
+  useAsyncEffect((isActive) => fetchUserProfile(isActive), []);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (activeSection === "personal") {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -99,7 +132,7 @@ function YourProfile() {
     setIsEditing((prev) => !prev);
     if (isEditing) {
       // Reset to initial data on cancel
-      setFormData(initialData);
+      if (initialData) setFormData(initialData);
       setSecurityData({
         oldPassword: "",
         newPassword: "",
@@ -109,7 +142,7 @@ function YourProfile() {
     }
   };
 
-  const handleSectionChange = (section) => {
+  const handleSectionChange = (section: Section) => {
     if (isEditing) {
       alert("Please save or cancel your current changes before switching sections.");
       return;
@@ -134,12 +167,12 @@ function YourProfile() {
       } else {
         alert("Failed to update avatar.");
       }
-    } catch (err) {
+    } catch {
       alert("There was an error updating the avatar. Please try again.");
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     if (formData.avatar instanceof File) {
@@ -147,10 +180,10 @@ function YourProfile() {
       return;
     }
     
-    const payload: any = {};
+    const payload: Record<string, string> = {};
 
     if (activeSection === "personal") {
-      if (formData.name || formData.username || formData.email || formData.phoneNumber || formData.dob || formData.profilePicture) {
+      if (formData.name || formData.username || formData.email || formData.phoneNumber || formData.dob) {
         payload.name = formData.name;
         payload.username = formData.username;
         payload.email = formData.email;
@@ -192,14 +225,14 @@ function YourProfile() {
       } else {
         alert("Failed to update profile. Please try again.");
       }
-    } catch (err) {
+    } catch {
       alert("There was an error updating the profile. Please try again.");
     }
 
     setIsEditing(false);
   };
 
-  const handleAvatarChange = (e) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setFormData((prev) => ({
@@ -209,52 +242,60 @@ function YourProfile() {
     }
   };
 
-  const handleShowPassword = (field) => {
+  const handleShowPassword = (field: SecurityField) => {
     setShowPassword((prev) => ({
       ...prev,
       [field]: !prev[field],
     }));
   };
 
-  const renderField = (label, name, type = "text") => (
+  const isSecurityField = (name: string): name is SecurityField => name in showPassword;
+
+  const fieldValue = (name: keyof ProfileForm | SecurityField): string => {
+    const value = isSecurityField(name) ? securityData[name] : formData[name];
+    return typeof value === "string" ? value : "";
+  };
+
+  const renderField = (label: string, name: keyof ProfileForm | SecurityField, type = "text") => (
     <div>
       <label
         htmlFor={name}
-        className={`block font-pop font-medium mb-2 ${darkMode ? "text-gray-200" : "text-gray-800"}`}
+        className={`block font-pop font-medium mb-2 text-gray-800 dark:text-gray-200`}
       >
         {label}
       </label>
       {isEditing ? (
         <div className="relative">
           <input
-            type={showPassword[name] ? "text" : type}
+            type={isSecurityField(name) && showPassword[name] ? "text" : type}
             id={name}
             name={name}
-            value={activeSection === "personal" ? formData[name] : securityData[name]}
+            value={fieldValue(name)}
             onChange={handleChange}
             className={`w-full p-3 border rounded-md transition-all duration-300 focus:ring-2 focus:ring-blue-500 ${
-              darkMode ? "bg-gray-700 border-gray-600 text-gray-100" : "bg-white border-gray-300 text-gray-800"
+              "bg-white border-gray-300 text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
             }`}
           />
           {type === "password" && (
             <button
               type="button"
-              onClick={() => handleShowPassword(name)}
+              onClick={() => isSecurityField(name) && handleShowPassword(name)}
+              aria-label={isSecurityField(name) && showPassword[name] ? `Hide ${label}` : `Show ${label}`}
               className="absolute top-1/2 right-3 transform -translate-y-1/2"
             >
-              {showPassword[name] ? <FaEyeSlash /> : <FaEye />}
+              {isSecurityField(name) && showPassword[name] ? <FaEyeSlash /> : <FaEye />}
             </button>
           )}
         </div>
       ) : (
         <p
           className={`p-3 border rounded-md transition-all duration-300 ${
-            darkMode ? "bg-gray-700 border-gray-600 text-gray-100" : "bg-gray-100 border-gray-300 text-gray-800"
+            "bg-gray-100 border-gray-300 text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
           }`}
         >
           {type === "password"
             ? "********"
-            : (activeSection === "personal" ? formData[name] : securityData[name]) || "N/A"}
+            : fieldValue(name) || "N/A"}
         </p>
       )}
     </div>
@@ -262,16 +303,13 @@ function YourProfile() {
 
   return (
     <>
-      <Helmet>
-        <title>Your Profile</title>
-      </Helmet>
-      <div className={`min-h-screen font-pop transition-all duration-300 ${darkMode ? "bg-gray-800 text-gray-200" : "bg-white text-gray-800"}`}>
-        <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      <div className={`min-h-screen font-pop transition-all duration-300 bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-200`}>
+        <Header />
         <div className="flex flex-col lg:flex-row mb-16 md:mb-0">
-          <Vheader darkMode={darkMode} />
+          <Vheader />
           <main className="flex-1 min-w-0 p-6 md:m-10">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h1 className={`text-2xl md:text-3xl font-bold transition-all duration-300 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
+              <h1 className={`text-2xl md:text-3xl font-bold transition-all duration-300 text-gray-800 dark:text-gray-200`}>
                 Your Profile
               </h1>
               {formData.username && (
@@ -279,7 +317,7 @@ function YourProfile() {
                   {streak.currentStreak > 0 && (
                     <span
                       className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
-                        darkMode ? "bg-amber-900/40 text-amber-300" : "bg-amber-100 text-amber-700"
+                        "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
                       }`}
                     >
                       🔥 {streak.currentStreak}-day streak
@@ -295,12 +333,12 @@ function YourProfile() {
               )}
             </div>
             <div className="h-2 w-32 md:w-44 bg-blue-500 rounded-full mb-7 animate-line"></div>
-            <div className={`max-w-4xl mx-auto transition-all duration-300 shadow-lg rounded-lg overflow-hidden ${darkMode ? "bg-gray-900 text-gray-200" : "bg-gray-100 text-gray-800"}`}>
-              <div className={`p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+            <div className={`max-w-4xl mx-auto transition-all duration-300 shadow-lg rounded-lg overflow-hidden bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200`}>
+              <div className={`p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center border-b border-gray-200 dark:border-gray-700`}>
                 <div className="flex space-x-4">
                   <button
                     className={`px-4 py-2 text-sm md:text-base font-semibold rounded-full ${
-                      activeSection === "personal" ? "bg-blue-500 text-white shadow" : darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-300 text-black"
+                      activeSection === "personal" ? "bg-blue-500 text-white shadow" : "bg-gray-300 text-black dark:bg-gray-700 dark:text-gray-300"
                     }`}
                     onClick={() => handleSectionChange("personal")}
                   >
@@ -308,7 +346,7 @@ function YourProfile() {
                   </button>
                   <button
                     className={`px-4 py-2 text-sm md:text-base font-semibold rounded-full ${
-                      activeSection === "security" ? "bg-blue-500 text-white shadow" : darkMode ? "bg-gray-700 text-gray-300" : "bg-gray-300 text-black"
+                      activeSection === "security" ? "bg-blue-500 text-white shadow" : "bg-gray-300 text-black dark:bg-gray-700 dark:text-gray-300"
                     }`}
                     onClick={() => handleSectionChange("security")}
                   >
@@ -339,18 +377,11 @@ function YourProfile() {
                   <>
                     <div className="col-span-1 md:col-span-2 flex flex-col items-center">
                       <div className="relative">
-                        <img
-                          src={(
-                            formData.avatar instanceof File
-                              ? URL.createObjectURL(formData.avatar)
-                              : formData.avatar || "https://via.placeholder.com/120x120.png?text=No+Avatar"
-                          )?.src || (
-                            formData.avatar instanceof File
-                              ? URL.createObjectURL(formData.avatar)
-                              : formData.avatar || "https://via.placeholder.com/120x120.png?text=No+Avatar"
-                          )}
+                        <Avatar
+                          src={avatarPreviewUrl ?? (typeof formData.avatar === "string" ? formData.avatar : null)}
+                          size={128}
                           alt="Profile Preview"
-                          className={`w-24 h-24 sm:w-32 sm:h-32 rounded-full transition-all duration-300 border-4 object-cover ${darkMode ? "border-gray-600" : "border-gray-200"}`}
+                          className={`w-24 h-24 sm:w-32 sm:h-32 rounded-full transition-all duration-300 border-4 object-cover border-gray-200 dark:border-gray-600`}
                         />
                         {isEditing && (
                           <>
@@ -378,12 +409,12 @@ function YourProfile() {
                 {activeSection === "security" && (
                   <>
                     <div className="col-span-1 md:col-span-2">
-                      <h3 className={`font-semibold mb-2 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
+                      <h3 className={`font-semibold mb-2 text-gray-800 dark:text-gray-200`}>
                         Connected Accounts
                       </h3>
                       <div
                         className={`flex items-center justify-between p-3 rounded-md border ${
-                          darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-300"
+                          "bg-white border-gray-300 dark:bg-gray-700 dark:border-gray-600"
                         }`}
                       >
                         <span className="flex items-center gap-2">
@@ -396,7 +427,7 @@ function YourProfile() {
                         ) : (
                           <span
                             className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                              darkMode ? "bg-gray-600 text-gray-300" : "bg-gray-200 text-gray-600"
+                              "bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300"
                             }`}
                           >
                             Not connected
@@ -406,7 +437,7 @@ function YourProfile() {
                     </div>
 
                     <div className="col-span-1 md:col-span-2 mt-2">
-                      <h3 className={`font-semibold mb-1 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
+                      <h3 className={`font-semibold mb-1 text-gray-800 dark:text-gray-200`}>
                         {accountFlags.hasPassword ? "Change Password" : "Set a Password"}
                       </h3>
                       {!accountFlags.hasPassword && (
@@ -419,7 +450,7 @@ function YourProfile() {
                     {renderField(accountFlags.hasPassword ? "New Password" : "Password", "newPassword", "password")}
 
                     <div className="col-span-1 md:col-span-2 mt-2">
-                      <h3 className={`font-semibold mb-1 ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
+                      <h3 className={`font-semibold mb-1 text-gray-800 dark:text-gray-200`}>
                         {accountFlags.hasPin ? "Change PIN" : "Set a PIN"}
                       </h3>
                       {!accountFlags.hasPin && (

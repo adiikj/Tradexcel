@@ -9,12 +9,13 @@ import { useLiveQuotes } from "../../hooks/useLiveQuotes";
 import { useMarketStatus } from "../../hooks/useMarketStatus";
 import { tickToStockFields } from "../../utils/liveQuote";
 import LiveStatusBadge from "../layout/LiveStatusBadge";
+import type { StockData } from "./marketMovers";
 
 const allSymbols = [...new Set(stockUniverse.map((s) => s.symbol))];
 
-function TopGainers({ darkMode }: any) {
+function TopGainers() {
   const router = useRouter();
-  const [baseData, setBaseData] = useState<Record<string, any>>({});
+  const [baseData, setBaseData] = useState<Record<string, StockData>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ function TopGainers({ darkMode }: any) {
   const marketStatus = useMarketStatus();
 
   const gainers = useMemo(() => {
-    const merged: Record<string, any> = {};
+    const merged: Record<string, StockData> = {};
     for (const symbol of Object.keys(baseData)) {
       const base = baseData[symbol];
       const tick = liveQuotes[symbol];
@@ -57,11 +58,11 @@ function TopGainers({ darkMode }: any) {
       {loading ? (
         <div className="space-y-2 md:space-y-4">
           {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} className={`h-14 rounded-lg animate-pulse ${darkMode ? 'bg-gray-800' : 'bg-gray-200'}`} />
+            <div key={i} className={`h-14 rounded-lg animate-pulse bg-gray-200 dark:bg-gray-800`} />
           ))}
         </div>
       ) : gainers.length === 0 ? (
-        <p className="text-sm text-gray-400 py-6 text-center">No gainers right now - the market's broadly down today.</p>
+        <p className="text-sm text-gray-400 py-6 text-center">No gainers right now - the market&apos;s broadly down today.</p>
       ) : (
         gainers.map((stock, index) => (
           <div
@@ -77,7 +78,6 @@ function TopGainers({ darkMode }: any) {
               todayChange={stock.todayChange}
               stockPrices={stock.stockPrices}
               labels={stock.labels}
-              darkMode={darkMode}
             />
           </div>
         ))
