@@ -3,6 +3,9 @@ import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { getQuote } from '../services/pricing.js';
+import { getChart, RANGE_PARAMS } from '../services/chart.js';
+import { z } from 'zod';
+import type { ChartRange } from '@tradexcel/shared';
 
 import { Request, Response, NextFunction } from 'express';
 
@@ -111,4 +114,20 @@ const getBatchStockData = asyncHandler(async (req: Request, res: Response, next:
     return res.status(responseData.status as number).json(responseData);
 });
 
-export default { getStockData, getBatchStockData };
+const chartParamsSchema = z.object({
+    // NSE-style tickers, e.g. TCS.NS, M&M.NS, BAJAJ-AUTO.NS
+    symbol: z.string().trim().min(1).max(20).regex(/^[A-Za-z0-9.&^=-]+$/, 'invalid symbol'),
+    range: z.enum(Object.keys(RANGE_PARAMS) as [ChartRange, ...ChartRange[]]).default('1M'),
+});
+
+// OHLCV candles + session stats for the Market page's price chart.
+const getChartData = asyncHandler(async (req: Request, res: Response) => {
+    const parsed = chartParamsSchema.safeParse({ symbol: req.params.symbol, range: req.query.range });
+    if (!parsed.success) {
+        throw new ApiError(400, 'Invalid chart request', parsed.error.issues);
+    }
+    const data = await getChart(parsed.data.symbol.toUpperCase(), parsed.data.range);
+    return res.status(200).json(new ApiResponse(200, 'Chart fetched successfully', data));
+});
+
+export default { getStockData, getBatchStockData, getChartData };

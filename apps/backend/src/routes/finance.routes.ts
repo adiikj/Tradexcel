@@ -9,5 +9,7 @@ const router = express.Router();
 router.get('/stock/:symbol', publicApiLimiter, financeController.getStockData);
 // Batched lookup - one request for many symbols (see Market.tsx / dashboard movers).
 router.get('/quotes', publicApiLimiter, financeController.getBatchStockData);
+// OHLCV candles for one symbol over a preset range (1D, 5D, 1M, 6M, 1Y, 5Y).
+router.get('/chart/:symbol', publicApiLimiter, financeController.getChartData);
 
 export default router;
