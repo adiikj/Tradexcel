@@ -1,12 +1,11 @@
 "use client";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import Link from "next/link";
-import Cookies from "js-cookie";
-import { Helmet } from "react-helmet";
+import { hasSession } from "../../utils/sessionFlag";
+import { useBrowserValue } from "../../hooks/useBrowserValue";
 import { FiUserPlus } from "react-icons/fi";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
-import ThemeContext from "../../context/ThemeContext";
 import FollowButton from "./FollowButton";
 import ShareButton from "./ShareButton";
 import UserList from "./UserList";
@@ -16,20 +15,31 @@ import logo from "../../assets/logo-icon-transparent.png";
 import wordmarkLight from "../../assets/tradexcel-wordmark-light.png";
 import wordmarkDark from "../../assets/tradexcel-wordmark-dark.png";
 import { getBadgeIconSrc } from "../achievements/badgeIcons";
+import { useAsyncEffect } from "../../hooks/useAsyncEffect";
+import Image from "next/image";
+import { apiErrorMessage } from "../../api/http";
+import type { ListedUser, PublicProfile as PublicProfileData } from "@tradexcel/shared";
+import Avatar from "../ui/Avatar";
+import ThemedImage from "../ui/ThemedImage";
+import { LightThemeScope } from "../../context/ThemeContext";
 
 interface PublicProfileProps {
   username: string;
+  // From the session cookie on the server, so the first render already matches.
+  viewerLoggedIn: boolean;
 }
 
-function PublicNavBar({ darkMode }: { darkMode: boolean }) {
+function PublicNavBar() {
   return (
-    <div className={`w-full h-16 flex items-center justify-between px-4 md:px-8 ${darkMode ? "bg-gray-900" : "bg-white border-b border-gray-100"}`}>
+    <div className={`w-full h-16 flex items-center justify-between px-4 md:px-8 bg-white border-b border-gray-100 dark:bg-gray-900 dark:border-b-0`}>
       <Link href="/" className="flex items-center gap-2">
-        <img className="h-7 w-7" src={((logo)?.src || logo) as string} alt="" />
-        <img className="hidden sm:block h-4 w-auto" src={((darkMode ? wordmarkDark : wordmarkLight)?.src || (darkMode ? wordmarkDark : wordmarkLight)) as string} alt="Tradexcel" />
+        <Image className="h-7 w-7" src={logo} alt="" />
+        <span className="hidden sm:contents">
+          <ThemedImage className="h-4 w-auto" light={wordmarkLight} dark={wordmarkDark} alt="Tradexcel" />
+        </span>
       </Link>
       <div className="flex items-center gap-2">
-        <Link href="/signin" className={`px-4 py-2 rounded-lg text-sm font-medium ${darkMode ? "text-gray-200 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"}`}>
+        <Link href="/signin" className={`px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800`}>
           Sign In
         </Link>
         <Link href="/signup" className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 transition-colors duration-200">
@@ -40,7 +50,7 @@ function PublicNavBar({ darkMode }: { darkMode: boolean }) {
   );
 }
 
-function PlaySignupCta({ username, darkMode }: { username: string; darkMode: boolean }) {
+function PlaySignupCta({ username }: { username: string }) {
   const handleClick = () => {
     if (typeof window !== "undefined") {
       localStorage.setItem("pendingFollow", username);
@@ -50,7 +60,7 @@ function PlaySignupCta({ username, darkMode }: { username: string; darkMode: boo
   return (
     <div
       className={`rounded-2xl p-6 mt-6 text-center ${
-        darkMode ? "bg-gradient-to-b from-blue-900/30 to-gray-900" : "bg-gradient-to-b from-blue-50 to-white border border-blue-100"
+        "bg-gradient-to-b from-blue-50 to-white border border-blue-100 dark:from-blue-900/30 dark:to-gray-900 dark:border-0"
       }`}
     >
       <p className="text-lg font-bold">Think you can beat @{username}?</p>
@@ -68,39 +78,41 @@ function PlaySignupCta({ username, darkMode }: { username: string; darkMode: boo
   );
 }
 
-function PublicProfile({ username }: PublicProfileProps) {
-  const { darkMode: appDarkMode, toggleDarkMode } = useContext(ThemeContext);
+function PublicProfile({ username, viewerLoggedIn }: PublicProfileProps) {
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const darkMode = isAuthenticated ? appDarkMode : false;
-  const [profile, setProfile] = useState<any>(null);
+  const isAuthenticated = useBrowserValue(hasSession, viewerLoggedIn);
+  const [profile, setProfile] = useState<PublicProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<"followers" | "following" | null>(null);
-  const [listUsers, setListUsers] = useState<any[]>([]);
+  const [listUsers, setListUsers] = useState<ListedUser[]>([]);
   const [listLoading, setListLoading] = useState(false);
 
-  useEffect(() => {
-    setIsAuthenticated(Boolean(Cookies.get("accessToken")));
-  }, []);
-
-  const fetchProfile = useCallback(async () => {
+  // State is only set after the first await, so effects can call this directly.
+  const loadProfile = useCallback(async (isActive: () => boolean = () => true) => {
     try {
-      setIsLoading(true);
-      setError("");
       const response = await getPublicProfile(username);
+      if (!isActive()) return;
       setProfile(response?.data || null);
-    } catch (err: any) {
-      setError(err.message || "Failed to load profile.");
+    } catch (err) {
+      if (!isActive()) return;
+      setError(apiErrorMessage(err, "Failed to load profile."));
     } finally {
-      setIsLoading(false);
+      if (isActive()) setIsLoading(false);
     }
   }, [username]);
 
-  useEffect(() => {
-    fetchProfile();
-    setTab(null);
-  }, [fetchProfile]);
+  // For buttons/handlers: show the loading state, then load.
+  const fetchProfile = useCallback(
+    () => {
+      setIsLoading(true);
+      setError("");
+      return loadProfile();
+    },
+    [loadProfile]
+  );
+
+  useAsyncEffect((isActive) => loadProfile(isActive), [loadProfile]);
 
   const openTab = async (nextTab: "followers" | "following") => {
     if (!isAuthenticated) return;
@@ -113,31 +125,26 @@ function PublicProfile({ username }: PublicProfileProps) {
     try {
       const response = nextTab === "followers" ? await getFollowers(username) : await getFollowing(username);
       setListUsers(response?.data?.users || []);
-    } catch (err: any) {
-      setError(err.message || "Failed to load list.");
+    } catch (err) {
+      setError(apiErrorMessage(err, "Failed to load list."));
     } finally {
       setListLoading(false);
     }
   };
 
-  const cardBg = darkMode ? "bg-gray-900" : "bg-gray-100";
+  const cardBg = "bg-gray-100 dark:bg-gray-900";
   const shareUrl = typeof window !== "undefined" ? window.location.href : `https://tradexcel.app/u/${username}`;
 
-  return (
+  const page = (
     <>
-      <Helmet>
-        <title>{profile ? `${profile.name} (@${profile.username})` : "Profile"}</title>
-      </Helmet>
       <div
         className={
-          darkMode
-            ? "bg-gray-800 text-white min-h-screen transition-colors duration-300 font-pop"
-            : "bg-white text-black min-h-screen transition-colors duration-300 font-pop"
+          "bg-white text-black min-h-screen transition-colors duration-300 font-pop dark:bg-gray-800 dark:text-white"
         }
       >
-        {isAuthenticated ? <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} /> : <PublicNavBar darkMode={darkMode} />}
+        {isAuthenticated ? <Header /> : <PublicNavBar />}
         <div className="flex flex-col md:flex-row">
-          {isAuthenticated && <Vheader darkMode={darkMode} />}
+          {isAuthenticated && <Vheader />}
           <main className={`flex-1 min-w-0 p-4 m-4 md:m-10 mb-20 md:mb-10 ${isAuthenticated ? "" : "max-w-2xl md:mx-auto"}`}>
             {isLoading ? (
               <div className={`h-64 rounded-2xl animate-pulse ${cardBg}`} />
@@ -152,7 +159,7 @@ function PublicProfile({ username }: PublicProfileProps) {
               <>
                 <div className={`rounded-2xl p-6 ${cardBg}`}>
                   <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
-                    <img src={profile.avatar} alt="" className="w-20 h-20 sm:w-24 sm:h-24 rounded-full" />
+                    <Avatar src={profile.avatar} size={96} className="w-20 h-20 sm:w-24 sm:h-24 rounded-full" />
                     <div className="flex-1 text-center sm:text-left">
                       <h1 className="text-2xl font-bold">{profile.name}</h1>
                       <p className="text-gray-400">@{profile.username}</p>
@@ -161,7 +168,7 @@ function PublicProfile({ username }: PublicProfileProps) {
                           <span
                             title="Current standing - updates as net worth and rank change"
                             className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${
-                              darkMode ? "bg-blue-900/40 text-blue-300" : "bg-blue-100 text-blue-700"
+                              "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
                             }`}
                           >
                             <span>{profile.title.icon}</span>
@@ -200,9 +207,8 @@ function PublicProfile({ username }: PublicProfileProps) {
                         <FollowButton
                           username={profile.username}
                           initialIsFollowing={profile.isFollowing}
-                          darkMode={darkMode}
                           onChange={(nowFollowing) =>
-                            setProfile((prev: any) => ({
+                            setProfile((prev) => prev && ({
                               ...prev,
                               isFollowing: nowFollowing,
                               followersCount: prev.followersCount + (nowFollowing ? 1 : -1),
@@ -225,7 +231,6 @@ function PublicProfile({ username }: PublicProfileProps) {
                         url={shareUrl}
                         title={`${profile.name} on Tradexcel`}
                         text={`Check out @${profile.username}'s trading profile on Tradexcel`}
-                        darkMode={darkMode}
                       />
                     </div>
                   </div>
@@ -259,21 +264,21 @@ function PublicProfile({ username }: PublicProfileProps) {
                   <div className={`rounded-2xl p-6 mt-6 ${cardBg}`}>
                     <h2 className="font-bold mb-4">Achievements</h2>
                     <div className="flex flex-wrap gap-5">
-                      {profile.badges.map((badge: any) => {
+                      {profile.badges.map((badge) => {
                         const iconSrc = getBadgeIconSrc(badge.id);
                         return (
                           <div
                             key={badge.id}
-                            title={`${badge.description} - earned ${new Date(badge.earnedAt).toLocaleDateString()}`}
+                            title={badge.earnedAt ? `${badge.description} - earned ${new Date(badge.earnedAt).toLocaleDateString()}` : badge.description}
                             className="flex flex-col items-center text-center gap-2 w-20"
                           >
                             <div
                               className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex items-center justify-center shadow-sm ${
-                                darkMode ? "bg-gray-800" : "bg-white"
+                                "bg-white dark:bg-gray-800"
                               }`}
                             >
                               {iconSrc ? (
-                                <img src={iconSrc} alt={badge.name} className="w-full h-full object-cover" />
+                                <Image src={iconSrc} alt={badge.name} className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-4xl">{badge.icon}</span>
                               )}
@@ -290,7 +295,7 @@ function PublicProfile({ username }: PublicProfileProps) {
                   <div className={`rounded-2xl p-6 mt-6 ${cardBg}`}>
                     <h2 className="font-bold mb-4">Weekly Performance</h2>
                     <ul className="space-y-2">
-                      {profile.weeklyPerformance.map((week: any) => {
+                      {profile.weeklyPerformance.map((week) => {
                         const start = new Date(week.weekStart);
                         const end = new Date(week.weekEnd);
                         const dateRange = `${start.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} - ${end.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`;
@@ -299,7 +304,7 @@ function PublicProfile({ username }: PublicProfileProps) {
                           <li
                             key={week.weekStart}
                             className={`flex items-center justify-between px-4 py-3 rounded-lg ${
-                              darkMode ? "bg-gray-800" : "bg-white"
+                              "bg-white dark:bg-gray-800"
                             }`}
                           >
                             <span className="text-sm text-gray-400">{dateRange}</span>
@@ -316,7 +321,7 @@ function PublicProfile({ username }: PublicProfileProps) {
                   </div>
                 )}
 
-                {!isAuthenticated && <PlaySignupCta username={profile.username} darkMode={darkMode} />}
+                {!isAuthenticated && <PlaySignupCta username={profile.username} />}
 
                 {isAuthenticated && tab && (
                   <div className={`rounded-2xl p-6 mt-6 ${cardBg}`}>
@@ -324,7 +329,7 @@ function PublicProfile({ username }: PublicProfileProps) {
                     {listLoading ? (
                       <div className="h-24 animate-pulse rounded-lg bg-gray-500/10" />
                     ) : (
-                      <UserList users={listUsers} darkMode={darkMode} emptyLabel={`No ${tab} yet.`} />
+                      <UserList users={listUsers} emptyLabel={`No ${tab} yet.`} />
                     )}
                   </div>
                 )}
@@ -335,6 +340,9 @@ function PublicProfile({ username }: PublicProfileProps) {
       </div>
     </>
   );
+
+  // Logged-out visitors always get the light design, whatever the saved theme.
+  return <LightThemeScope enabled={!isAuthenticated}>{page}</LightThemeScope>;
 }
 
 export default PublicProfile;

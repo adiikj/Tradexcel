@@ -1,15 +1,15 @@
 "use client";
 import React, { useState } from "react";
 import { followUser, unfollowUser } from "../../api/api";
+import { apiErrorMessage } from "../../api/http";
 
 interface FollowButtonProps {
   username: string;
   initialIsFollowing: boolean;
-  darkMode?: boolean;
   onChange?: (isFollowing: boolean) => void;
 }
 
-function FollowButton({ username, initialIsFollowing, darkMode, onChange }: FollowButtonProps) {
+function FollowButton({ username, initialIsFollowing, onChange }: FollowButtonProps) {
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,8 +25,8 @@ function FollowButton({ username, initialIsFollowing, darkMode, onChange }: Foll
         setIsFollowing(true);
         onChange?.(true);
       }
-    } catch (err: any) {
-      alert(err.message || "Something went wrong.");
+    } catch (err) {
+      alert(apiErrorMessage(err, "Something went wrong."));
     } finally {
       setIsLoading(false);
     }
@@ -38,9 +38,7 @@ function FollowButton({ username, initialIsFollowing, darkMode, onChange }: Foll
       disabled={isLoading}
       className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors duration-200 disabled:opacity-60 ${
         isFollowing
-          ? darkMode
-            ? "bg-gray-700 text-gray-200 hover:bg-red-900 hover:text-red-300"
-            : "bg-gray-200 text-gray-800 hover:bg-red-100 hover:text-red-600"
+          ? "bg-gray-200 text-gray-800 hover:bg-red-100 hover:text-red-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-red-900 dark:hover:text-red-300"
           : "bg-blue-500 text-white hover:bg-blue-600"
       }`}
     >

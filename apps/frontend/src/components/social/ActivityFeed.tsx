@@ -1,20 +1,22 @@
 "use client";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import Link from "next/link";
-import { Helmet } from "react-helmet";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
-import ThemeContext from "../../context/ThemeContext";
 import { getActivityFeed } from "../../api/api";
 import { formatInr, timeAgo } from "../../utils/format";
+import { useAsyncEffect } from "../../hooks/useAsyncEffect";
+import { apiErrorMessage } from "../../api/http";
+import type { ActivityItem as ActivityItemData } from "@tradexcel/shared";
+import Avatar from "../ui/Avatar";
 
-function ActivityItem({ item, darkMode }: { item: any; darkMode: boolean }) {
-  const cardBg = darkMode ? "bg-gray-900" : "bg-gray-50";
+function ActivityItem({ item }: { item: ActivityItemData }) {
+  const cardBg = "bg-gray-50 dark:bg-gray-900";
 
   return (
     <div className={`rounded-xl p-4 flex gap-3 ${cardBg}`}>
       <Link href={`/u/${item.user.username}`}>
-        <img src={item.user.avatar} alt="" className="w-10 h-10 rounded-full shrink-0" />
+        <Avatar src={item.user.avatar} size={40} className="w-10 h-10 rounded-full shrink-0" />
       </Link>
       <div className="min-w-0 flex-1">
         <p className="text-sm">
@@ -41,49 +43,52 @@ function ActivityItem({ item, darkMode }: { item: any; darkMode: boolean }) {
 }
 
 function ActivityFeed() {
-  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
 
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<ActivityItemData[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchActivity = useCallback(async (nextPage: number) => {
+  // State is only set after the first await, so effects can call this directly.
+  const loadActivity = useCallback(async (nextPage: number, isActive: () => boolean = () => true) => {
     try {
-      setIsLoading(true);
-      setError("");
       const response = await getActivityFeed(nextPage, 20);
+      if (!isActive()) return;
       const newItems = response?.data?.items || [];
       setItems((prev) => (nextPage === 1 ? newItems : [...prev, ...newItems]));
       setTotalPages(response?.data?.pagination?.totalPages || 1);
       setPage(nextPage);
-    } catch (err: any) {
-      setError(err.message || "Failed to load activity.");
+    } catch (err) {
+      if (!isActive()) return;
+      setError(apiErrorMessage(err, "Failed to load activity."));
     } finally {
-      setIsLoading(false);
+      if (isActive()) setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchActivity(1);
-  }, [fetchActivity]);
+  // For buttons/handlers: show the loading state, then load.
+  const fetchActivity = useCallback(
+    (nextPage: number) => {
+      setIsLoading(true);
+      setError("");
+      return loadActivity(nextPage);
+    },
+    [loadActivity]
+  );
+
+  useAsyncEffect((isActive) => loadActivity(1, isActive), [loadActivity]);
 
   return (
     <>
-      <Helmet>
-        <title>Activity</title>
-      </Helmet>
       <div
         className={
-          darkMode
-            ? "bg-gray-800 text-white min-h-screen transition-colors duration-300 font-pop"
-            : "bg-white text-black min-h-screen transition-colors duration-300 font-pop"
+          "bg-white text-black min-h-screen transition-colors duration-300 font-pop dark:bg-gray-800 dark:text-white"
         }
       >
-        <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        <Header />
         <div className="flex flex-col md:flex-row">
-          <Vheader darkMode={darkMode} />
+          <Vheader />
           <main className="flex-1 min-w-0 p-4 m-4 md:m-10 mb-20 md:mb-10 max-w-2xl mx-auto">
             <h1 className="text-2xl md:text-3xl font-bold">Activity</h1>
             <div className="h-2 w-32 bg-blue-500 rounded-full mb-6 animate-line"></div>
@@ -100,7 +105,7 @@ function ActivityFeed() {
             {isLoading && items.length === 0 ? (
               <div className="space-y-3">
                 {[0, 1, 2].map((i) => (
-                  <div key={i} className={`h-16 rounded-xl animate-pulse ${darkMode ? "bg-gray-900" : "bg-gray-50"}`} />
+                  <div key={i} className={`h-16 rounded-xl animate-pulse bg-gray-50 dark:bg-gray-900`} />
                 ))}
               </div>
             ) : items.length === 0 ? (
@@ -112,7 +117,7 @@ function ActivityFeed() {
             ) : (
               <div className="space-y-3">
                 {items.map((item) => (
-                  <ActivityItem key={`${item.type}-${item.id}`} item={item} darkMode={darkMode} />
+                  <ActivityItem key={`${item.type}-${item.id}`} item={item} />
                 ))}
                 {page < totalPages && (
                   <button

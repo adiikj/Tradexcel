@@ -6,17 +6,16 @@ interface ShareButtonProps {
   url: string;
   title: string;
   text: string;
-  darkMode?: boolean;
 }
 
-function ShareButton({ url, title, text, darkMode }: ShareButtonProps) {
+function ShareButton({ url, title, text }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({ title, text, url });
-      } catch (err) {
+      } catch {
         // User cancelled the share sheet; nothing to do.
       }
       return;
@@ -26,7 +25,7 @@ function ShareButton({ url, title, text, darkMode }: ShareButtonProps) {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       // Clipboard unavailable; nothing more we can do here.
     }
   };
@@ -35,7 +34,7 @@ function ShareButton({ url, title, text, darkMode }: ShareButtonProps) {
     <button
       onClick={handleShare}
       className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200 ${
-        darkMode ? "bg-gray-700 text-gray-200 hover:bg-gray-600" : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+        "bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
       }`}
     >
       {copied ? <FiCheck /> : <FiShare2 />}
