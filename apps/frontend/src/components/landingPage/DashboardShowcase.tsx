@@ -122,7 +122,7 @@ function DashboardShowcase() {
           Inside Tradexcel
         </h6>
         <p className="text-3xl md:text-4xl pt-2 font-semibold font-pop">
-          Everything you'd expect from a real trading platform
+          Everything you&apos;d expect from a real trading platform
         </p>
         <p className="text-gray-600 mt-4">
           Every screen below is the actual product, not a mockup. Explore what your
@@ -189,7 +189,7 @@ function DashboardShowcase() {
             transition={{ duration: 0.3 }}
           >
             <BrowserFrame
-              src={((activeTab.img)?.src || (activeTab.img)) as string}
+              src={activeTab.img}
               alt={activeTab.label}
             />
           </motion.div>

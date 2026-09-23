@@ -1,8 +1,16 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import Image, { type StaticImageData } from "next/image";
 
-function Banner({ heading, description, img, reverse }: any) {
+type BannerProps = {
+  heading: string;
+  description: string;
+  img: StaticImageData;
+  reverse?: boolean;
+};
+
+function Banner({ heading, description, img, reverse }: BannerProps) {
   return (
     <motion.div
       className={`w-full h-full bg-white p-6 md:px-24 py-5 md:py-10 flex flex-col ${
@@ -21,8 +29,8 @@ function Banner({ heading, description, img, reverse }: any) {
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8 }}
       >
-        <img
-          src={((img)?.src || (img)) as string}
+        <Image
+          src={img}
           alt="Banner"
           className="w-full h-auto max-w-sm md:max-w-full"
         />

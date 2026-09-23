@@ -4,6 +4,7 @@ import Link from "next/link";
 import logo from "../../assets/logo-icon-transparent.png";
 import wordmark from "../../assets/tradexcel-wordmark-light.png";
 import { FiMenu, FiX, FiChevronRight } from "react-icons/fi";
+import Image from "next/image";
 
 const navLinks = [
   { href: "/about", label: "About Us" },
@@ -13,7 +14,7 @@ const navLinks = [
 ];
 
 function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState<any>(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Toggle menu for mobile view
   const toggleMenu = () => {
@@ -31,8 +32,8 @@ function Header() {
       <div className="flex items-center gap-12">
         <Link href="/">
           <div className="flex flex-row items-center gap-2.5 py-2">
-            <img className="h-8 w-8 md:w-8 md:h-8" src={((logo)?.src || (logo)) as string} alt="" />
-            <img className="hidden md:block h-5 w-auto" src={((wordmark)?.src || (wordmark)) as string} alt="Tradexcel" />
+            <Image className="h-8 w-8 md:w-8 md:h-8" src={logo} alt="" />
+            <Image className="hidden md:block h-5 w-auto" src={wordmark} alt="Tradexcel" />
           </div>
         </Link>
 
@@ -90,8 +91,8 @@ function Header() {
         {/* Top bar: logo + close, matches header height */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100 shrink-0">
           <Link href="/" onClick={closeMenu} className="flex items-center gap-2.5">
-            <img className="h-7 w-7" src={((logo)?.src || (logo)) as string} alt="" />
-            <img className="h-4 w-auto" src={((wordmark)?.src || (wordmark)) as string} alt="Tradexcel" />
+            <Image className="h-7 w-7" src={logo} alt="" />
+            <Image className="h-4 w-auto" src={wordmark} alt="Tradexcel" />
           </Link>
           <button
             onClick={toggleMenu}

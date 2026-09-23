@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FiMail, FiMapPin, FiCheckCircle } from "react-icons/fi";
 import { sendContactMessage } from "../../api/api";
+import { apiErrorMessage } from "../../api/http";
 
 const details = [
   { icon: FiMail, label: "Email", value: "contact@tradexcel.site" },
@@ -26,8 +27,8 @@ function Contact() {
     try {
       await sendContactMessage(form.name, form.email, form.message);
       setSent(true);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+    } catch (err) {
+      setError(apiErrorMessage(err, "Something went wrong. Please try again."));
     } finally {
       setSending(false);
     }
@@ -45,10 +46,10 @@ function Contact() {
         >
           <p className="text-blue-500 font-pop text-lg font-semibold">Contact us</p>
           <h1 className="py-4 font-pop font-semibold text-4xl md:text-5xl lg:leading-tight">
-            We'd love to <span className="text-blue-500">hear from you</span>
+            We&apos;d love to <span className="text-blue-500">hear from you</span>
           </h1>
           <p className="text-gray-600 text-lg">
-            Questions, feedback or just want to say hi? Drop us a message and we'll get back
+            Questions, feedback or just want to say hi? Drop us a message and we&apos;ll get back
             to you.
           </p>
         </motion.div>
@@ -101,7 +102,7 @@ function Contact() {
                 <FiCheckCircle className="text-blue-500 text-5xl" />
                 <h3 className="text-2xl font-semibold font-pop mt-4">Message sent!</h3>
                 <p className="text-gray-600 mt-2">
-                  Thanks for reaching out, {form.name || "friend"}. We'll be in touch soon.
+                  Thanks for reaching out, {form.name || "friend"}. We&apos;ll be in touch soon.
                 </p>
                 <button
                   onClick={() => {
@@ -116,10 +117,11 @@ function Contact() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="contact-name" className="block text-sm font-medium text-gray-700 mb-1">
                     Name
                   </label>
                   <input
+                    id="contact-name"
                     name="name"
                     value={form.name}
                     onChange={handleChange}
@@ -129,10 +131,11 @@ function Contact() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="contact-email" className="block text-sm font-medium text-gray-700 mb-1">
                     Email
                   </label>
                   <input
+                    id="contact-email"
                     name="email"
                     type="email"
                     value={form.email}
@@ -143,10 +146,11 @@ function Contact() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="contact-message" className="block text-sm font-medium text-gray-700 mb-1">
                     Message
                   </label>
                   <textarea
+                    id="contact-message"
                     name="message"
                     value={form.message}
                     onChange={handleChange}

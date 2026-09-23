@@ -3,21 +3,24 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import stockList from "../market/StockData.json";
 import { searchPlayers } from "../../api/api";
+import Avatar from "../ui/Avatar";
+import type { StockListing } from "../../types/market";
 
 type StockResult = { type: "stock"; symbol: string; shortName: string; fullName: string };
-type PlayerResult = { type: "player"; id: string; username: string; name: string; avatar?: string };
+type PlayerResult = { type: "player"; id: string; username: string; name: string; avatar: string | null };
 type Result = StockResult | PlayerResult;
 
 const MAX_STOCK_RESULTS = 5;
 const MAX_PLAYER_RESULTS = 6;
 
-const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
+const GlobalSearch = () => {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [focused, setFocused] = useState(false);
-  const [players, setPlayers] = useState<PlayerResult[]>([]);
-  const [loadingPlayers, setLoadingPlayers] = useState(false);
+  // Player results remember which query they answer, so "loading" and stale
+  // results are derived instead of reset in effects.
+  const [playerResult, setPlayerResult] = useState<{ query: string; players: PlayerResult[] }>({ query: "", players: [] });
   const [activeIndex, setActiveIndex] = useState(-1);
   const desktopRef = useRef<HTMLDivElement>(null);
   const mobileRef = useRef<HTMLDivElement>(null);
@@ -26,7 +29,7 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
   const stockResults: StockResult[] = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
-    return (stockList as any[])
+    return (stockList as StockListing[])
       .filter(
         (s) =>
           s.shortName.toLowerCase().includes(q) ||
@@ -37,28 +40,26 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
       .map((s) => ({ type: "stock" as const, symbol: s.symbol, shortName: s.shortName, fullName: s.fullName }));
   }, [query]);
 
+  const trimmedQuery = query.trim();
+  const players = playerResult.query === trimmedQuery ? playerResult.players : [];
+  const loadingPlayers = trimmedQuery !== "" && playerResult.query !== trimmedQuery;
+
   useEffect(() => {
     const q = query.trim();
-    if (!q) {
-      setPlayers([]);
-      return;
-    }
+    if (!q) return;
     let cancelled = false;
-    setLoadingPlayers(true);
     const timeout = setTimeout(() => {
       searchPlayers(q)
         .then((res) => {
           if (cancelled) return;
           const users = (res?.data?.users || []).slice(0, MAX_PLAYER_RESULTS);
-          setPlayers(
-            users.map((u: any) => ({ type: "player" as const, id: u.id, username: u.username, name: u.name, avatar: u.avatar }))
-          );
+          setPlayerResult({
+            query: q,
+            players: users.map((u) => ({ type: "player" as const, id: u.id, username: u.username, name: u.name, avatar: u.avatar })),
+          });
         })
         .catch(() => {
-          if (!cancelled) setPlayers([]);
-        })
-        .finally(() => {
-          if (!cancelled) setLoadingPlayers(false);
+          if (!cancelled) setPlayerResult({ query: q, players: [] });
         });
     }, 250);
 
@@ -70,9 +71,11 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
 
   const results: Result[] = [...stockResults, ...players];
 
-  useEffect(() => {
+  // Typing resets the keyboard-highlighted row.
+  const changeQuery = (value: string) => {
+    setQuery(value);
     setActiveIndex(-1);
-  }, [query]);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -91,8 +94,7 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
   const closeAndReset = () => {
     setFocused(false);
     setMobileOpen(false);
-    setQuery("");
-    setPlayers([]);
+    changeQuery("");
   };
 
   const selectResult = (result: Result) => {
@@ -149,11 +151,11 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
   const dropdown = showDropdown && (
     <div
       className={`absolute left-0 right-0 top-full mt-2 rounded-md shadow-lg z-20 max-h-80 overflow-y-auto ${
-        darkMode ? "bg-gray-800 text-white" : "bg-white text-black"
+        "bg-white text-black dark:bg-gray-800 dark:text-white"
       }`}
     >
       {results.length === 0 && !loadingPlayers ? (
-        <p className="text-center text-gray-400 text-sm py-4">No results for "{query}"</p>
+        <p className="text-center text-gray-400 text-sm py-4">No results for &quot;{query}&quot;</p>
       ) : (
         <>
           {stockResults.length > 0 && (
@@ -165,12 +167,8 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
                   onClick={() => selectResult(s)}
                   className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between ${
                     activeIndex === i
-                      ? darkMode
-                        ? "bg-gray-700"
-                        : "bg-gray-100"
-                      : darkMode
-                      ? "hover:bg-gray-700"
-                      : "hover:bg-gray-100"
+                      ? "bg-gray-100 dark:bg-gray-700"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                 >
                   <span className="font-medium">{s.shortName}</span>
@@ -181,7 +179,7 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
           )}
 
           {(players.length > 0 || loadingPlayers) && (
-            <div className={`py-2 ${stockResults.length > 0 ? (darkMode ? "border-t border-gray-700" : "border-t border-gray-200") : ""}`}>
+            <div className={`py-2 ${stockResults.length > 0 ? ("border-t border-gray-200 dark:border-gray-700") : ""}`}>
               <p className="px-4 pb-1 text-xs uppercase tracking-wide text-gray-400">Players</p>
               {loadingPlayers && players.length === 0 && (
                 <p className="px-4 py-2 text-sm text-gray-400">Searching...</p>
@@ -194,16 +192,12 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
                     onClick={() => selectResult(p)}
                     className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
                       activeIndex === idx
-                        ? darkMode
-                          ? "bg-gray-700"
-                          : "bg-gray-100"
-                        : darkMode
-                        ? "hover:bg-gray-700"
-                        : "hover:bg-gray-100"
+                        ? "bg-gray-100 dark:bg-gray-700"
+                        : "hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
                   >
                     {p.avatar && (
-                      <img src={p.avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
+                      <Avatar src={p.avatar} size={24} className="w-6 h-6 rounded-full object-cover" />
                     )}
                     <span className="font-medium">{p.name}</span>
                     <span className="text-xs text-gray-400">@{p.username}</span>
@@ -223,19 +217,19 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
       <div ref={desktopRef} className="relative hidden sm:block flex-1 max-w-xs md:max-w-sm mx-2 md:mx-4">
         <div
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-colors duration-200 ${
-            darkMode ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-500"
+            "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-300"
           }`}
         >
           {searchIcon}
-          <input
+          <input aria-label="Search stocks or players"
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => changeQuery(e.target.value)}
             onFocus={() => setFocused(true)}
             onKeyDown={handleKeyDown}
             placeholder="Search stocks or players..."
-            className={`w-full bg-transparent outline-none text-sm ${darkMode ? "text-white placeholder-gray-400" : "text-black placeholder-gray-400"}`}
+            className={`w-full bg-transparent outline-none text-sm text-black placeholder-gray-400 dark:text-white`}
           />
         </div>
         {dropdown}
@@ -247,12 +241,8 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
           onClick={() => setMobileOpen((prev) => !prev)}
           className={`p-2 rounded-full transition-colors duration-200 ${
             mobileOpen
-              ? darkMode
-                ? "bg-gray-800 text-white"
-                : "bg-gray-100 text-black"
-              : darkMode
-              ? "text-gray-300"
-              : "text-gray-600"
+              ? "bg-gray-100 text-black dark:bg-gray-800 dark:text-white"
+              : "text-gray-600 dark:text-gray-300"
           }`}
           aria-label={mobileOpen ? "Close search" : "Search"}
         >
@@ -264,24 +254,24 @@ const GlobalSearch = ({ darkMode }: { darkMode: boolean }) => {
       {mobileOpen && (
         <div
           className={`sm:hidden fixed left-0 right-0 top-14 md:top-16 z-20 border-t ${
-            darkMode ? "bg-gray-900 border-gray-800" : "bg-grey border-gray-200"
+            "bg-grey border-gray-200 dark:bg-gray-900 dark:border-gray-800"
           }`}
         >
           <div className="px-4 py-3">
             <div
               className={`flex items-center gap-2 px-3 py-2 rounded-full ${
-                darkMode ? "bg-gray-800 text-gray-300" : "bg-white text-gray-500"
+                "bg-white text-gray-500 dark:bg-gray-800 dark:text-gray-300"
               }`}
             >
               {searchIcon}
-              <input
+              <input aria-label="Search stocks or players"
                 autoFocus
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => changeQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Search stocks or players..."
-                className={`w-full bg-transparent outline-none text-sm ${darkMode ? "text-white placeholder-gray-400" : "text-black placeholder-gray-400"}`}
+                className={`w-full bg-transparent outline-none text-sm text-black placeholder-gray-400 dark:text-white`}
               />
             </div>
           </div>

@@ -21,14 +21,11 @@ const TrophyIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-interface AchievementsBadgeProps {
-  darkMode: boolean;
-}
 
 // Lives in the header (not the sidebar) deliberately - achievements are meant
 // to be noticed, the same reasoning the Alerts bell already gets prominent
 // placement here rather than being tucked into a menu.
-function AchievementsBadge({ darkMode }: AchievementsBadgeProps) {
+function AchievementsBadge() {
   const [earnedCount, setEarnedCount] = useState<number | null>(null);
   const [totalCount, setTotalCount] = useState<number | null>(null);
 
@@ -46,7 +43,7 @@ function AchievementsBadge({ darkMode }: AchievementsBadgeProps) {
       href="/achievements"
       title="Achievements"
       className={`relative flex items-center p-2 rounded-md transition-all duration-300 ${
-        darkMode ? "text-white hover:bg-gray-700" : "text-black hover:bg-gray-200"
+        "text-black hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700"
       }`}
     >
       <TrophyIcon className="w-5 h-5 sm:w-6 sm:h-6" />

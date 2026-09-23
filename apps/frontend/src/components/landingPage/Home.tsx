@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import Card from './Card';
 import Banner from './Banner';
@@ -98,13 +99,13 @@ function Home() {
           <div className="hidden sm:block relative w-full aspect-[3/2]">
             <div className="absolute top-0 left-0 z-0 hover:z-20 w-[85%] transition-transform duration-300 hover:scale-[1.02]">
               <BrowserFrame
-                src={((dashboard)?.src || (dashboard)) as string}
+                src={dashboard}
                 alt="Dashboard dark mode"
               />
             </div>
             <div className="absolute bottom-0 right-0 z-10 hover:z-20 w-[85%] transition-transform duration-300 hover:scale-[1.02]">
               <BrowserFrame
-                src={((dashboard2)?.src || (dashboard2)) as string}
+                src={dashboard2}
                 alt="Dashboard light mode"
               />
             </div>
@@ -248,7 +249,7 @@ function Home() {
                   <FiStar key={j} className="fill-current" />
                 ))}
               </div>
-              <p className="text-gray-700 leading-relaxed mt-4 flex-1">"{t.quote}"</p>
+              <p className="text-gray-700 leading-relaxed mt-4 flex-1">&quot;{t.quote}&quot;</p>
               <div className="mt-6 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-500 font-semibold font-pop flex items-center justify-center">
                   {t.name.charAt(0)}

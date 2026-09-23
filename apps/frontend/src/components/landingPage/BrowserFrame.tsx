@@ -1,11 +1,12 @@
 import React from "react";
+import Image, { type StaticImageData } from "next/image";
 
 function BrowserFrame({
   src,
   alt,
   className = "",
 }: {
-  src: string;
+  src: StaticImageData;
   alt: string;
   className?: string;
 }) {
@@ -18,7 +19,7 @@ function BrowserFrame({
         <span className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
         <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
       </div>
-      <img src={src} alt={alt} className="w-full h-auto block" />
+      <Image src={src} alt={alt} sizes="(min-width: 1024px) 50vw, 100vw" className="w-full h-auto block" />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import logo from '../../assets/logo-icon-transparent.png';
 import wordmark from '../../assets/tradexcel-wordmark-light.png';
+import Image from "next/image";
 
 const linkGroups = [
   {
@@ -38,8 +39,8 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2 lg:pr-8">
             <Link href="/" className="flex items-center gap-2.5 w-fit">
-              <img className="w-9 h-9" src={((logo)?.src || (logo)) as string} alt="" />
-              <img className="h-7 w-auto" src={((wordmark)?.src || (wordmark)) as string} alt="Tradexcel" />
+              <Image className="w-9 h-9" src={logo} alt="" />
+              <Image className="h-7 w-auto" src={wordmark} alt="Tradexcel" />
             </Link>
             <p className="text-gray-600 mt-4 max-w-xs text-sm leading-relaxed">
               A virtual stock trading game for managing portfolios and competing in

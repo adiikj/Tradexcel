@@ -79,7 +79,7 @@ function WhyUs() {
             The smartest way to <span className="text-blue-500">practice the market</span>
           </h1>
           <p className="text-gray-600 text-lg">
-            All the realism of live trading, none of the risk. Here's why thousands choose
+            All the realism of live trading, none of the risk. Here&apos;s why thousands choose
             Tradexcel to build their confidence.
           </p>
         </motion.div>

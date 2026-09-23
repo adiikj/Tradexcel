@@ -1,7 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
+import Image, { type StaticImageData } from "next/image";
 
-function Card({ img, heading, description  }: any) {
+type CardProps = { img: StaticImageData; heading: string; description: string };
+
+function Card({ img, heading, description }: CardProps) {
   return (
     <motion.div
       className="w-full sm:w-72 h-full text-left"
@@ -15,8 +18,8 @@ function Card({ img, heading, description  }: any) {
         transition={{ duration: 0.3 }}
       >
         <motion.div className="w-full sm:w-72 h-44 bg-grey" whileHover={{ scale: 1.05 }}>
-          <img
-            src={((img)?.src || (img)) as string}
+          <Image
+            src={img}
             alt={heading}
             className="w-full h-full object-cover rounded-lg"
           />

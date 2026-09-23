@@ -2,7 +2,7 @@ import React from "react";
 import Header from "../landingPage/Header";
 import Footer from "../landingPage/Footer";
 
-const MainLayout = ({ children }) => {
+const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <Header />
