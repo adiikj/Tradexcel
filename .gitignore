@@ -41,3 +41,6 @@ pnpm-debug.log*
 *.md
 !README.md
 /docs
+
+# pnpm workspace - npm lockfiles appear when running `npm run ...`
+package-lock.json
