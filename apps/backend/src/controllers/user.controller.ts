@@ -16,6 +16,7 @@ import { sendEmail } from "../services/mailer.js";
 import { otpEmailTemplate } from "../services/emailTemplates.js";
 import { recordLogin } from "../services/streak.js";
 import { checkAndAwardAchievements } from "../services/achievements.js";
+import logger from "../utils/logger.js";
 
 const randomAvatars = [
   "https://res.cloudinary.com/dcpudiuoh/image/upload/v1736361259/rf2tm0acjgmcawzvardw.png",
@@ -54,7 +55,7 @@ async function sendOtpEmail(email: string, otp: string) {
       text,
     });
   } catch (error: any) {
-    console.error("Error sending OTP email:", error.message);
+    logger.error({ err: error }, "Error sending OTP email");
     throw new ApiError(500, "Error sending verification email");
   }
 }
@@ -94,23 +95,31 @@ const generateAccessAndRefreshTokens = async (userId: string) => {
     return { accessToken, refreshToken };
   } catch (error: any) {
     if (error instanceof ApiError) throw error;
-    console.error("Error generating tokens:", error);
+    logger.error({ err: error }, "Error generating tokens");
     throw new ApiError(500, "Error generating tokens");
   }
 };
 
-const AUTH_COOKIE_OPTIONS = {
+// Tokens live only in httpOnly cookies - never in response bodies - so page
+// JavaScript (and any XSS) can't read them. The frontend and API share a site
+// (api.<domain>), so SameSite=Lax is sent on the frontend's XHR calls.
+const BASE_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: false,
-  sameSite: "none" as const,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
   path: "/",
-  expires: new Date(Date.now() + 3600000),
+};
+
+// Cookie lifetime follows the JWT's own exp claim.
+const cookieOptionsFor = (token: string) => {
+  const { exp } = jwt.decode(token) as { exp: number };
+  return { ...BASE_COOKIE_OPTIONS, maxAge: exp * 1000 - Date.now() };
 };
 
 async function issueSession(userId: string, res: any, message: string, recordStreak = true) {
   if (recordStreak) {
-    await recordLogin(userId).catch((error) => console.error("Error recording login streak:", error));
-    checkAndAwardAchievements(userId).catch((error) => console.error("Error checking achievements:", error));
+    await recordLogin(userId).catch((error) => logger.error({ err: error }, "Error recording login streak"));
+    checkAndAwardAchievements(userId).catch((error) => logger.error({ err: error }, "Error checking achievements"));
   }
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(userId);
   const user = await prisma.user.findUnique({
@@ -120,13 +129,13 @@ async function issueSession(userId: string, res: any, message: string, recordStr
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, AUTH_COOKIE_OPTIONS)
-    .cookie("refreshToken", refreshToken, AUTH_COOKIE_OPTIONS)
-    .json(new ApiResponse(200, message, { user, accessToken, refreshToken }));
+    .cookie("accessToken", accessToken, cookieOptionsFor(accessToken))
+    .cookie("refreshToken", refreshToken, cookieOptionsFor(refreshToken))
+    .json(new ApiResponse(200, message, { user }));
 }
 
 const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
-  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  const incomingRefreshToken = req.cookies.refreshToken;
 
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Unauthorized Request");
@@ -382,22 +391,28 @@ const googleLogin = asyncHandler(async (req: any, res: any) => {
     .json(new ApiResponse(200, "Almost there - verify the code we emailed you.", { email: payload.email }));
 });
 
+// Works with an expired access token too: falls back to the refresh cookie to
+// find whose refresh token to revoke, and always clears both cookies.
 const logoutUser = asyncHandler(async (req: any, res: any) => {
-  await prisma.user.update({
-    where: { id: req.user.id },
-    data: { refreshToken: null },
-  });
-
-  const options = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict" as const,
-  };
+  let userId: string | undefined = req.user?.id;
+  if (!userId && req.cookies?.refreshToken) {
+    try {
+      userId = (jwt.verify(req.cookies.refreshToken, process.env.REFRESH_TOKEN_SECRET as string) as any).id;
+    } catch {
+      // Invalid/expired refresh token - nothing to revoke.
+    }
+  }
+  if (userId) {
+    await prisma.user.updateMany({
+      where: { id: userId },
+      data: { refreshToken: null },
+    });
+  }
 
   return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken", BASE_COOKIE_OPTIONS)
+    .clearCookie("refreshToken", BASE_COOKIE_OPTIONS)
     .json(new ApiResponse(200, "User logged out successfully", null));
 });
 
