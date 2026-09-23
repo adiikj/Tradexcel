@@ -501,8 +501,25 @@ const getStandings = asyncHandler(async (req: AuthRequest, res: Response) => {
     .json(new ApiResponse(200, "Standings fetched successfully", { status: deriveStatus(contest), standings }));
 });
 
+// Admin panel list: every public contest (the ones admins create and edit).
+// Separate from getContests because admin requests carry no user, so there
+// are no per-viewer fields (joined/owner) to compute.
+const getAdminContests = asyncHandler(async (_req: AuthRequest, res: Response) => {
+  const { entries: _entries, ...select } = buildContestSelectForUser("");
+  const contests = await prisma.contest.findMany({
+    where: { visibility: "PUBLIC" },
+    select,
+    orderBy: [{ startAt: "asc" }, { createdAt: "desc" }],
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Contests fetched successfully", contests.map((contest) => toContestResponse(contest))));
+});
+
 export {
   createContest,
+  getAdminContests,
   createPrivateContest,
   updateContest,
   updateContestImage,

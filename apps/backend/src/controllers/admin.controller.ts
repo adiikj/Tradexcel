@@ -5,6 +5,14 @@ import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { ADMIN_COOKIE } from "../constants.js";
+
+const ADMIN_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/api/v1/admin",
+};
 
 interface AdminRequest {
   body: any;
@@ -49,7 +57,20 @@ const adminLogin = asyncHandler(async (req: AdminRequest, res: Response) => {
     { expiresIn: (process.env.ADMIN_TOKEN_EXPIRY || "2h") as any }
   );
 
-  return res.status(200).json(new ApiResponse(200, "Admin login successful", { token }));
+  // httpOnly and scoped to the admin API, so page scripts never see it and it
+  // isn't sent with any other request.
+  const { exp } = jwt.decode(token) as { exp: number };
+  return res
+    .status(200)
+    .cookie(ADMIN_COOKIE, token, { ...ADMIN_COOKIE_OPTIONS, maxAge: exp * 1000 - Date.now() })
+    .json(new ApiResponse(200, "Admin login successful", { expiresAt: exp * 1000 }));
 });
 
-export { adminLogin };
+const adminLogout = asyncHandler(async (_req: AdminRequest, res: Response) => {
+  return res
+    .status(200)
+    .clearCookie(ADMIN_COOKIE, ADMIN_COOKIE_OPTIONS)
+    .json(new ApiResponse(200, "Admin logged out", null));
+});
+
+export { adminLogin, adminLogout };
