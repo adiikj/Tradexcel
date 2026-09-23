@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import logger from "../utils/logger.js";
 
 export interface NewsArticle {
   id: string;
@@ -61,7 +62,7 @@ export async function getNewsForSymbols(symbols: string[]): Promise<{ articles: 
       try {
         return await fetchNewsForSymbol(symbol);
       } catch (error: any) {
-        console.error(`Failed to fetch news for ${symbol}:`, error.message);
+        logger.error({ err: error }, `Failed to fetch news for ${symbol}`);
         return [];
       }
     })

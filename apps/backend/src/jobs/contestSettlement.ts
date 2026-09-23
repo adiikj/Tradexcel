@@ -2,6 +2,7 @@ import cron from "node-cron";
 import prisma from "../db/prisma.js";
 import { computeContestNetWorths } from "../services/contestNetWorth.js";
 import { checkAndAwardAchievements } from "../services/achievements.js";
+import logger from "../utils/logger.js";
 
 // Freezes final standings for contests past endAt: ranks entrants by delta
 // from startingBalance, writes finalRank/finalNetWorth, flips status to ENDED.
@@ -39,7 +40,7 @@ export async function settleDueContests(): Promise<number> {
       // block settling the rest of this (or other) contests.
       for (const { entry } of ranked) {
         checkAndAwardAchievements(entry.userId).catch((error) =>
-          console.error(`Error checking achievements for ${entry.userId}:`, error)
+          logger.error({ err: error }, `Error checking achievements for ${entry.userId}`)
         );
       }
     }
@@ -57,9 +58,9 @@ export async function settleDueContests(): Promise<number> {
 
 export function startContestSettlementJob() {
   // Run once at startup so newly-due contests don't wait for the next tick.
-  settleDueContests().catch((error) => console.error("Contest settlement (startup) failed:", error));
+  settleDueContests().catch((error) => logger.error({ err: error }, "Contest settlement (startup) failed"));
 
   cron.schedule("* * * * *", () => {
-    settleDueContests().catch((error) => console.error("Contest settlement failed:", error));
+    settleDueContests().catch((error) => logger.error({ err: error }, "Contest settlement failed"));
   });
 }

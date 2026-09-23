@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 import type { Quote } from "@tradexcel/shared";
 import { ApiError } from "../utils/ApiError.js";
 import { isMarketOpen } from "./marketHours.js";
+import logger from "../utils/logger.js";
 
 const CACHE_TTL_MS = 12_000;
 // Once the market's closed the price can't have moved, so there's no reason
@@ -65,7 +66,7 @@ export async function getQuotes(symbols: string[]): Promise<Record<string, Quote
       try {
         return [symbol, await getQuote(symbol)] as const;
       } catch (error: any) {
-        console.error(`Failed to fetch quote for ${symbol}:`, error.message);
+        logger.error({ err: error }, `Failed to fetch quote for ${symbol}`);
         return [symbol, null] as const;
       }
     })

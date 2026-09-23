@@ -3,6 +3,7 @@ import prisma from "../db/prisma.js";
 import { getQuotes } from "../services/pricing.js";
 import { sendEmail } from "../services/mailer.js";
 import { isMarketOpen } from "../services/marketHours.js";
+import logger from "../utils/logger.js";
 
 // Batches one quote fetch per unique symbol across all alerts, not one per alert.
 export async function checkPriceAlerts(): Promise<number> {
@@ -44,7 +45,7 @@ export async function checkPriceAlerts(): Promise<number> {
         } your target of ₹${alert.targetPrice.toFixed(2)}.`,
       });
     } catch (error: any) {
-      console.error(`Failed to send alert email to ${alert.user.email}:`, error.message);
+      logger.error({ err: error }, `Failed to send alert email to ${alert.user.email}`);
       // Not marking triggered lets the next tick retry.
       continue;
     }
@@ -60,9 +61,9 @@ export async function checkPriceAlerts(): Promise<number> {
 }
 
 export function startAlertCheckerJob() {
-  checkPriceAlerts().catch((error) => console.error("Price alert check (startup) failed:", error));
+  checkPriceAlerts().catch((error) => logger.error({ err: error }, "Price alert check (startup) failed"));
 
   cron.schedule("*/2 * * * *", () => {
-    checkPriceAlerts().catch((error) => console.error("Price alert check failed:", error));
+    checkPriceAlerts().catch((error) => logger.error({ err: error }, "Price alert check failed"));
   });
 }

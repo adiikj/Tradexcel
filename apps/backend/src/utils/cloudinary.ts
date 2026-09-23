@@ -1,8 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-import dotenv from "dotenv";
-
-dotenv.config();
+import logger from "./logger.js";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -24,7 +22,7 @@ const uploadOnCloudinary = async (localFilePath: string) => {
         try {
             fs.unlinkSync(localFilePath);
         } catch (fsError) {
-            console.error("Error deleting local file:", fsError);
+            logger.error({ err: fsError }, "Error deleting local file");
         }
 
         return { success: true, url: response.secure_url, data: response };
@@ -35,11 +33,11 @@ const uploadOnCloudinary = async (localFilePath: string) => {
             try {
                 fs.unlinkSync(localFilePath);
             } catch (fsError) {
-                console.error("Error deleting local file after upload failure:", fsError);
+                logger.error({ err: fsError }, "Error deleting local file after upload failure");
             }
         }
 
-        console.error("Error uploading file on Cloudinary:", error);
+        logger.error({ err: error }, "Error uploading file on Cloudinary");
         return { success: false, error: "Failed to upload file to Cloudinary" };
     }
 };

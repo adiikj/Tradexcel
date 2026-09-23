@@ -1,5 +1,6 @@
 import prisma from "../db/prisma.js";
 import { fetchHistoricalCloses, type HistoricalClose } from "./historicalPricing.js";
+import logger from "../utils/logger.js";
 
 const MS_PER_DAY = 86_400_000;
 
@@ -32,7 +33,7 @@ export async function ingestContestHistory(
       try {
         return { symbol, bars: await fetchHistoricalCloses(symbol, period1, period2) };
       } catch (error: any) {
-        console.error(`Historical fetch failed for ${symbol}:`, error.message);
+        logger.error({ err: error }, `Historical fetch failed for ${symbol}`);
         return { symbol, bars: [] as HistoricalClose[] };
       }
     })

@@ -1,6 +1,7 @@
 import { ErrorRequestHandler } from "express";
 import multer from "multer";
 import { ApiError } from "../utils/ApiError.js";
+import logger from "../utils/logger.js";
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof ApiError) {
@@ -25,7 +26,7 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
 
-  console.error("Unhandled error:", err);
+  logger.error({ err }, "Unhandled error");
   res.status(500).json({
     status: 500,
     message: "Internal Server Error",
