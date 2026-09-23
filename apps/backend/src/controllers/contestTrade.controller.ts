@@ -13,6 +13,7 @@ import {
   canSell,
 } from "../services/tradeMath.js";
 import { deriveStatus } from "./contest.controller.js";
+import { lockContestEntry } from "../services/ledgerLock.js";
 
 interface AuthRequest {
   user?: { id: string };
@@ -64,6 +65,8 @@ const buyContestStock = asyncHandler(async (req: AuthRequest, res: Response) => 
   const total = price.mul(quantity);
 
   const result = await prisma.$transaction(async (tx) => {
+    await lockContestEntry(tx, entry.id);
+
     const currentEntry = await tx.contestEntry.findUnique({ where: { id: entry.id } });
     if (!currentEntry) {
       throw new ApiError(404, "Contest entry not found");
@@ -124,6 +127,8 @@ const sellContestStock = asyncHandler(async (req: AuthRequest, res: Response) =>
   const price = await resolveContestPrice(contest, symbol);
 
   const result = await prisma.$transaction(async (tx) => {
+    await lockContestEntry(tx, entry.id);
+
     const holding = await tx.contestHolding.findUnique({
       where: { contestEntryId_symbol: { contestEntryId: entry.id, symbol } },
     });

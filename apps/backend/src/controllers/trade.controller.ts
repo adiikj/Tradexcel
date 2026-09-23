@@ -13,6 +13,8 @@ import {
   canSell,
 } from "../services/tradeMath.js";
 import { checkAndAwardAchievements } from "../services/achievements.js";
+import { lockWallet } from "../services/ledgerLock.js";
+import logger from "../utils/logger.js";
 
 interface AuthRequest {
   user?: { id: string };
@@ -32,6 +34,8 @@ const buyStock = asyncHandler(async (req: AuthRequest, res: Response) => {
   const total = price.mul(quantity);
 
   const result = await prisma.$transaction(async (tx) => {
+    await lockWallet(tx, userId);
+
     const wallet = await tx.wallet.findUnique({ where: { userId } });
     if (!wallet) {
       throw new ApiError(404, "Wallet not found");
@@ -73,7 +77,7 @@ const buyStock = asyncHandler(async (req: AuthRequest, res: Response) => {
     return { wallet: updatedWallet, holding, transaction };
   });
 
-  checkAndAwardAchievements(userId).catch((error) => console.error("Error checking achievements:", error));
+  checkAndAwardAchievements(userId).catch((error) => logger.error({ err: error }, "Error checking achievements"));
 
   return res
     .status(200)
@@ -92,6 +96,8 @@ const sellStock = asyncHandler(async (req: AuthRequest, res: Response) => {
   const price = new Prisma.Decimal(quote.price);
 
   const result = await prisma.$transaction(async (tx) => {
+    await lockWallet(tx, userId);
+
     const holding = await tx.holding.findUnique({
       where: { userId_symbol: { userId, symbol } },
     });
@@ -124,7 +130,7 @@ const sellStock = asyncHandler(async (req: AuthRequest, res: Response) => {
     return { wallet, holding: updatedHolding, transaction };
   });
 
-  checkAndAwardAchievements(userId).catch((error) => console.error("Error checking achievements:", error));
+  checkAndAwardAchievements(userId).catch((error) => logger.error({ err: error }, "Error checking achievements"));
 
   return res
     .status(200)
