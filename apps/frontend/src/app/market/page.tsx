@@ -1,17 +1,20 @@
-"use client";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import Market from "@/components/market/Market";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
-import AuthRoute from "@/components/routes/AuthRoute";
+
+export const metadata: Metadata = {
+  title: "Market",
+  description: "Browse live NSE stock prices and place trades.",
+  robots: { index: false },
+};
 
 export default function Page() {
   return (
-    <AuthRoute>
-      <NoHeaderFooterLayout>
-        <Suspense>
-          <Market />
-        </Suspense>
-      </NoHeaderFooterLayout>
-    </AuthRoute>
+    <NoHeaderFooterLayout>
+      <Suspense>
+        <Market />
+      </Suspense>
+    </NoHeaderFooterLayout>
   );
 }

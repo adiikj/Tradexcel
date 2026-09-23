@@ -1,14 +1,17 @@
-"use client";
+import type { Metadata } from "next";
 import Dashboard from "@/components/dashboard/Dashboard";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
-import AuthRoute from "@/components/routes/AuthRoute";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Your net worth, holdings and today's market movers.",
+  robots: { index: false },
+};
 
 export default function Page() {
   return (
-    <AuthRoute>
-      <NoHeaderFooterLayout>
-        <Dashboard />
-      </NoHeaderFooterLayout>
-    </AuthRoute>
+    <NoHeaderFooterLayout>
+      <Dashboard />
+    </NoHeaderFooterLayout>
   );
 }

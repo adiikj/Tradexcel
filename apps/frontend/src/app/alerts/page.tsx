@@ -1,14 +1,17 @@
-"use client";
+import type { Metadata } from "next";
 import PriceAlerts from "@/components/alerts/PriceAlerts";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
-import AuthRoute from "@/components/routes/AuthRoute";
+
+export const metadata: Metadata = {
+  title: "Price alerts",
+  description: "Get notified when a stock hits your target price.",
+  robots: { index: false },
+};
 
 export default function Page() {
   return (
-    <AuthRoute>
-      <NoHeaderFooterLayout>
-        <PriceAlerts />
-      </NoHeaderFooterLayout>
-    </AuthRoute>
+    <NoHeaderFooterLayout>
+      <PriceAlerts />
+    </NoHeaderFooterLayout>
   );
 }

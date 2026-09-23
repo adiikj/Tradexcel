@@ -1,17 +1,20 @@
-"use client";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import Portfolio from "@/components/portfolio/Portfolio";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
-import AuthRoute from "@/components/routes/AuthRoute";
+
+export const metadata: Metadata = {
+  title: "Portfolio",
+  description: "Your holdings, P&L and performance over time.",
+  robots: { index: false },
+};
 
 export default function Page() {
   return (
-    <AuthRoute>
-      <NoHeaderFooterLayout>
-        <Suspense>
-          <Portfolio />
-        </Suspense>
-      </NoHeaderFooterLayout>
-    </AuthRoute>
+    <NoHeaderFooterLayout>
+      <Suspense>
+        <Portfolio />
+      </Suspense>
+    </NoHeaderFooterLayout>
   );
 }

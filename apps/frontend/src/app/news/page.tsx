@@ -1,14 +1,17 @@
-"use client";
+import type { Metadata } from "next";
 import News from "@/components/news/News";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
-import AuthRoute from "@/components/routes/AuthRoute";
+
+export const metadata: Metadata = {
+  title: "News",
+  description: "Market news for the stocks you hold and watch.",
+  robots: { index: false },
+};
 
 export default function Page() {
   return (
-    <AuthRoute>
-      <NoHeaderFooterLayout>
-        <News />
-      </NoHeaderFooterLayout>
-    </AuthRoute>
+    <NoHeaderFooterLayout>
+      <News />
+    </NoHeaderFooterLayout>
   );
 }

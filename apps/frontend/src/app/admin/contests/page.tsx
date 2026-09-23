@@ -1,14 +1,15 @@
-"use client";
+import type { Metadata } from "next";
 import AdminContests from "@/components/admin/AdminContests";
-import AdminRoute from "@/components/admin/AdminRoute";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
+
+export const metadata: Metadata = {
+  title: "Admin - Contests",
+};
 
 export default function Page() {
   return (
-    <AdminRoute>
-      <NoHeaderFooterLayout>
-        <AdminContests />
-      </NoHeaderFooterLayout>
-    </AdminRoute>
+    <NoHeaderFooterLayout>
+      <AdminContests />
+    </NoHeaderFooterLayout>
   );
 }

@@ -1,14 +1,17 @@
-"use client";
+import type { Metadata } from "next";
 import Support from "@/components/support/Support";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
-import AuthRoute from "@/components/routes/AuthRoute";
+
+export const metadata: Metadata = {
+  title: "Support",
+  description: "Get help with your Tradexcel account.",
+  robots: { index: false },
+};
 
 export default function Page() {
   return (
-    <AuthRoute>
-      <NoHeaderFooterLayout>
-        <Support />
-      </NoHeaderFooterLayout>
-    </AuthRoute>
+    <NoHeaderFooterLayout>
+      <Support />
+    </NoHeaderFooterLayout>
   );
 }

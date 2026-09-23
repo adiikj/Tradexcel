@@ -1,14 +1,17 @@
-"use client";
+import type { Metadata } from "next";
 import Leaderboard from "@/components/leaderboard/Leaderboard";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
-import AuthRoute from "@/components/routes/AuthRoute";
+
+export const metadata: Metadata = {
+  title: "Leaderboard",
+  description: "See how your portfolio ranks against other players.",
+  robots: { index: false },
+};
 
 export default function Page() {
   return (
-    <AuthRoute>
-      <NoHeaderFooterLayout>
-        <Leaderboard />
-      </NoHeaderFooterLayout>
-    </AuthRoute>
+    <NoHeaderFooterLayout>
+      <Leaderboard />
+    </NoHeaderFooterLayout>
   );
 }

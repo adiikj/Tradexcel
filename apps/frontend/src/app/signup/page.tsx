@@ -1,19 +1,16 @@
-"use client";
+import type { Metadata } from "next";
 import SignUp from "@/components/auth/SignUp";
 import MainLayout from "@/components/layout/HeaderFooterLayout";
-import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+
+export const metadata: Metadata = {
+  title: "Create your account",
+  description: "Sign up for Tradexcel and get ₹1,00,000 in virtual cash to start trading.",
+};
 
 export default function Page() {
-  const router = useRouter();
-  useEffect(() => {
-    if (Cookies.get("accessToken")) router.push("/dashboard");
-  }, [router]);
-
   return (
     <MainLayout>
-        <SignUp />
-      </MainLayout>
+      <SignUp />
+    </MainLayout>
   );
 }

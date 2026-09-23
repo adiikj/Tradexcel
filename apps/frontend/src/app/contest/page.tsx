@@ -1,14 +1,17 @@
-"use client";
+import type { Metadata } from "next";
 import Contest from "@/components/contest/Contest";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
-import AuthRoute from "@/components/routes/AuthRoute";
+
+export const metadata: Metadata = {
+  title: "Contests",
+  description: "Join public contests or create private leagues.",
+  robots: { index: false },
+};
 
 export default function Page() {
   return (
-    <AuthRoute>
-      <NoHeaderFooterLayout>
-        <Contest />
-      </NoHeaderFooterLayout>
-    </AuthRoute>
+    <NoHeaderFooterLayout>
+      <Contest />
+    </NoHeaderFooterLayout>
   );
 }

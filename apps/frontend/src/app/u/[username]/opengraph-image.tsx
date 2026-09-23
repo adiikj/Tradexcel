@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import type { PublicProfile } from "@tradexcel/shared";
 
 export const alt = "Tradexcel trading profile";
 export const size = { width: 1200, height: 630 };
@@ -20,13 +21,13 @@ function Stat({ label, value }: { label: string; value: string }) {
 export default async function Image({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
 
-  let profile: any = null;
+  let profile: PublicProfile | null = null;
   try {
     const res = await fetch(`${BASE_TRADE_URL}/users/${username}/profile`, { cache: "no-store" });
     if (res.ok) {
       profile = (await res.json())?.data ?? null;
     }
-  } catch (error) {
+  } catch {
     // Falls back to a generic card below.
   }
 
@@ -55,7 +56,7 @@ export default async function Image({ params }: { params: Promise<{ username: st
       >
         <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 40 }}>
           {avatar ? (
-            <img src={avatar} width={140} height={140} style={{ borderRadius: "50%", border: "4px solid #3b82f6" }} />
+            <img src={avatar} alt="" width={140} height={140} style={{ borderRadius: "50%", border: "4px solid #3b82f6" }} />
           ) : (
             <div style={{ display: "flex", width: 140, height: 140, borderRadius: "50%", background: "#3b82f6" }} />
           )}

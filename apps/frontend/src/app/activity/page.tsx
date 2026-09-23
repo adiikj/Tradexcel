@@ -1,14 +1,17 @@
-"use client";
+import type { Metadata } from "next";
 import ActivityFeed from "@/components/social/ActivityFeed";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
-import AuthRoute from "@/components/routes/AuthRoute";
+
+export const metadata: Metadata = {
+  title: "Activity",
+  description: "Trades and milestones from players you follow.",
+  robots: { index: false },
+};
 
 export default function Page() {
   return (
-    <AuthRoute>
-      <NoHeaderFooterLayout>
-        <ActivityFeed />
-      </NoHeaderFooterLayout>
-    </AuthRoute>
+    <NoHeaderFooterLayout>
+      <ActivityFeed />
+    </NoHeaderFooterLayout>
   );
 }

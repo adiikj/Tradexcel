@@ -1,14 +1,17 @@
-"use client";
+import type { Metadata } from "next";
 import Achievements from "@/components/achievements/Achievements";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
-import AuthRoute from "@/components/routes/AuthRoute";
+
+export const metadata: Metadata = {
+  title: "Achievements",
+  description: "Your earned badges and progress.",
+  robots: { index: false },
+};
 
 export default function Page() {
   return (
-    <AuthRoute>
-      <NoHeaderFooterLayout>
-        <Achievements />
-      </NoHeaderFooterLayout>
-    </AuthRoute>
+    <NoHeaderFooterLayout>
+      <Achievements />
+    </NoHeaderFooterLayout>
   );
 }

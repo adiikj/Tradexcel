@@ -1,14 +1,17 @@
-"use client";
+import type { Metadata } from "next";
 import Wallet from "@/components/wallet/Wallet";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
-import AuthRoute from "@/components/routes/AuthRoute";
+
+export const metadata: Metadata = {
+  title: "Wallet",
+  description: "Your virtual cash balance and transaction history.",
+  robots: { index: false },
+};
 
 export default function Page() {
   return (
-    <AuthRoute>
-      <NoHeaderFooterLayout>
-        <Wallet />
-      </NoHeaderFooterLayout>
-    </AuthRoute>
+    <NoHeaderFooterLayout>
+      <Wallet />
+    </NoHeaderFooterLayout>
   );
 }
