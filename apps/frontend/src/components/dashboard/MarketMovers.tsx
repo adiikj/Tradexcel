@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getBatchStockData } from "../../api/api";
-import stockUniverse from "../market/StockData.json";
+import { STOCK_LIST as stockUniverse } from "@tradexcel/shared";
 import { rankFromData, type StockData } from "./marketMovers";
 import { useLiveQuotes } from "../../hooks/useLiveQuotes";
 import { tickToStockFields } from "../../utils/liveQuote";

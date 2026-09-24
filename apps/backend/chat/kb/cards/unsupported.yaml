@@ -92,7 +92,7 @@ cards:
     related: [market.which_stocks]
     hard_negatives: [market.which_stocks]
     sources:
-      - apps/frontend/src/components/market/StockData.json
+      - packages/shared/src/stocks.ts
 
   - id: unsupported.corporate_actions
     category: unsupported

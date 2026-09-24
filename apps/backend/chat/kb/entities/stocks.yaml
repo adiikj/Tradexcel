@@ -1,4 +1,4 @@
-# Stock-name recognition data. The base list is the frontend's StockData.json
+# Stock-name recognition data. The base list is STOCK_LIST in packages/shared/src/stocks.ts
 # (symbol, shortName, fullName); this file only adds what people actually type.
 #
 # aliases:      extra surface forms that map to exactly one symbol.

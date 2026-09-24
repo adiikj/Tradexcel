@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import stockList from "../market/StockData.json";
+import { STOCK_LIST as stockList } from "@tradexcel/shared";
 import { searchPlayers } from "../../api/api";
 import Avatar from "../ui/Avatar";
 import type { StockListing } from "../../types/market";

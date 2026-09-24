@@ -1,4 +1,4 @@
-import stockList from "../market/StockData.json";
+import { STOCK_LIST as stockList } from "@tradexcel/shared";
 import type { StockListing } from "../../types/market";
 
 // Shared by the contest list and detail views.

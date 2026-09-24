@@ -1,7 +1,7 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import { PiCheck, PiX } from "react-icons/pi";
-import rawStockList from "../market/StockData.json";
+import { STOCK_LIST as rawStockList } from "@tradexcel/shared";
 import Modal from "../ui/Modal";
 
 const DEFAULT_FORM = {
@@ -14,7 +14,7 @@ const DEFAULT_FORM = {
 
 const MAX_SYMBOLS = 50;
 
-// StockData.json has a few duplicate entries; dedupe by symbol (same approach as AdminContests.tsx).
+// The stock list has a few duplicate entries; dedupe by symbol (same approach as AdminContests.tsx).
 const STOCK_UNIVERSE = Array.from(
   new Map((rawStockList as { shortName: string; fullName: string; symbol: string }[]).map((s) => [s.symbol, s])).values()
 );

@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { getBatchStockData } from "../../api/api";
-import stockList from "../market/StockData.json";
+import { STOCK_LIST as stockList } from "@tradexcel/shared";
 import type { StockListing } from "../../types/market";
 
 // Large, well-known NSE names for the landing page tape.

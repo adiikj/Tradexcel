@@ -10,7 +10,7 @@ import { useAsyncEffect } from "../../hooks/useAsyncEffect";
 import { apiErrorMessage } from "../../api/http";
 import type { ActivityItem as ActivityItemData } from "@tradexcel/shared";
 import Avatar from "../ui/Avatar";
-import stockList from "../market/StockData.json";
+import { STOCK_LIST as stockList } from "@tradexcel/shared";
 import type { StockListing } from "../../types/market";
 
 const NAMES = new Map((stockList as StockListing[]).map((s) => [s.symbol, s]));

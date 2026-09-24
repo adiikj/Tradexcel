@@ -5,7 +5,7 @@ import type { ChartData, ChartRange } from "@tradexcel/shared";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import { getBatchStockData, getChart, getWallet, getPortfolio } from "../../api/api";
-import stockList from "./StockData.json";
+import { STOCK_LIST as stockList } from "@tradexcel/shared";
 import TradeModal from "../trade/TradeModal";
 import { formatInr } from "../../utils/format";
 import { useLiveQuotes } from "../../hooks/useLiveQuotes";
@@ -21,7 +21,7 @@ import StockPanel from "./StockPanel";
 import Watchlist from "./Watchlist";
 import Heatmap from "./Heatmap";
 
-// StockData.json has a few duplicate symbols; keep the first of each.
+// The stock list has a few duplicate symbols; keep the first of each.
 const LISTINGS: StockListing[] = (stockList as StockListing[]).filter(
   (stock, i, all) => all.findIndex((s) => s.symbol === stock.symbol) === i
 );

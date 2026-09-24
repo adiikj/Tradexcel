@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { adminCreateContest, adminUpdateContest, adminUploadContestImage, adminGetContests, adminLogout } from "../../api/adminApi";
 import wordmark from "../../assets/tradexcel-wordmark-dark.png";
-import rawStockList from "../market/StockData.json";
+import { STOCK_LIST as rawStockList } from "@tradexcel/shared";
 import { useAsyncEffect } from "../../hooks/useAsyncEffect";
 import Image from "next/image";
 import RemoteImage from "../ui/RemoteImage";
@@ -17,7 +17,7 @@ const STATUS_STYLES: Record<string, string> = {
   ENDED: "bg-gray-500",
 };
 
-// StockData.json has a few duplicate entries; dedupe by symbol.
+// The stock list has a few duplicate entries; dedupe by symbol.
 const STOCK_UNIVERSE = Array.from(
   new Map((rawStockList as { shortName: string; fullName: string; symbol: string }[]).map((s) => [s.symbol, s])).values()
 );

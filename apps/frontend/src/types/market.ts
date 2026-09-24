@@ -1,4 +1,4 @@
-// A stock as the Market page uses it: the listing from StockData.json plus the
+// A stock as the Market page uses it: the shared stock listing plus the
 // latest quote (overlaid with live ticks). Numbers are null when unavailable.
 export type MarketStock = {
   symbol: string;
@@ -11,5 +11,5 @@ export type MarketStock = {
   closes: number[];
 };
 
-// An entry of components/market/StockData.json.
-export type StockListing = { symbol: string; shortName: string; fullName: string };
+// An entry of the shared stock list (@tradexcel/shared STOCK_LIST).
+export type { StockListing } from "@tradexcel/shared";

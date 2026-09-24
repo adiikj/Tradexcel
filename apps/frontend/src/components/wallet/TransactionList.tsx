@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PiArrowDownLeft, PiArrowUpRight } from "react-icons/pi";
 import type { TransactionRecord } from "@tradexcel/shared";
 import { formatInr } from "../../utils/format";
-import stockList from "../market/StockData.json";
+import { STOCK_LIST as stockList } from "@tradexcel/shared";
 import type { StockListing } from "../../types/market";
 
 const NAMES = new Map((stockList as StockListing[]).map((s) => [s.symbol, s]));

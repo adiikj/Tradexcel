@@ -185,7 +185,7 @@ cards:
     related: [market.page, unsupported.other_markets]
     hard_negatives: [market.page, unsupported.other_markets]
     sources:
-      - apps/frontend/src/components/market/StockData.json
+      - packages/shared/src/stocks.ts
 
   - id: market.live_prices
     category: platform

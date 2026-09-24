@@ -12,7 +12,7 @@ import { changeGlyph, changeTextClass } from "../market/marketColors";
 import LiveStatusBadge from "../layout/LiveStatusBadge";
 import MarketClosedBanner from "../layout/MarketClosedBanner";
 import { Card } from "../ui/Panel";
-import stockList from "../market/StockData.json";
+import { STOCK_LIST as stockList } from "@tradexcel/shared";
 import type { StockListing } from "../../types/market";
 import MarketMovers from "./MarketMovers";
 import QuickTrade from "../trade/QuickTrade";

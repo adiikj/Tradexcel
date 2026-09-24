@@ -2,12 +2,12 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { PiMagnifyingGlass, PiSpinnerGap } from "react-icons/pi";
 import toast from "react-hot-toast";
-import stockList from "../market/StockData.json";
+import { STOCK_LIST as stockList } from "@tradexcel/shared";
 import type { StockListing } from "../../types/market";
 import { getStockData } from "../../api/api";
 import TradeModal from "./TradeModal";
 
-// StockData.json has a few duplicate symbols; keep one of each.
+// The stock list has a few duplicate symbols; keep one of each.
 const STOCKS = Array.from(new Map((stockList as StockListing[]).map((s) => [s.symbol, s])).values());
 const BY_SYMBOL = new Map(STOCKS.map((s) => [s.symbol, s]));
 const MAX_RESULTS = 8;

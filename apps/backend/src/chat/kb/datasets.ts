@@ -2,14 +2,13 @@ import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { z } from "zod";
+import { STOCK_LIST, type StockListing } from "@tradexcel/shared";
 import { KB_DIR, REPO_ROOT, normalizeQuestion } from "./loadKb.js";
 import { CATEGORY_INTENT, type KbCard } from "./schema.js";
 
 // Everything besides the cards: live-data intents, stock-name data, and the
 // held-out evaluation sets. All of it is synthetic; these checks keep it
 // internally consistent and keep test cases out of the training data.
-
-const STOCK_LIST = join(REPO_ROOT, "apps/frontend/src/components/market/StockData.json");
 
 export const DATA_INTENTS = [
   "price_quote",
@@ -77,8 +76,6 @@ const entityCaseSchema = z
 const entityFileSchema = z.object({ cases: z.array(entityCaseSchema) }).strict();
 export type EntityCase = z.infer<typeof entityCaseSchema>;
 
-export type StockListing = { symbol: string; shortName: string; fullName: string };
-
 export type Datasets = {
   intents: IntentDef[];
   entities: EntitiesFile | null;
@@ -122,8 +119,7 @@ export function loadDatasets(kbDir = KB_DIR): { data: Datasets; errors: string[]
     else heldout.push(...(readYaml(path, heldoutFileSchema, errors)?.cases ?? []));
   }
 
-  const stocks = JSON.parse(readFileSync(STOCK_LIST, "utf8")) as StockListing[];
-  return { data: { intents, entities, heldout, entityCases, stocks }, errors };
+  return { data: { intents, entities, heldout, entityCases, stocks: STOCK_LIST }, errors };
 }
 
 export function validateDatasets(data: Datasets, cards: KbCard[]): string[] {

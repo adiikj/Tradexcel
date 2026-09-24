@@ -16,7 +16,7 @@ import MarketClosedBanner from "../layout/MarketClosedBanner";
 import { useAsyncEffect } from "../../hooks/useAsyncEffect";
 import { apiErrorMessage } from "../../api/http";
 import { changeGlyph, changeTextClass } from "../market/marketColors";
-import stockList from "../market/StockData.json";
+import { STOCK_LIST as stockList } from "@tradexcel/shared";
 import type { StockListing } from "../../types/market";
 import HoldingsTable, { type HoldingRow } from "./HoldingsTable";
 import AllocationDonut, { type Slice } from "./AllocationDonut";
