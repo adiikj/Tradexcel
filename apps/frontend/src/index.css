@@ -87,7 +87,7 @@ body {
   background: #FF0000;
 }
 
-@keyframes lineGrow {
+@keyframes lineDraw {
   from {
     transform: scaleX(0);
   }
@@ -96,14 +96,28 @@ body {
   }
 }
 
+/* Page-title underline: a thin line drawn left to right like a pen stroke.
+   Hovering the title right above it extends the line a little. */
 .animate-line {
   transform-origin: left;
-  animation: lineGrow 0.6s ease-out forwards;
+  transform: scaleX(0);
+  animation: lineDraw 0.9s cubic-bezier(0.65, 0, 0.35, 1) 0.15s forwards;
+  /* `scale` composes with the animated `transform`, so hover still works after the draw. */
+  transition: scale 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+h1:hover + .animate-line {
+  scale: 1.5 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-line {
+    transform: none;
     animation: none;
+    transition: none;
+  }
+  h1:hover + .animate-line {
+    scale: none;
   }
 }
 
