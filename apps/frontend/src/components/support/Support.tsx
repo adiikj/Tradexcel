@@ -1,13 +1,18 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { FiCheckCircle, FiHelpCircle, FiMail } from "react-icons/fi";
+import { PiCaretRight, PiCheckCircle, PiEnvelopeSimple, PiQuestion } from "react-icons/pi";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import { sendSupportMessage } from "../../api/api";
 import { apiErrorMessage } from "../../api/http";
 
 const SUBJECTS = ["Bug report", "Account issue", "Trading question", "Contest issue", "Something else"];
+// Matches the backend's support message limit.
+const MAX_MESSAGE = 5000;
+const EMAIL = "contact@tradexcel.site";
+
+const SURFACE = "rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:shadow-none dark:ring-gray-800";
 
 function Support() {
   const [subject, setSubject] = useState(SUBJECTS[0]);
@@ -30,106 +35,133 @@ function Support() {
     }
   };
 
-  const cardBg = "bg-gray-100 dark:bg-gray-900";
-  const inputClasses = `w-full rounded-lg border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-    "bg-white border-gray-300 text-gray-800 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-  }`;
+  const reset = () => {
+    setSent(false);
+    setMessage("");
+    setSubject(SUBJECTS[0]);
+  };
 
   return (
-    <>
-      <div
-        className={
-          "bg-white text-black min-h-screen transition-colors duration-300 font-pop dark:bg-gray-800 dark:text-white"
-        }
-      >
-        <Header />
-        <div className="flex flex-col md:flex-row">
-          <Vheader />
-          <main className="flex-1 min-w-0 p-4 m-4 md:m-10 mb-20 md:mb-10">
-            <h1 className="text-2xl md:text-3xl font-bold">Support</h1>
-            <div className="h-2 w-32 bg-blue-500 rounded-full mb-6 animate-line"></div>
+    <div className="min-h-screen bg-gray-50 font-pop text-gray-900 transition-colors duration-300 dark:bg-gray-800 dark:text-white">
+      <Header />
+      <div className="flex">
+        <Vheader />
+        <main className="mb-20 min-w-0 flex-1 md:mb-0 px-5 py-6 md:px-8 md:py-8 lg:px-12 lg:py-10">
+          <div className="mx-auto max-w-4xl space-y-6">
+            <div>
+              <h1 className="text-2xl font-bold md:text-3xl">Support</h1>
+              <div className="mt-1 h-0.5 w-24 rounded-full bg-blue-600 dark:bg-blue-400 animate-line" />
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Found a bug or stuck on something? Tell us and we&apos;ll help.</p>
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 max-w-4xl">
-              <div className={`lg:col-span-2 rounded-2xl p-6 h-fit ${cardBg}`}>
-                <h2 className="font-bold mb-3">Before you write in</h2>
-                <Link
-                  href="/faq"
-                  className={`flex items-center gap-3 p-3 rounded-xl transition-colors duration-200 ${
-                    "hover:bg-white dark:hover:bg-gray-700"
-                  }`}
-                >
-                  <FiHelpCircle className="text-blue-500 text-xl shrink-0" />
-                  <div>
-                    <p className="text-sm font-semibold">Check the FAQ</p>
-                    <p className="text-xs text-gray-400">Most common questions are answered there.</p>
-                  </div>
-                </Link>
-                <div className="flex items-center gap-3 p-3 mt-1">
-                  <FiMail className="text-blue-500 text-xl shrink-0" />
-                  <div>
-                    <p className="text-sm font-semibold">Email us directly</p>
-                    <p className="text-xs text-gray-400">contact@tradexcel.site</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className={`lg:col-span-3 rounded-2xl p-6 ${cardBg}`}>
+            <div className="grid gap-4 lg:grid-cols-5">
+              <section aria-label="Contact form" className={`p-5 md:p-6 lg:col-span-3 ${SURFACE}`}>
                 {sent ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center py-10">
-                    <FiCheckCircle className="text-blue-500 text-5xl" />
-                    <h3 className="text-xl font-semibold mt-4">Request sent</h3>
-                    <p className="text-sm text-gray-400 mt-2">We&apos;ll get back to you as soon as we can.</p>
-                    <button
-                      onClick={() => {
-                        setSent(false);
-                        setMessage("");
-                        setSubject(SUBJECTS[0]);
-                      }}
-                      className="mt-6 text-sm text-blue-500 hover:underline"
-                    >
-                      Send another request
+                  <div role="status" className="flex h-full flex-col items-center justify-center py-10 text-center">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-teal-600/10 text-teal-700 dark:text-teal-300">
+                      <PiCheckCircle aria-hidden="true" className="h-8 w-8" />
+                    </span>
+                    <h2 className="mt-4 text-lg font-semibold">Message sent</h2>
+                    <p className="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">
+                      We&apos;ll reply to the email on your account as soon as we can.
+                    </p>
+                    <button type="button" onClick={reset} className="mt-6 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
+                      Send another message
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                      <label htmlFor="support-subject" className="block text-sm font-medium mb-1">Subject</label>
-                      <select id="support-subject" value={subject} onChange={(e) => setSubject(e.target.value)} className={inputClasses}>
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    <h2 className="text-base font-semibold">Send us a message</h2>
+                    <fieldset>
+                      <legend className="mb-2 text-sm font-medium">What&apos;s it about?</legend>
+                      <div className="flex flex-wrap gap-2">
                         {SUBJECTS.map((s) => (
-                          <option key={s} value={s}>
+                          <label
+                            key={s}
+                            className={`cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 ${
+                              subject === s
+                                ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                                : "bg-gray-100 text-gray-600 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-300 dark:hover:text-white"
+                            }`}
+                          >
+                            <input type="radio" name="subject" value={s} checked={subject === s} onChange={() => setSubject(s)} className="sr-only" />
                             {s}
-                          </option>
+                          </label>
                         ))}
-                      </select>
-                    </div>
+                      </div>
+                    </fieldset>
                     <div>
-                      <label htmlFor="support-message" className="block text-sm font-medium mb-1">Message</label>
+                      <div className="mb-2 flex items-baseline justify-between">
+                        <label htmlFor="support-message" className="text-sm font-medium">
+                          Message
+                        </label>
+                        <span className="text-xs tabular-nums text-gray-400">
+                          {message.length}/{MAX_MESSAGE}
+                        </span>
+                      </div>
                       <textarea
                         id="support-message"
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         required
-                        rows={6}
-                        placeholder="What's going on?"
-                        className={`${inputClasses} resize-none`}
+                        maxLength={MAX_MESSAGE}
+                        rows={7}
+                        placeholder="What happened, and what did you expect? For a trade, include the stock and roughly when."
+                        className="w-full resize-y rounded-xl bg-gray-100 px-4 py-3 text-sm outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
                       />
                     </div>
-                    {error && <p className="text-sm text-red-500">{error}</p>}
-                    <button
-                      type="submit"
-                      disabled={sending}
-                      className="px-8 py-3 rounded-lg bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      {sending ? "Sending..." : "Send request"}
-                    </button>
+                    {error && (
+                      <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-300">
+                        {error}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="submit"
+                        disabled={sending || !message.trim()}
+                        className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {sending ? "Sending…" : "Send message"}
+                      </button>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">We reply to the email on your account.</span>
+                    </div>
                   </form>
                 )}
-              </div>
+              </section>
+
+              <aside className="space-y-4 lg:col-span-2">
+                <Link
+                  href="/faq"
+                  className={`group flex items-center gap-3 p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60 ${SURFACE}`}
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
+                    <PiQuestion aria-hidden="true" className="h-5 w-5" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium">Check the FAQ first</span>
+                    <span className="block text-xs text-gray-500 dark:text-gray-400">Weekly resets, contests, alerts and more.</span>
+                  </span>
+                  <PiCaretRight aria-hidden="true" className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+                <a
+                  href={`mailto:${EMAIL}`}
+                  className={`group flex items-center gap-3 p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60 ${SURFACE}`}
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                    <PiEnvelopeSimple aria-hidden="true" className="h-5 w-5" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium">Prefer email?</span>
+                    <span className="block truncate text-xs text-gray-500 dark:text-gray-400">{EMAIL}</span>
+                  </span>
+                  <PiCaretRight aria-hidden="true" className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-hover:translate-x-0.5" />
+                </a>
+              </aside>
             </div>
-          </main>
-        </div>
+          </div>
+        </main>
       </div>
-    </>
+    </div>
   );
 }
 
