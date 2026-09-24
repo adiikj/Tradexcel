@@ -26,10 +26,10 @@ function MarketStatusPill() {
   return (
     <span
       className={`hidden lg:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
-        open ? "bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-300" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+        open ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-300" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
       }`}
     >
-      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${open ? "bg-teal-500 animate-pulse" : "bg-gray-400"}`} />
+      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${open ? "bg-green-500 animate-pulse" : "bg-gray-400"}`} />
       {open ? "Market open" : "Market closed"}
     </span>
   );
