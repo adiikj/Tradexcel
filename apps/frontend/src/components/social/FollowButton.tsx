@@ -26,7 +26,7 @@ function FollowButton({ username, initialIsFollowing, onChange }: FollowButtonPr
         onChange?.(true);
       }
     } catch (err) {
-      alert(apiErrorMessage(err, "Something went wrong."));
+      alert(apiErrorMessage(err, "Something went wrong. Please try again."));
     } finally {
       setIsLoading(false);
     }
@@ -36,13 +36,13 @@ function FollowButton({ username, initialIsFollowing, onChange }: FollowButtonPr
     <button
       onClick={handleClick}
       disabled={isLoading}
-      className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors duration-200 disabled:opacity-60 ${
+      className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors duration-200 disabled:opacity-60 ${
         isFollowing
-          ? "bg-gray-200 text-gray-800 hover:bg-red-100 hover:text-red-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-red-900 dark:hover:text-red-300"
-          : "bg-blue-500 text-white hover:bg-blue-600"
+          ? "ring-1 ring-gray-200 hover:bg-red-50 hover:text-red-600 hover:ring-red-200 dark:ring-gray-700 dark:hover:bg-red-500/10 dark:hover:text-red-300 dark:hover:ring-red-500/30"
+          : "bg-blue-600 text-white hover:bg-blue-700"
       }`}
     >
-      {isLoading ? "..." : isFollowing ? "Following" : "Follow"}
+      {isLoading ? "…" : isFollowing ? "Following" : "Follow"}
     </button>
   );
 }

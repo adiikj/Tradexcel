@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import { FiShare2, FiCheck } from "react-icons/fi";
 
 interface ShareButtonProps {
   url: string;
@@ -32,12 +31,10 @@ function ShareButton({ url, title, text }: ShareButtonProps) {
 
   return (
     <button
+      type="button"
       onClick={handleShare}
-      className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200 ${
-        "bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-      }`}
+      className="rounded-xl px-4 py-2 text-sm font-medium ring-1 ring-gray-200 transition-colors hover:bg-gray-50 dark:ring-gray-700 dark:hover:bg-gray-800"
     >
-      {copied ? <FiCheck /> : <FiShare2 />}
       {copied ? "Link copied" : "Share"}
     </button>
   );

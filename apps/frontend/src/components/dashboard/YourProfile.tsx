@@ -1,474 +1,470 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { FaEdit, FaSave, FaEye, FaEyeSlash, FaTimes, FaUserCircle } from "react-icons/fa";
+import toast from "react-hot-toast";
+import { PiEye, PiEyeSlash } from "react-icons/pi";
 import { FcGoogle } from "react-icons/fc";
 import Header from "./Header";
 import Vheader from "./Vheader";
 import { getUserProfile, updateUserProfile, changePasswordAndPin, updateAvatar } from "../../api/api";
 import { useAsyncEffect } from "../../hooks/useAsyncEffect";
+import { apiErrorMessage } from "../../api/http";
 import Avatar from "../ui/Avatar";
 
-type Section = "personal" | "security";
+const SURFACE = "rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:shadow-none dark:ring-gray-800";
+const INPUT =
+  "w-full rounded-xl bg-gray-100 px-3.5 py-2.5 text-sm outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 disabled:opacity-60 dark:bg-gray-800";
+const LABEL = "mb-1.5 block text-sm font-medium";
+const HINT = "mt-1 text-xs text-gray-500 dark:text-gray-400";
+const PRIMARY = "rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50";
+const SECONDARY =
+  "rounded-xl px-4 py-2 text-sm font-medium ring-1 ring-gray-200 hover:bg-gray-50 disabled:opacity-50 dark:ring-gray-700 dark:hover:bg-gray-800";
 
-type ProfileForm = {
-  name: string;
-  username: string;
-  email: string;
-  phoneNumber: string;
-  dob: string;
-  // A URL once saved, or the File the user just picked.
-  avatar: string | File | null;
-};
+// Mirrors the backend's rules (user.controller.ts), so problems show before saving.
+const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PIN_RE = /^\d{4}$/;
 
-type SecurityForm = {
-  oldPassword: string;
-  newPassword: string;
-  oldPin: string;
-  newPin: string;
-};
+type Details = { name: string; username: string; email: string; dob: string };
+const EMPTY_DETAILS: Details = { name: "", username: "", email: "", dob: "" };
 
-type SecurityField = keyof SecurityForm;
-
-function YourProfile() {
-
-  const [activeSection, setActiveSection] = useState<Section>("personal");
-  const [formData, setFormData] = useState<ProfileForm>({
-    name: "",
-    username: "",
-    email: "",
-    phoneNumber: "",
-    dob: "",
-    avatar: null,
-  });
-
-  const [securityData, setSecurityData] = useState<SecurityForm>({
-    oldPassword: "",
-    newPassword: "",
-    oldPin: "",
-    newPin: "",
-  });
-
-  const [initialData, setInitialData] = useState<ProfileForm | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [accountFlags, setAccountFlags] = useState({
-    hasGoogleLogin: false,
-    hasPassword: false,
-    hasPin: false,
-  });
-  const [showPassword, setShowPassword] = useState<Record<SecurityField, boolean>>({
-    oldPassword: false,
-    newPassword: false,
-    oldPin: false,
-    newPin: false,
-  });
-  const [streak, setStreak] = useState({ currentStreak: 0, longestStreak: 0 });
-
-  // One object URL per picked file, released when it changes or on unmount
-  // (creating it inline leaked a new URL on every render).
-  const avatarPreviewUrl = useMemo(
-    () => (formData.avatar instanceof File ? URL.createObjectURL(formData.avatar) : null),
-    [formData.avatar]
-  );
-  useEffect(() => {
-    return () => {
-      if (avatarPreviewUrl) URL.revokeObjectURL(avatarPreviewUrl);
-    };
-  }, [avatarPreviewUrl]);
-
-  const fetchUserProfile = async (isActive: () => boolean = () => true) => {
-    try {
-      const response = await getUserProfile();
-      if (!isActive()) return;
-      if (response.status === 200 && response.data) {
-        const {
-          name,
-          username,
-          email,
-          phoneNumber,
-          dob,
-          avatar,
-          hasGoogleLogin,
-          hasPassword,
-          hasPin,
-          currentStreak,
-          longestStreak,
-        } = response.data;
-        const formattedDob = dob ? new Date(dob).toISOString().split("T")[0] : "";
-
-        const initial = {
-          name: name || "",
-          username: username || "",
-          email: email || "",
-          phoneNumber: phoneNumber || "",
-          dob: formattedDob,
-          avatar: avatar || null,
-        };
-
-        setFormData(initial);
-        setInitialData(initial);
-        setAccountFlags({ hasGoogleLogin: !!hasGoogleLogin, hasPassword: !!hasPassword, hasPin: !!hasPin });
-        setStreak({ currentStreak: currentStreak || 0, longestStreak: longestStreak || 0 });
-      }
-    } catch {
-      // Fields stay at their defaults; the form is still usable.
-    }
-  };
-
-  // Mount-only load; fetchUserProfile is recreated each render but only its
-  // first instance is needed here.
-  useAsyncEffect((isActive) => fetchUserProfile(isActive), []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (activeSection === "personal") {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    } else if (activeSection === "security") {
-      setSecurityData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleEditToggle = () => {
-    setIsEditing((prev) => !prev);
-    if (isEditing) {
-      // Reset to initial data on cancel
-      if (initialData) setFormData(initialData);
-      setSecurityData({
-        oldPassword: "",
-        newPassword: "",
-        oldPin: "",
-        newPin: "",
-      });
-    }
-  };
-
-  const handleSectionChange = (section: Section) => {
-    if (isEditing) {
-      alert("Please save or cancel your current changes before switching sections.");
-      return;
-    }
-    setActiveSection(section);
-  };
-
-  const handleAvatarUpdate = async () => {
-    try {
-      if (!(formData.avatar instanceof File)) {
-        alert("Please select a valid file to upload.");
-        return;
-      }
-
-      const avatarPayload = new FormData();
-      avatarPayload.append("avatar", formData.avatar);
-
-      const avatarResponse = await updateAvatar(avatarPayload);
-      if (avatarResponse) {
-        alert("Avatar updated successfully! Please reload the page to see the changes.");
-        setFormData((prev) => ({ ...prev, avatar: avatarResponse.data.avatar }));
-      } else {
-        alert("Failed to update avatar.");
-      }
-    } catch {
-      alert("There was an error updating the avatar. Please try again.");
-    }
-  };
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-
-    if (formData.avatar instanceof File) {
-      await handleAvatarUpdate();
-      return;
-    }
-    
-    const payload: Record<string, string> = {};
-
-    if (activeSection === "personal") {
-      if (formData.name || formData.username || formData.email || formData.phoneNumber || formData.dob) {
-        payload.name = formData.name;
-        payload.username = formData.username;
-        payload.email = formData.email;
-        payload.phoneNumber = formData.phoneNumber;
-        payload.dob = formData.dob;
-      }
-    } else if (activeSection === "security") {
-      // oldPassword/oldPin are only sent when the account already has one.
-      if (securityData.newPassword) {
-        payload.newPassword = securityData.newPassword;
-        if (accountFlags.hasPassword) payload.oldPassword = securityData.oldPassword;
-      }
-      if (securityData.newPin) {
-        payload.newPin = securityData.newPin;
-        if (accountFlags.hasPin) payload.oldPin = securityData.oldPin;
-      }
-    }
-
-    try {
-      let response;
-      if (activeSection === "personal") {
-        response = await updateUserProfile(payload);
-      } else if (activeSection === "security") {
-        if (Object.keys(payload).length === 0) {
-          alert("Enter a new password and/or PIN to save.");
-          return;
-        }
-        response = await changePasswordAndPin(payload);
-      }
-
-      if (response.status === 200) {
-        alert("Profile updated successfully!");
-        if (activeSection === "personal") {
-          setInitialData({ ...formData });
-        } else {
-          setSecurityData({ oldPassword: "", newPassword: "", oldPin: "", newPin: "" });
-          await fetchUserProfile();
-        }
-      } else {
-        alert("Failed to update profile. Please try again.");
-      }
-    } catch {
-      alert("There was an error updating the profile. Please try again.");
-    }
-
-    setIsEditing(false);
-  };
-
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setFormData((prev) => ({
-        ...prev,
-        avatar: file,
-      }));
-    }
-  };
-
-  const handleShowPassword = (field: SecurityField) => {
-    setShowPassword((prev) => ({
-      ...prev,
-      [field]: !prev[field],
-    }));
-  };
-
-  const isSecurityField = (name: string): name is SecurityField => name in showPassword;
-
-  const fieldValue = (name: keyof ProfileForm | SecurityField): string => {
-    const value = isSecurityField(name) ? securityData[name] : formData[name];
-    return typeof value === "string" ? value : "";
-  };
-
-  const renderField = (label: string, name: keyof ProfileForm | SecurityField, type = "text") => (
-    <div>
-      <label
-        htmlFor={name}
-        className={`block font-pop font-medium mb-2 text-gray-800 dark:text-gray-200`}
+function SecretInput({
+  id,
+  value,
+  onChange,
+  numeric = false,
+  autoComplete,
+  invalid,
+  describedBy,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  numeric?: boolean;
+  autoComplete: string;
+  invalid?: boolean;
+  describedBy?: string;
+}) {
+  const [shown, setShown] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        id={id}
+        type={shown ? "text" : "password"}
+        value={value}
+        onChange={(e) => onChange(numeric ? e.target.value.replace(/\D/g, "").slice(0, 4) : e.target.value)}
+        inputMode={numeric ? "numeric" : undefined}
+        maxLength={numeric ? 4 : undefined}
+        autoComplete={autoComplete}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
+        className={`${INPUT} pr-11 ${numeric ? "font-mono tracking-[0.4em]" : ""} ${invalid ? "ring-2 ring-red-500" : ""}`}
+      />
+      <button
+        type="button"
+        onClick={() => setShown((s) => !s)}
+        aria-label={shown ? "Hide" : "Show"}
+        aria-pressed={shown}
+        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
       >
-        {label}
-      </label>
-      {isEditing ? (
-        <div className="relative">
-          <input
-            type={isSecurityField(name) && showPassword[name] ? "text" : type}
-            id={name}
-            name={name}
-            value={fieldValue(name)}
-            onChange={handleChange}
-            className={`w-full p-3 border rounded-md transition-all duration-300 focus:ring-2 focus:ring-blue-500 ${
-              "bg-white border-gray-300 text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-            }`}
-          />
-          {type === "password" && (
-            <button
-              type="button"
-              onClick={() => isSecurityField(name) && handleShowPassword(name)}
-              aria-label={isSecurityField(name) && showPassword[name] ? `Hide ${label}` : `Show ${label}`}
-              className="absolute top-1/2 right-3 transform -translate-y-1/2"
-            >
-              {isSecurityField(name) && showPassword[name] ? <FaEyeSlash /> : <FaEye />}
-            </button>
-          )}
-        </div>
-      ) : (
-        <p
-          className={`p-3 border rounded-md transition-all duration-300 ${
-            "bg-gray-100 border-gray-300 text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-          }`}
-        >
-          {type === "password"
-            ? "********"
-            : fieldValue(name) || "N/A"}
-        </p>
-      )}
+        {shown ? <PiEyeSlash aria-hidden="true" className="h-4 w-4" /> : <PiEye aria-hidden="true" className="h-4 w-4" />}
+      </button>
     </div>
   );
+}
+
+function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+  return (
+    <section className={`grid gap-6 p-5 md:p-6 lg:grid-cols-3 ${SURFACE}`}>
+      <div>
+        <h2 className="text-base font-semibold">{title}</h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+      </div>
+      <div className="lg:col-span-2">{children}</div>
+    </section>
+  );
+}
+
+function YourProfile() {
+  const [loaded, setLoaded] = useState(false);
+  const [saved, setSaved] = useState<Details>(EMPTY_DETAILS);
+  const [details, setDetails] = useState<Details>(EMPTY_DETAILS);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [flags, setFlags] = useState({ hasGoogleLogin: false, hasPassword: false, hasPin: false });
+  const [streak, setStreak] = useState({ current: 0, longest: 0 });
+  const [savingDetails, setSavingDetails] = useState(false);
+  const [savingAvatar, setSavingAvatar] = useState(false);
+
+  const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
+  const [savingPw, setSavingPw] = useState(false);
+  const [pin, setPin] = useState({ current: "", next: "" });
+  const [savingPin, setSavingPin] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // One object URL per picked file, released when it changes or on unmount.
+  const previewUrl = useMemo(() => (avatarFile ? URL.createObjectURL(avatarFile) : null), [avatarFile]);
+  useEffect(() => () => void (previewUrl && URL.revokeObjectURL(previewUrl)), [previewUrl]);
+
+  const loadProfile = async (isActive: () => boolean = () => true) => {
+    try {
+      const response = await getUserProfile();
+      if (!isActive() || !response?.data) return;
+      const p = response.data;
+      const next: Details = {
+        name: p.name || "",
+        username: p.username || "",
+        email: p.email || "",
+        dob: p.dob ? new Date(p.dob).toISOString().split("T")[0] : "",
+      };
+      setSaved(next);
+      setDetails(next);
+      setAvatarUrl(p.avatar || null);
+      setFlags({ hasGoogleLogin: !!p.hasGoogleLogin, hasPassword: !!p.hasPassword, hasPin: !!p.hasPin });
+      setStreak({ current: p.currentStreak || 0, longest: p.longestStreak || 0 });
+    } catch (err) {
+      if (isActive()) toast.error(apiErrorMessage(err, "Couldn't load your profile."));
+    } finally {
+      if (isActive()) setLoaded(true);
+    }
+  };
+
+  // Mount-only load.
+  useAsyncEffect((isActive) => loadProfile(isActive), []);
+
+  // ---- personal details ----
+  const changed = (Object.keys(details) as (keyof Details)[]).filter((k) => details[k].trim() !== saved[k]);
+  const detailErrors: Partial<Record<keyof Details, string>> = {};
+  if (details.name.trim().length < 2) detailErrors.name = "Enter at least 2 characters.";
+  if (!USERNAME_RE.test(details.username.trim())) detailErrors.username = "3 to 20 letters, numbers or underscores.";
+  if (!EMAIL_RE.test(details.email.trim())) detailErrors.email = "Enter a valid email address.";
+  // An empty date of birth is never sent (the API can't parse it), so clearing it alone isn't a saveable change.
+  const toSend = changed.filter((k) => !(k === "dob" && !details.dob.trim()));
+  const canSaveDetails = loaded && toSend.length > 0 && Object.keys(detailErrors).length === 0 && !savingDetails;
+
+  const saveDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSaveDetails) return;
+    // Only send what changed.
+    const payload = Object.fromEntries(toSend.map((k) => [k, details[k].trim()]));
+    setSavingDetails(true);
+    try {
+      await updateUserProfile(payload);
+      const next = { ...details, name: details.name.trim(), username: details.username.trim(), email: details.email.trim() };
+      setSaved(next);
+      setDetails(next);
+      toast.success("Profile saved");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Couldn't save your profile."));
+    } finally {
+      setSavingDetails(false);
+    }
+  };
+
+  // ---- photo ----
+  const saveAvatar = async () => {
+    if (!avatarFile) return;
+    setSavingAvatar(true);
+    try {
+      const payload = new FormData();
+      payload.append("avatar", avatarFile);
+      const res = await updateAvatar(payload);
+      setAvatarUrl(res?.data?.avatar ?? avatarUrl);
+      setAvatarFile(null);
+      toast.success("Photo updated");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Couldn't upload your photo."));
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
+
+  // ---- password ----
+  const pwTooShort = pw.next.length > 0 && pw.next.length < 8;
+  const pwMismatch = pw.confirm.length > 0 && pw.confirm !== pw.next;
+  const canSavePw =
+    !savingPw && pw.next.length >= 8 && pw.confirm === pw.next && (!flags.hasPassword || pw.current.length > 0);
+
+  const savePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSavePw) return;
+    setSavingPw(true);
+    try {
+      await changePasswordAndPin({ newPassword: pw.next, ...(flags.hasPassword ? { oldPassword: pw.current } : {}) });
+      toast.success(flags.hasPassword ? "Password changed" : "Password set");
+      setPw({ current: "", next: "", confirm: "" });
+      setFlags((f) => ({ ...f, hasPassword: true }));
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Couldn't update your password."));
+    } finally {
+      setSavingPw(false);
+    }
+  };
+
+  // ---- PIN ----
+  const canSavePin = !savingPin && PIN_RE.test(pin.next) && (!flags.hasPin || PIN_RE.test(pin.current));
+
+  const savePin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSavePin) return;
+    setSavingPin(true);
+    try {
+      await changePasswordAndPin({ newPin: pin.next, ...(flags.hasPin ? { oldPin: pin.current } : {}) });
+      toast.success(flags.hasPin ? "PIN changed" : "PIN set");
+      setPin({ current: "", next: "" });
+      setFlags((f) => ({ ...f, hasPin: true }));
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Couldn't update your PIN."));
+    } finally {
+      setSavingPin(false);
+    }
+  };
+
+  const field = (key: keyof Details) => ({
+    id: `profile-${key}`,
+    value: details[key],
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => setDetails((d) => ({ ...d, [key]: e.target.value })),
+    disabled: !loaded,
+    "aria-invalid": (details[key] !== saved[key] && !!detailErrors[key]) || undefined,
+    "aria-describedby": `profile-${key}-hint`,
+  });
+  const showError = (key: keyof Details) => details[key] !== saved[key] && detailErrors[key];
 
   return (
-    <>
-      <div className={`min-h-screen font-pop transition-all duration-300 bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-200`}>
-        <Header />
-        <div className="flex flex-col lg:flex-row mb-16 md:mb-0">
-          <Vheader />
-          <main className="flex-1 min-w-0 p-6 md:m-10">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h1 className={`text-2xl md:text-3xl font-bold transition-all duration-300 text-gray-800 dark:text-gray-200`}>
-                Your Profile
-              </h1>
-              {formData.username && (
-                <div className="flex items-center gap-3">
-                  {streak.currentStreak > 0 && (
-                    <span
-                      className={`text-xs font-semibold px-3 py-1.5 rounded-full ${
-                        "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-                      }`}
-                    >
-                      🔥 {streak.currentStreak}-day streak
-                    </span>
-                  )}
-                  <Link
-                    href={`/u/${formData.username}`}
-                    className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
-                  >
-                    <FaUserCircle /> View Public Profile
-                  </Link>
-                </div>
-              )}
+    <div className="min-h-screen bg-gray-50 font-pop text-gray-900 transition-colors duration-300 dark:bg-gray-800 dark:text-white">
+      <Header />
+      <div className="flex">
+        <Vheader />
+        <main className="mb-20 min-w-0 flex-1 px-5 py-6 md:mb-0 md:px-8 md:py-8 lg:px-12 lg:py-10">
+          <div className="mx-auto max-w-4xl space-y-5">
+            <div>
+              <h1 className="text-2xl font-bold md:text-3xl">Your profile</h1>
+              <div className="mt-1 h-0.5 w-24 rounded-full bg-blue-600 dark:bg-blue-400 animate-line" />
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Manage how you appear to other traders and how you sign in.</p>
             </div>
-            <div className="h-2 w-32 md:w-44 bg-blue-500 rounded-full mb-7 animate-line"></div>
-            <div className={`max-w-4xl mx-auto transition-all duration-300 shadow-lg rounded-lg overflow-hidden bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200`}>
-              <div className={`p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center border-b border-gray-200 dark:border-gray-700`}>
-                <div className="flex space-x-4">
-                  <button
-                    className={`px-4 py-2 text-sm md:text-base font-semibold rounded-full ${
-                      activeSection === "personal" ? "bg-blue-500 text-white shadow" : "bg-gray-300 text-black dark:bg-gray-700 dark:text-gray-300"
-                    }`}
-                    onClick={() => handleSectionChange("personal")}
-                  >
-                    Personal Info
-                  </button>
-                  <button
-                    className={`px-4 py-2 text-sm md:text-base font-semibold rounded-full ${
-                      activeSection === "security" ? "bg-blue-500 text-white shadow" : "bg-gray-300 text-black dark:bg-gray-700 dark:text-gray-300"
-                    }`}
-                    onClick={() => handleSectionChange("security")}
-                  >
-                    Security Info
-                  </button>
+
+            {/* Identity */}
+            <div className={`flex flex-wrap items-center gap-5 p-5 md:p-6 ${SURFACE}`}>
+              <div className="relative">
+                <Avatar src={previewUrl ?? avatarUrl} size={96} alt="" className="h-20 w-20 rounded-full object-cover ring-1 ring-gray-200 dark:ring-gray-700" />
+              </div>
+              <div className="min-w-0 flex-1">
+                {loaded ? (
+                  <>
+                    <p className="truncate text-lg font-semibold">{saved.name || "Your name"}</p>
+                    <p className="truncate text-sm text-gray-500 dark:text-gray-400">@{saved.username}</p>
+                    {streak.current > 0 && (
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        <span className="font-semibold text-amber-600 dark:text-amber-400">{streak.current}-day</span> login streak · best {streak.longest}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    <span className="block h-5 w-40 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
+                    <span className="block h-4 w-24 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setAvatarFile(file);
+                    e.target.value = "";
+                  }}
+                />
+                {avatarFile ? (
+                  <>
+                    <button type="button" onClick={() => setAvatarFile(null)} disabled={savingAvatar} className={SECONDARY}>
+                      Cancel
+                    </button>
+                    <button type="button" onClick={saveAvatar} disabled={savingAvatar} className={PRIMARY}>
+                      {savingAvatar ? "Uploading…" : "Save photo"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button type="button" onClick={() => fileRef.current?.click()} disabled={!loaded} className={SECONDARY}>
+                      Change photo
+                    </button>
+                    {saved.username && (
+                      <Link href={`/u/${saved.username}`} className={SECONDARY}>
+                        View public profile
+                      </Link>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Personal details */}
+            <Section title="Personal details" description="Your name and username are shown on your public profile and the leaderboard. Email and birthday stay private.">
+              <form onSubmit={saveDetails} className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="profile-name" className={LABEL}>
+                    Name
+                  </label>
+                  <input {...field("name")} autoComplete="name" className={`${INPUT} ${showError("name") ? "ring-2 ring-red-500" : ""}`} />
+                  <p id="profile-name-hint" className={showError("name") ? `${HINT} !text-red-600 dark:!text-red-400` : "sr-only"}>
+                    {showError("name") || ""}
+                  </p>
                 </div>
-                <div className="flex items-center mt-3 md:mt-0 space-x-3">
-                  {isEditing && (
-                    <button
-                      onClick={handleEditToggle}
-                      className="flex items-center text-sm md:text-base px-4 py-2 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-md"
-                    >
-                      <FaTimes className="mr-2" /> Cancel
+                <div>
+                  <label htmlFor="profile-username" className={LABEL}>
+                    Username
+                  </label>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-gray-400">@</span>
+                    <input {...field("username")} autoComplete="username" className={`${INPUT} pl-8 ${showError("username") ? "ring-2 ring-red-500" : ""}`} />
+                  </div>
+                  <p id="profile-username-hint" className={`${HINT} ${showError("username") ? "!text-red-600 dark:!text-red-400" : ""}`}>
+                    {showError("username") || "3 to 20 letters, numbers or underscores. Changes your profile link."}
+                  </p>
+                </div>
+                <div>
+                  <label htmlFor="profile-email" className={LABEL}>
+                    Email
+                  </label>
+                  <input {...field("email")} type="email" autoComplete="email" className={`${INPUT} ${showError("email") ? "ring-2 ring-red-500" : ""}`} />
+                  <p id="profile-email-hint" className={showError("email") ? `${HINT} !text-red-600 dark:!text-red-400` : "sr-only"}>
+                    {showError("email") || ""}
+                  </p>
+                </div>
+                <div>
+                  <label htmlFor="profile-dob" className={LABEL}>
+                    Date of birth <span className="font-normal text-gray-400">(optional)</span>
+                  </label>
+                  <input {...field("dob")} type="date" className={INPUT} />
+                  <p id="profile-dob-hint" className="sr-only">
+                    Optional
+                  </p>
+                </div>
+                <div className="flex items-center justify-end gap-2 sm:col-span-2">
+                  {changed.length > 0 && (
+                    <button type="button" onClick={() => setDetails(saved)} disabled={savingDetails} className={SECONDARY}>
+                      Discard
                     </button>
                   )}
-                  <button
-                    onClick={isEditing ? handleSubmit : handleEditToggle}
-                    className={`flex items-center text-sm md:text-base px-4 py-2 rounded-full transition shadow-md ${
-                      isEditing ? "bg-green-500 hover:bg-green-600 text-white" : "bg-blue-500 hover:bg-blue-600 text-white"
-                    }`}
-                  >
-                    {isEditing ? <FaSave className="mr-2" /> : <FaEdit className="mr-2" />} {isEditing ? "Save" : "Edit"}
+                  <button type="submit" disabled={!canSaveDetails} className={PRIMARY}>
+                    {savingDetails ? "Saving…" : "Save changes"}
                   </button>
                 </div>
-              </div>
-              <form id="profile-form" onSubmit={handleSubmit} className="p-4 sm:p-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-                {activeSection === "personal" && (
-                  <>
-                    <div className="col-span-1 md:col-span-2 flex flex-col items-center">
-                      <div className="relative">
-                        <Avatar
-                          src={avatarPreviewUrl ?? (typeof formData.avatar === "string" ? formData.avatar : null)}
-                          size={128}
-                          alt="Profile Preview"
-                          className={`w-24 h-24 sm:w-32 sm:h-32 rounded-full transition-all duration-300 border-4 object-cover border-gray-200 dark:border-gray-600`}
-                        />
-                        {isEditing && (
-                          <>
-                            <label htmlFor="avatar" className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full cursor-pointer hover:bg-blue-600 transition">
-                              <FaEdit />
-                            </label>
-                            <input
-                              type="file"
-                              id="avatar"
-                              accept="image/*"
-                              onChange={handleAvatarChange}
-                              className="hidden"
-                            />
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {renderField("Name", "name")}
-                    {renderField("Username", "username")}
-                    {renderField("Email", "email", "email")}
-                    {renderField("Phone Number", "phoneNumber")}
-                    {renderField("Date of Birth", "dob", "date")}
-                  </>
-                )}
-                {activeSection === "security" && (
-                  <>
-                    <div className="col-span-1 md:col-span-2">
-                      <h3 className={`font-semibold mb-2 text-gray-800 dark:text-gray-200`}>
-                        Connected Accounts
-                      </h3>
-                      <div
-                        className={`flex items-center justify-between p-3 rounded-md border ${
-                          "bg-white border-gray-300 dark:bg-gray-700 dark:border-gray-600"
-                        }`}
-                      >
-                        <span className="flex items-center gap-2">
-                          <FcGoogle size={18} /> Google
-                        </span>
-                        {accountFlags.hasGoogleLogin ? (
-                          <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-500/15 text-green-500">
-                            Connected
-                          </span>
-                        ) : (
-                          <span
-                            className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                              "bg-gray-200 text-gray-600 dark:bg-gray-600 dark:text-gray-300"
-                            }`}
-                          >
-                            Not connected
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="col-span-1 md:col-span-2 mt-2">
-                      <h3 className={`font-semibold mb-1 text-gray-800 dark:text-gray-200`}>
-                        {accountFlags.hasPassword ? "Change Password" : "Set a Password"}
-                      </h3>
-                      {!accountFlags.hasPassword && (
-                        <p className="text-xs text-gray-400 mb-2">
-                          Your account currently signs in with Google only. Set a password to also enable normal login.
-                        </p>
-                      )}
-                    </div>
-                    {accountFlags.hasPassword && renderField("Current Password", "oldPassword", "password")}
-                    {renderField(accountFlags.hasPassword ? "New Password" : "Password", "newPassword", "password")}
-
-                    <div className="col-span-1 md:col-span-2 mt-2">
-                      <h3 className={`font-semibold mb-1 text-gray-800 dark:text-gray-200`}>
-                        {accountFlags.hasPin ? "Change PIN" : "Set a PIN"}
-                      </h3>
-                      {!accountFlags.hasPin && (
-                        <p className="text-xs text-gray-400 mb-2">
-                          Set a 4-digit PIN for quick sign-in without your password.
-                        </p>
-                      )}
-                    </div>
-                    {accountFlags.hasPin && renderField("Current PIN", "oldPin", "password")}
-                    {renderField(accountFlags.hasPin ? "New PIN" : "PIN", "newPin", "password")}
-                  </>
-                )}
               </form>
-            </div>
-          </main>
-        </div>
+            </Section>
+
+            {/* Security */}
+            <Section title="Sign-in & security" description="Ways you can sign in to Tradexcel. A PIN is a quick 4-digit alternative to your password.">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 dark:bg-gray-800">
+                  <span className="flex items-center gap-2.5 text-sm font-medium">
+                    <FcGoogle aria-hidden="true" className="h-5 w-5" /> Google
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      flags.hasGoogleLogin ? "bg-teal-600/10 text-teal-700 dark:text-teal-300" : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                    }`}
+                  >
+                    {flags.hasGoogleLogin ? "Connected" : "Not connected"}
+                  </span>
+                </div>
+
+                <form onSubmit={savePassword} className="space-y-4 border-t border-gray-100 pt-6 dark:border-gray-800">
+                  <div>
+                    <h3 className="text-sm font-semibold">{flags.hasPassword ? "Change password" : "Set a password"}</h3>
+                    {!flags.hasPassword && (
+                      <p className={HINT}>You currently sign in with Google only. Add a password to sign in with your email too.</p>
+                    )}
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {flags.hasPassword && (
+                      <div className="sm:col-span-2 sm:max-w-[calc(50%-0.5rem)]">
+                        <label htmlFor="pw-current" className={LABEL}>
+                          Current password
+                        </label>
+                        <SecretInput id="pw-current" value={pw.current} onChange={(v) => setPw((p) => ({ ...p, current: v }))} autoComplete="current-password" />
+                      </div>
+                    )}
+                    <div>
+                      <label htmlFor="pw-next" className={LABEL}>
+                        New password
+                      </label>
+                      <SecretInput
+                        id="pw-next"
+                        value={pw.next}
+                        onChange={(v) => setPw((p) => ({ ...p, next: v }))}
+                        autoComplete="new-password"
+                        invalid={pwTooShort}
+                        describedBy="pw-next-hint"
+                      />
+                      <p id="pw-next-hint" className={`${HINT} ${pwTooShort ? "!text-red-600 dark:!text-red-400" : ""}`}>
+                        At least 8 characters.
+                      </p>
+                    </div>
+                    <div>
+                      <label htmlFor="pw-confirm" className={LABEL}>
+                        Confirm new password
+                      </label>
+                      <SecretInput
+                        id="pw-confirm"
+                        value={pw.confirm}
+                        onChange={(v) => setPw((p) => ({ ...p, confirm: v }))}
+                        autoComplete="new-password"
+                        invalid={pwMismatch}
+                        describedBy="pw-confirm-hint"
+                      />
+                      <p id="pw-confirm-hint" className={pwMismatch ? `${HINT} !text-red-600 dark:!text-red-400` : "sr-only"}>
+                        {pwMismatch ? "Passwords don't match." : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <button type="submit" disabled={!canSavePw} className={PRIMARY}>
+                      {savingPw ? "Saving…" : flags.hasPassword ? "Update password" : "Set password"}
+                    </button>
+                  </div>
+                </form>
+
+                <form onSubmit={savePin} className="space-y-4 border-t border-gray-100 pt-6 dark:border-gray-800">
+                  <div>
+                    <h3 className="text-sm font-semibold">{flags.hasPin ? "Change PIN" : "Set a PIN"}</h3>
+                    {!flags.hasPin && <p className={HINT}>Sign in with 4 digits instead of typing your password.</p>}
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {flags.hasPin && (
+                      <div>
+                        <label htmlFor="pin-current" className={LABEL}>
+                          Current PIN
+                        </label>
+                        <SecretInput id="pin-current" numeric value={pin.current} onChange={(v) => setPin((p) => ({ ...p, current: v }))} autoComplete="off" />
+                      </div>
+                    )}
+                    <div>
+                      <label htmlFor="pin-next" className={LABEL}>
+                        New PIN
+                      </label>
+                      <SecretInput id="pin-next" numeric value={pin.next} onChange={(v) => setPin((p) => ({ ...p, next: v }))} autoComplete="off" describedBy="pin-next-hint" />
+                      <p id="pin-next-hint" className={HINT}>
+                        Exactly 4 digits.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <button type="submit" disabled={!canSavePin} className={PRIMARY}>
+                      {savingPin ? "Saving…" : flags.hasPin ? "Update PIN" : "Set PIN"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </Section>
+          </div>
+        </main>
       </div>
-    </>
+    </div>
   );
 }
 
