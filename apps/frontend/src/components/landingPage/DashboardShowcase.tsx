@@ -1,14 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FiBriefcase,
-  FiCreditCard,
-  FiAward,
-  FiBarChart2,
-  FiUsers,
-  FiFileText,
-} from "react-icons/fi";
 import BrowserFrame from "./BrowserFrame";
 
 import portfolio from "../../assets/tradexcel/dash-portfolio.png";
@@ -24,7 +16,6 @@ const tabs = [
   {
     key: "portfolio",
     label: "Portfolio",
-    icon: FiBriefcase,
     img: portfolio,
     heading: "Track every holding, live",
     desc: "Net worth, invested amount, cash on hand, and a full allocation breakdown across every position you hold.",
@@ -32,23 +23,20 @@ const tabs = [
   {
     key: "wallet",
     label: "Wallet",
-    icon: FiCreditCard,
     img: wallet,
     heading: "A clear ledger of every trade",
-    desc: "Your virtual cash balance and a running history of every buy and sell, timestamped and itemized.",
+    desc: "Your cash balance, this season's cash flow day by day, and every buy and sell you've made.",
   },
   {
     key: "market",
     label: "Market",
-    icon: FiBarChart2,
     img: market,
     heading: "Real prices, real movement",
-    desc: "Browse gainers, losers, and your own holdings with live sparklines pulled from the real market.",
+    desc: "Browse 250+ NSE stocks with live prices, detailed charts and a heatmap of the whole market.",
   },
   {
     key: "contests",
     label: "Contests",
-    icon: FiAward,
     img: contests,
     heading: "Compete in public or private leagues",
     desc: "Join a live public contest or host your own private room with a custom stock universe and invite code.",
@@ -56,7 +44,6 @@ const tabs = [
   {
     key: "leaderboard",
     label: "Leaderboard",
-    icon: FiUsers,
     img: leaderboard,
     heading: "See where you rank",
     desc: "A global leaderboard ranked by net worth, with weekly champions and contest winners called out.",
@@ -64,7 +51,6 @@ const tabs = [
   {
     key: "achievements",
     label: "Achievements",
-    icon: FiAward,
     img: achievements,
     heading: "Unlock badges as you trade",
     desc: "18 achievements track everything from your first trade to reaching the top of the leaderboard.",
@@ -72,22 +58,21 @@ const tabs = [
   {
     key: "news",
     label: "News",
-    icon: FiFileText,
     img: news,
-    heading: "Market news, personalized",
-    desc: "A live feed of market headlines tagged to the tickers you actually hold or follow.",
+    heading: "Market news that matters to you",
+    desc: "The latest Indian market headlines, with stories about the stocks you hold flagged for you.",
   },
   {
     key: "profile",
     label: "Profile",
-    icon: FiUsers,
     img: profile,
     heading: "Your trading identity, all in one place",
     desc: "Net worth, rank, login streak, and every badge you've earned, plus a weekly performance breakdown.",
   },
 ];
 
-const AUTO_ADVANCE_MS = 3000;
+// Long enough to read the heading, the line under it and glance at the screen.
+const AUTO_ADVANCE_MS = 6000;
 
 function DashboardShowcase() {
   const [active, setActive] = useState(0);
@@ -111,20 +96,14 @@ function DashboardShowcase() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* decorative backdrop */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 -left-16 w-96 h-96 rounded-full bg-blue-100/60 blur-3xl" />
-        <div className="absolute -bottom-32 -right-20 w-[28rem] h-[28rem] rounded-full bg-blue-50 blur-3xl" />
-      </div>
-
       <div className="relative z-10 text-center max-w-2xl mx-auto">
-        <h6 className="text-blue-500 font-pop text-lg font-semibold">
+        <h6 className="font-pop text-sm font-semibold uppercase tracking-widest text-blue-600">
           Inside Tradexcel
         </h6>
-        <p className="text-3xl md:text-4xl pt-2 font-semibold font-pop">
+        <p className="mt-3 font-pop text-3xl font-semibold leading-tight md:text-4xl">
           Everything you&apos;d expect from a real trading platform
         </p>
-        <p className="text-gray-600 mt-4">
+        <p className="mt-4 text-lg text-gray-600">
           Every screen below is the actual product, not a mockup. Explore what your
           account looks like from day one.
         </p>
@@ -133,13 +112,12 @@ function DashboardShowcase() {
       {/* Tab bar */}
       <div className="relative z-10 mt-10 flex gap-2 overflow-x-auto pb-2 no-scrollbar justify-start md:justify-center">
         {tabs.map((t, i) => {
-          const Icon = t.icon;
           const isActive = i === active;
           return (
             <button
               key={t.key}
               onClick={() => setActive(i)}
-              className={`relative overflow-hidden flex items-center gap-2 shrink-0 px-4 py-2.5 rounded-full text-sm font-medium font-pop transition-colors duration-200 ${
+              className={`relative overflow-hidden shrink-0 px-4 py-2.5 rounded-full text-sm font-medium font-pop transition-colors duration-200 ${
                 isActive
                   ? "bg-btn-blue text-white"
                   : "bg-grey text-gray-600 hover:text-blue-600"
@@ -155,7 +133,6 @@ function DashboardShowcase() {
                   }}
                 />
               )}
-              <Icon className="relative text-base" />
               <span className="relative">{t.label}</span>
             </button>
           );
@@ -163,7 +140,7 @@ function DashboardShowcase() {
       </div>
 
       {/* Panel */}
-      <div className="relative z-10 mt-10 max-w-5xl mx-auto rounded-3xl bg-gradient-to-b from-blue-50 to-grey/60 p-4 sm:p-6 md:p-10">
+      <div className="relative z-10 mt-10 max-w-5xl mx-auto rounded-3xl bg-grey p-4 sm:p-6 md:p-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab.key}
