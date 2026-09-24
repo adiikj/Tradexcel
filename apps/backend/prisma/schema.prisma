@@ -21,6 +21,11 @@ model User {
   dob          DateTime?
   pin          String?
   refreshToken String?
+  // Forgot-password flow: a bcrypt-hashed 6-digit code, cleared once used.
+  resetCodeHash    String?
+  resetCodeExpiry  DateTime?
+  resetAttempts    Int       @default(0)
+  resetRequestedAt DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -33,6 +38,7 @@ model User {
   wallet                Wallet?
   holdings              Holding[]
   transactions          Transaction[]
+  queuedOrders          QueuedOrder[]
   contestEntries        ContestEntry[]
   ownedContests         Contest[]        @relation("ContestOwner")
   priceAlerts           PriceAlert[]
@@ -79,6 +85,7 @@ model WeeklySnapshot {
 enum NotificationType {
   FOLLOW
   ACHIEVEMENT
+  ORDER
 }
 
 model Notification {
@@ -146,6 +153,35 @@ model Transaction {
   price     Decimal  @db.Decimal(18, 4)
   total     Decimal  @db.Decimal(18, 2)
   createdAt DateTime @default(now())
+}
+
+enum QueuedOrderStatus {
+  PENDING
+  FILLED
+  CANCELLED
+  FAILED
+}
+
+// A main-wallet order placed while the market was closed. It fills at the
+// first live price after the next open (jobs/queuedOrders.ts); quotedPrice is
+// only the last price the user saw, used to reserve cash for pending buys.
+model QueuedOrder {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id])
+  symbol        String
+  side          Side
+  quantity      Int
+  quotedPrice   Decimal           @db.Decimal(18, 4)
+  status        QueuedOrderStatus @default(PENDING)
+  failureReason String?
+  transactionId String?           @unique
+  resolvedAt    DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([status, createdAt])
+  @@index([userId, status])
 }
 
 enum ContestStatus {
