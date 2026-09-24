@@ -6,7 +6,7 @@ cards:
     title: I can't give buy/sell recommendations
     answer: |
       I can't tell you what to buy or sell. That would be investment advice, and I'm not a financial adviser.
-      I can explain a stock's live price, how your holdings are doing, or ideas like P/E, diversification and market cap, so you can make your own call. TradeXcel is a safe place to test it with virtual money.
+      I can explain a stock's live price, how your holdings are doing, or ideas like P/E, diversification and market cap, so you can make your own call. Tradexcel is a safe place to test it with virtual money.
     questions:
       - should i buy reliance
       - which stock should i buy today
@@ -49,7 +49,7 @@ cards:
     title: I can't advise on real-money investing
     answer: |
       I can't recommend brokers, apps, or how much of your real money to invest. For real investing decisions, talk to a SEBI-registered investment adviser.
-      TradeXcel is a good place to practise first. Everything here is virtual, so mistakes cost nothing.
+      Tradexcel is a good place to practise first. Everything here is virtual, so mistakes cost nothing.
     questions:
       - which broker should i open a demat account with
       - should i invest my savings in stocks
@@ -69,7 +69,7 @@ cards:
     title: I can't give tax advice
     answer: |
       I can't help with tax on real investments, like capital gains or how to file. Please check with a chartered accountant or the Income Tax Department's official guidance.
-      Nothing on TradeXcel is taxable. It's all virtual money.
+      Nothing on Tradexcel is taxable. It's all virtual money.
     questions:
       - how much tax do i pay on stock profits
       - what is capital gains tax
@@ -106,7 +106,7 @@ cards:
     category: guardrail
     title: Never share your password, PIN or codes
     answer: |
-      Please **don't share** your password, PIN or email codes with anyone, including me. I never need them, and TradeXcel staff will never ask for them.
+      Please **don't share** your password, PIN or email codes with anyone, including me. I never need them, and Tradexcel staff will never ask for them.
       If you think someone knows them, reset them right away from the sign-in page.
     questions:
       - my password is abc123 can you log me in

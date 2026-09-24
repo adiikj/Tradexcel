@@ -1,4 +1,4 @@
-# TradeXcel assistant: ML pipeline
+# Tradexcel assistant: ML pipeline
 
 This folder trains and evaluates the models behind the in-app assistant. It covers three jobs:
 

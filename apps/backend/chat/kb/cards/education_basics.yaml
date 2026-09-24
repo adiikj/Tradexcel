@@ -1,4 +1,4 @@
-# Market basics for beginners. General knowledge, explained in TradeXcel's
+# Market basics for beginners. General knowledge, explained in Tradexcel's
 # context where it helps - explain, never recommend.
 cards:
   - id: edu.stock
@@ -6,7 +6,7 @@ cards:
     title: What a stock (share) is
     answer: |
       A **share** is a small piece of ownership in a company. If a company has 1 crore shares and you own 100, you own a tiny slice of it.
-      Share prices move as buyers and sellers react to the company's results, news and the wider economy. On TradeXcel you buy and sell real companies' shares, with virtual money.
+      Share prices move as buyers and sellers react to the company's results, news and the wider economy. On Tradexcel you buy and sell real companies' shares, with virtual money.
     questions:
       - what is a stock
       - what is a share
@@ -24,7 +24,7 @@ cards:
     title: NSE and BSE
     answer: |
       India has two main stock exchanges: the **NSE** (National Stock Exchange) and the **BSE** (Bombay Stock Exchange, Asia's oldest). Most big companies are listed on both.
-      Their flagship indices are the **Nifty 50** (NSE) and the **Sensex** (BSE). TradeXcel uses NSE prices.
+      Their flagship indices are the **Nifty 50** (NSE) and the **Sensex** (BSE). Tradexcel uses NSE prices.
     questions:
       - what is nse
       - what is bse
@@ -86,7 +86,7 @@ cards:
       - A **limit order** only fills at your chosen price or better.
       - A **stop-loss** automatically sells if the price falls to a set level, to cap a loss.
 
-      Real brokers offer all three. TradeXcel only has market orders.
+      Real brokers offer all three. Tradexcel only has market orders.
     questions:
       - what is a market order
       - what is a limit order
@@ -140,7 +140,7 @@ cards:
     title: Liquidity
     answer: |
       **Liquidity** is how easily you can buy or sell a stock without moving its price much. Large, popular stocks like Reliance or HDFC Bank are very liquid. Small, rarely traded stocks aren't.
-      In real markets, illiquid stocks can be hard to exit. On TradeXcel every order fills at the quoted price.
+      In real markets, illiquid stocks can be hard to exit. On Tradexcel every order fills at the quoted price.
     questions:
       - what is liquidity
       - what is a liquid stock
@@ -194,7 +194,7 @@ cards:
     title: Dividends
     answer: |
       A **dividend** is a share of profits a company pays to its shareholders, usually as cash per share. You must own the stock before the **ex-dividend date** to receive it, and the price typically drops by about the dividend amount that day.
-      TradeXcel doesn't credit dividends.
+      Tradexcel doesn't credit dividends.
     questions:
       - what is a dividend
       - how do dividends work
@@ -216,7 +216,7 @@ cards:
       - **Bonus shares:** free extra shares the company gives existing shareholders, with the price adjusting the same way.
       - **Buyback:** the company buys its own shares back from investors, often at a premium.
 
-      TradeXcel doesn't apply these.
+      Tradexcel doesn't apply these.
     questions:
       - what is a stock split
       - what are bonus shares
@@ -253,7 +253,7 @@ cards:
     title: Demat and trading accounts
     answer: |
       In real investing, a **demat account** holds your shares electronically, and a **trading account** with a broker lets you place orders. You need both to invest in Indian stocks.
-      You don't need either for TradeXcel, since everything here is virtual.
+      You don't need either for Tradexcel, since everything here is virtual.
     questions:
       - what is a demat account
       - do i need a demat account for tradexcel
@@ -307,7 +307,7 @@ cards:
     title: Pre-open session and settlement
     answer: |
       NSE equities have a **pre-open session** from 9:00 to 9:15 AM IST, where the opening price is set, then normal trading runs from {{MARKET_OPEN}} to {{MARKET_CLOSE}}.
-      Real trades settle **T+1**: shares and money actually change hands the next working day. On TradeXcel, trades settle instantly.
+      Real trades settle **T+1**: shares and money actually change hands the next working day. On Tradexcel, trades settle instantly.
     questions:
       - what is the pre open session
       - what is t+1 settlement
@@ -399,7 +399,7 @@ cards:
     title: Index funds and ETFs
     answer: |
       An **index fund** copies an index like the Nifty 50, so you own a slice of all its companies at once. An **ETF** does the same but trades on the exchange like a stock.
-      Both are popular low-cost ways to get broad diversification. TradeXcel only has individual stocks.
+      Both are popular low-cost ways to get broad diversification. Tradexcel only has individual stocks.
     questions:
       - what is an index fund
       - what is an etf
@@ -436,7 +436,7 @@ cards:
     title: What short selling is
     answer: |
       **Short selling** means selling shares you've borrowed, hoping to buy them back cheaper later and pocket the difference. It profits when prices fall, but losses can be large if the price rises instead.
-      In India, retail short selling is mostly intraday. TradeXcel doesn't support it.
+      In India, retail short selling is mostly intraday. Tradexcel doesn't support it.
     questions:
       - what is short selling
       - how does shorting work
@@ -455,7 +455,7 @@ cards:
     title: Futures and options (F&O)
     answer: |
       **Options** give the right, but not the obligation, to buy (**call**) or sell (**put**) at a set price before a date. **Futures** are an obligation to buy or sell at a set price on a future date.
-      Both use leverage, so gains and losses are magnified. SEBI studies have found that most retail F&O traders lose money. TradeXcel doesn't offer F&O.
+      Both use leverage, so gains and losses are magnified. SEBI studies have found that most retail F&O traders lose money. Tradexcel doesn't offer F&O.
     questions:
       - what are options
       - what is a call option

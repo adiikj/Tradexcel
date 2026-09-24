@@ -117,7 +117,7 @@ cards:
     title: Risk and return
     answer: |
       Higher potential returns come with higher risk: bigger possible losses, bigger swings, or both. There's no reliably high return without risk, so be wary of anything promising one.
-      On TradeXcel, risk is free to explore. Notice how volatile picks change your weekly results compared with steady ones.
+      On Tradexcel, risk is free to explore. Notice how volatile picks change your weekly results compared with steady ones.
     questions:
       - what is risk vs return
       - why is higher return riskier
@@ -135,7 +135,7 @@ cards:
     title: Position sizing
     answer: |
       **Position sizing** is deciding how much money to put into one trade. A common rule of thumb is to never let a single position be big enough to wreck your portfolio if it goes badly.
-      On TradeXcel, try the same idea with different sizes and watch how much one stock can swing your net worth.
+      On Tradexcel, try the same idea with different sizes and watch how much one stock can swing your net worth.
     questions:
       - what is position sizing
       - how much money per trade
@@ -172,7 +172,7 @@ cards:
     title: Intraday vs delivery trading
     answer: |
       **Intraday** trading means buying and selling on the same day. **Delivery** means holding the shares overnight or longer. Brokers treat the two differently in margin and charges.
-      TradeXcel has no such distinction: you hold shares until you sell them or the weekly reset sells them.
+      Tradexcel has no such distinction: you hold shares until you sell them or the weekly reset sells them.
     questions:
       - what is intraday trading
       - intraday vs delivery
@@ -190,7 +190,7 @@ cards:
     title: Buy-and-hold vs active trading
     answer: |
       **Buy-and-hold** investors own good businesses for years and ride out the ups and downs. **Active traders** try to profit from shorter moves, which takes more time and involves more trades.
-      TradeXcel's weekly seasons suit shorter-term play, so treat it as practice, not a model of long-term investing.
+      Tradexcel's weekly seasons suit shorter-term play, so treat it as practice, not a model of long-term investing.
     questions:
       - what is buy and hold
       - long term investing vs trading
@@ -231,7 +231,7 @@ cards:
     title: Overtrading
     answer: |
       **Overtrading** is trading too often, usually out of boredom, excitement or chasing losses. In real markets every trade costs brokerage and taxes, and frequent in-and-out trading often underperforms simply holding.
-      TradeXcel has no fees, so overtrading doesn't cost money here, but it's still worth noticing the habit.
+      Tradexcel has no fees, so overtrading doesn't cost money here, but it's still worth noticing the habit.
     questions:
       - what is overtrading
       - am i trading too much
@@ -284,7 +284,7 @@ cards:
 
   - id: edu.game_strategy
     category: education
-    title: Getting better at TradeXcel
+    title: Getting better at Tradexcel
     answer: |
       There's no guaranteed way to win, but principles that help:
       - spread your cash across a few stocks and sectors

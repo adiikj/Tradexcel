@@ -6,9 +6,9 @@ pipeline_tag: sentence-similarity
 tags: [sentence-transformers, feature-extraction, onnx, transformers.js, faq-retrieval, intent-classification]
 ---
 
-# TradeXcel assistant encoder
+# Tradexcel assistant encoder
 
-A 22M-parameter sentence encoder fine-tuned from [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) to power the in-app assistant of **TradeXcel**, a gamified stock-trading simulator. One embedding of the user's message drives two jobs:
+A 22M-parameter sentence encoder fine-tuned from [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) to power the in-app assistant of **Tradexcel**, a gamified stock-trading simulator. One embedding of the user's message drives two jobs:
 
 - **Retrieval**: find which of 142 help and education cards answers the message.
 - **Intent classification**: a logistic-regression head sorts the message into 13 intents. Examples include "answer from a card", "look up a live price", "summarise my portfolio", "refuse: investment advice" and "out of scope".
@@ -65,5 +65,5 @@ On one CPU thread, ONNX fp32 encodes a query in 5.7 ms p50, versus 13.5 ms for P
 
 - **Everything is synthetic** and written by one author, so scores run high. Fine-tuning improved the same-distribution splits much more than the style-shifted OOD set: retrieval on OOD didn't improve. Real user questions will be the next test set.
 - **The refusal classifier isn't perfect** (95% on OOD). In the product it sits behind deterministic regex guards and fixed refusal cards, and it never produces free text.
-- **English only**, and specific to TradeXcel's content. It isn't a general-purpose encoder.
+- **English only**, and specific to Tradexcel's content. It isn't a general-purpose encoder.
 - **It never gives investment advice.** Refusals are canned responses.

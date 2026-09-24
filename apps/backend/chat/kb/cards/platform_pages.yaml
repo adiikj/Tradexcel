@@ -3,9 +3,9 @@
 cards:
   - id: about.what_is_tradexcel
     category: platform
-    title: What TradeXcel is
+    title: What Tradexcel is
     answer: |
-      TradeXcel is a **stock-trading game**. You trade real NSE stocks at real market prices, but with virtual money, so you can learn and practise without risking anything.
+      Tradexcel is a **stock-trading game**. You trade real NSE stocks at real market prices, but with virtual money, so you can learn and practise without risking anything.
       Every week is a fresh season with {{STARTING_BALANCE}}, and you can compete on the leaderboard, in contests, and in private leagues with friends.
     questions:
       - what is tradexcel
@@ -351,7 +351,7 @@ cards:
     category: platform
     title: Dark and light mode
     answer: |
-      TradeXcel starts in **dark mode**. Use the sun/moon button in the header to switch between dark and light. Your choice is remembered on this device.
+      Tradexcel starts in **dark mode**. Use the sun/moon button in the header to switch between dark and light. Your choice is remembered on this device.
     questions:
       - how do i switch to light mode
       - enable dark mode

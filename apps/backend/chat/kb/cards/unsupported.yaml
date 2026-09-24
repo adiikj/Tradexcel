@@ -1,11 +1,11 @@
-# Things people ask for that TradeXcel deliberately doesn't do. Saying "no"
+# Things people ask for that Tradexcel deliberately doesn't do. Saying "no"
 # clearly (and what to do instead) beats a vague near-match.
 cards:
   - id: unsupported.limit_orders
     category: unsupported
     title: Limit and stop-loss orders
     answer: |
-      TradeXcel only has **market orders**. During market hours they fill straight away at the current price. Outside market hours they're queued for the opening price. Limit orders and stop-losses aren't available.
+      Tradexcel only has **market orders**. During market hours they fill straight away at the current price. Outside market hours they're queued for the opening price. Limit orders and stop-losses aren't available.
       The closest thing is a **price alert**. Set one for your target price and you'll get an email when the stock gets there, then trade yourself.
     questions:
       - can i place a limit order
@@ -52,7 +52,7 @@ cards:
     category: unsupported
     title: Real money, deposits and withdrawals
     answer: |
-      TradeXcel is a **simulator**. All money is virtual. You can't deposit, withdraw or cash out, and nothing you do here affects a real brokerage account.
+      Tradexcel is a **simulator**. All money is virtual. You can't deposit, withdraw or cash out, and nothing you do here affects a real brokerage account.
       It's completely free to play.
     questions:
       - can i withdraw my money
@@ -77,7 +77,7 @@ cards:
     category: unsupported
     title: US stocks, crypto, mutual funds and other markets
     answer: |
-      TradeXcel only covers **Indian stocks listed on the NSE**. US stocks, crypto, forex, commodities, mutual funds and bonds can't be traded here.
+      Tradexcel only covers **Indian stocks listed on the NSE**. US stocks, crypto, forex, commodities, mutual funds and bonds can't be traded here.
     questions:
       - can i trade us stocks
       - can i buy bitcoin
@@ -98,7 +98,7 @@ cards:
     category: unsupported
     title: Dividends, splits and bonus shares
     answer: |
-      TradeXcel doesn't apply **dividends, stock splits or bonus shares**. You won't receive dividend cash, and share counts aren't adjusted.
+      Tradexcel doesn't apply **dividends, stock splits or bonus shares**. You won't receive dividend cash, and share counts aren't adjusted.
       Since every season lasts a week, this rarely matters, but a split during the week can make a holding look like a loss.
     questions:
       - do i get dividends
@@ -223,7 +223,7 @@ cards:
     category: unsupported
     title: Mobile app
     answer: |
-      There's no app to install yet, but TradeXcel works in your phone's browser. Every page is built for small screens, and the main pages have a bottom navigation bar.
+      There's no app to install yet, but Tradexcel works in your phone's browser. Every page is built for small screens, and the main pages have a bottom navigation bar.
     questions:
       - is there a mobile app
       - download tradexcel app

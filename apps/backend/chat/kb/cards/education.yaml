@@ -1,4 +1,4 @@
-# General trading concepts, each tied back to where it shows up in TradeXcel.
+# General trading concepts, each tied back to where it shows up in Tradexcel.
 # Explain, never recommend.
 cards:
   - id: edu.net_worth
@@ -51,7 +51,7 @@ cards:
     category: education
     title: Average buy price
     answer: |
-      If you buy the same stock more than once, TradeXcel tracks a **weighted average buy price**:
+      If you buy the same stock more than once, Tradexcel tracks a **weighted average buy price**:
       (old qty × old avg + new qty × new price) ÷ total qty.
       Example: 10 shares at ₹100, then 10 more at ₹120, gives an average of ₹110. Selling doesn't change your average, only the quantity.
     questions:

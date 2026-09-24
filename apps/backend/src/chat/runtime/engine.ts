@@ -149,7 +149,7 @@ export class ChatEngine {
         return {
           kind: "fallback",
           intent: "out_of_scope",
-          text: "That's outside what I can help with. I can answer questions about TradeXcel, look up stock prices, and tell you how your portfolio, rank and contests are doing.",
+          text: "That's outside what I can help with. I can answer questions about Tradexcel, look up stock prices, and tell you how your portfolio, rank and contests are doing.",
           links: [],
           suggestions: FALLBACK_SUGGESTIONS,
           cardId: null,

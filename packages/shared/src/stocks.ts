@@ -1,4 +1,4 @@
-// NSE stocks tradable on TradeXcel - the single list shared by the frontend
+// NSE stocks tradable on Tradexcel - the single list shared by the frontend
 // (Market page, search, trade pickers) and the backend (the chat assistant's
 // stock-name linking). Symbols carry Yahoo's ".NS" suffix.
 

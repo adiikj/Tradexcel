@@ -31,7 +31,7 @@ cards:
     category: platform
     title: What happens every Monday (weekly reset)
     answer: |
-      TradeXcel runs in **weekly seasons**. Every Monday at 00:00 UTC (5:30 AM IST):
+      Tradexcel runs in **weekly seasons**. Every Monday at 00:00 UTC (5:30 AM IST):
       1. Your net worth for the week is recorded in your history.
       2. All your holdings are sold at their latest price.
       3. Your wallet resets to **{{STARTING_BALANCE}}** for the new season.
@@ -198,7 +198,7 @@ cards:
     category: platform
     title: Brokerage, fees and taxes
     answer: |
-      There are **no brokerage fees, taxes or charges** on TradeXcel. A trade costs exactly price × quantity, and a sale pays you exactly price × quantity.
+      There are **no brokerage fees, taxes or charges** on Tradexcel. A trade costs exactly price × quantity, and a sale pays you exactly price × quantity.
       Real brokers charge fees, so real-world returns on the same trades would be a little lower.
     questions:
       - are there any brokerage charges

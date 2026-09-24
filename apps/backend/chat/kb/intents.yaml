@@ -220,7 +220,7 @@ intents:
       - what did i sell recently
 
   - id: out_of_scope
-    description: Anything unrelated to TradeXcel, trading or the user's account.
+    description: Anything unrelated to Tradexcel, trading or the user's account.
     handler: polite fallback with what the assistant can do
     examples:
       - what's the weather today
