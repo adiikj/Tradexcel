@@ -21,7 +21,7 @@ type Props = {
 
 type Target = { symbol: string; fullName: string; side: "BUY" | "SELL"; price: number; availableQty: number };
 
-// "Quick trade": search a stock and buy or sell it in place, instead of
+// Search-to-trade bar: type a stock and buy or sell it in place, instead of
 // leaving the page for Market. Your holdings are suggested before you type.
 function QuickTrade({ cash, holdings, onTraded }: Props) {
   const [open, setOpen] = useState(false);
@@ -29,6 +29,7 @@ function QuickTrade({ cash, holdings, onTraded }: Props) {
   const [loading, setLoading] = useState<string | null>(null);
   const [target, setTarget] = useState<Target | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const panelId = useId();
 
   const held = useMemo(() => new Map(holdings.map((h) => [h.symbol, Number(h.quantity)])), [holdings]);
@@ -45,6 +46,20 @@ function QuickTrade({ cash, holdings, onTraded }: Props) {
     ).slice(0, MAX_RESULTS);
   }, [query, holdings, held]);
 
+  // "T" opens the panel from anywhere on the page, unless you're typing.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== "t" || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName))) return;
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return; // a modal or the tour is open
+      e.preventDefault();
+      inputRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
   // Close on outside click / Escape.
   useEffect(() => {
     if (!open) return;
@@ -52,7 +67,10 @@ function QuickTrade({ cash, holdings, onTraded }: Props) {
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        inputRef.current?.blur();
+      }
     };
     document.addEventListener("pointerdown", onPointer);
     document.addEventListener("keydown", onKey);
@@ -79,41 +97,49 @@ function QuickTrade({ cash, holdings, onTraded }: Props) {
   };
 
   return (
-    <div ref={rootRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-controls={panelId}
-        className={`rounded-xl px-4 py-2 text-sm font-medium shadow-sm ring-1 transition-colors ${
-          open
-            ? "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/30"
-            : "bg-white ring-gray-200 hover:bg-gray-50 dark:bg-gray-900 dark:ring-gray-700 dark:hover:bg-gray-800"
+    <div ref={rootRef} className="relative w-full sm:w-80">
+      {/* A search field with a "Trade" end cap: type a stock, then buy or sell it from the list below. */}
+      <div
+        className={`flex items-stretch overflow-hidden rounded-xl bg-white ring-1 transition-shadow dark:bg-gray-900 ${
+          open ? "ring-2 ring-blue-500" : "ring-gray-200 hover:ring-gray-300 dark:ring-gray-700 dark:hover:ring-gray-600"
         }`}
       >
-        Quick trade
-      </button>
+        <label className="relative flex-1">
+          <span className="sr-only">Search a stock to trade</span>
+          <PiMagnifyingGlass aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            ref={inputRef}
+            type="search"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setOpen(true);
+            }}
+            onFocus={() => setOpen(true)}
+            placeholder="Search a stock to trade"
+            aria-controls={panelId}
+            aria-keyshortcuts="t"
+            autoComplete="off"
+            className="w-full bg-transparent py-2.5 pl-9 pr-3 text-sm outline-none placeholder:text-gray-500 dark:placeholder:text-gray-400"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.focus()}
+          aria-controls={panelId}
+          className="bg-blue-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+        >
+          Trade
+        </button>
+      </div>
 
       {open && (
         <div
           id={panelId}
-          role="dialog"
-          aria-label="Quick trade"
-          className="absolute right-0 z-40 mt-2 w-[min(22rem,calc(100vw-2.5rem))] overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-700"
+          role="region"
+          aria-label="Stocks to trade"
+          className="absolute right-0 z-40 mt-2 w-full min-w-[min(22rem,calc(100vw-2.5rem))] overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-700"
         >
-          <label className="relative block border-b border-gray-100 dark:border-gray-800">
-            <span className="sr-only">Search stocks</span>
-            <PiMagnifyingGlass aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input
-              autoFocus
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search a stock to trade"
-              className="w-full bg-transparent py-3 pl-10 pr-4 text-sm outline-none placeholder:text-gray-400"
-            />
-          </label>
-
           {!query.trim() && holdings.length > 0 && (
             <p className="px-4 pt-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Your stocks first</p>
           )}

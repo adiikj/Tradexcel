@@ -192,7 +192,7 @@ function Portfolio() {
                 <h1 className="text-2xl font-bold md:text-3xl">Portfolio</h1>
                 <div className="mt-1 h-0.5 w-32 rounded-full bg-blue-600 dark:bg-blue-400 animate-line" />
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
                 <LiveStatusBadge connected={liveConnected} marketOpen={marketStatus.open} />
                 <QuickTrade cash={walletBalance} holdings={holdings} onTraded={fetchPortfolio} />
               </div>

@@ -130,7 +130,7 @@ function MainContent() {
             )}
           </p>
         </div>
-        <div data-tour="quick-trade">
+        <div data-tour="quick-trade" className="w-full sm:w-auto">
           <QuickTrade cash={cash} holdings={holdings} onTraded={loadPortfolio} />
         </div>
       </div>
@@ -244,7 +244,7 @@ function MainContent() {
                             <span className="min-w-0 flex-1">
                               <span className="block truncate text-sm font-semibold">{stockName(h.symbol)}</span>
                               <span className="block text-xs tabular-nums text-gray-500 dark:text-gray-400">
-                                {h.quantity} shares · {share.toFixed(0)}% of net worth
+                                {h.quantity} {Number(h.quantity) === 1 ? "share" : "shares"} · {share.toFixed(0)}% of net worth
                               </span>
                             </span>
                             <span className="text-right">
