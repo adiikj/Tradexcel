@@ -21,6 +21,7 @@ import type {
   PriceAlert,
   PublicProfile,
   QueuedOrder,
+  ChatReply,
   TransactionsData,
   UserSummary,
   Wallet,
@@ -314,6 +315,15 @@ export const cancelQueuedOrder = async (orderId: string) => {
     return response.data;
   } catch (error) {
     throw new Error(apiErrorMessage(error, "We couldn't cancel that order. Please try again."));
+  }
+};
+
+export const sendChatMessage = async (message: string) => {
+  try {
+    const response = await axios.post<ApiResponse<ChatReply>>(`${BASE_TRADE_URL}/chat`, { message });
+    return response.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "The assistant couldn't answer right now. Please try again."));
   }
 };
 
