@@ -12,6 +12,7 @@ import {
   PiTrophyFill,
   PiUserPlus,
   PiX,
+  PiClockCountdown,
 } from "react-icons/pi";
 import { getAlerts, getNotifications, markNotificationsRead } from "../../api/api";
 import { HEADER_BADGE, HEADER_ICON_BUTTON } from "../layout/headerStyles";
@@ -52,7 +53,7 @@ function playNotificationChime() {
 }
 
 // One row in the bell panel: a triggered price alert or a social notification.
-type BellKind = "alert-up" | "alert-down" | "follow" | "achievement";
+type BellKind = "alert-up" | "alert-down" | "follow" | "achievement" | "order";
 type BellItem = {
   id: string;
   kind: BellKind;
@@ -80,6 +81,7 @@ function BellIcon({ item }: { item: BellItem }) {
     "alert-down": { icon: <PiTrendDown aria-hidden="true" className="h-5 w-5" />, className: "bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-300" },
     follow: { icon: <PiUserPlus aria-hidden="true" className="h-5 w-5" />, className: "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300" },
     achievement: { icon: <PiTrophyFill aria-hidden="true" className="h-5 w-5" />, className: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" },
+    order: { icon: <PiClockCountdown aria-hidden="true" className="h-5 w-5" />, className: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300" },
   };
   const { icon, className } = styles[item.kind];
   return <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${className}`}>{icon}</span>;
@@ -119,7 +121,7 @@ const Alerts = () => {
 
         const socialNotifications = (notificationsRes?.data?.notifications || []).map((n): BellItem => ({
           id: `notif-${n.id}`,
-          kind: n.type === "ACHIEVEMENT" ? "achievement" : "follow",
+          kind: n.type === "ACHIEVEMENT" ? "achievement" : n.type === "ORDER" ? "order" : "follow",
           message: n.message,
           time: n.createdAt,
           link: n.link,

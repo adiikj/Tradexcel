@@ -20,6 +20,7 @@ import type {
   PortfolioData,
   PriceAlert,
   PublicProfile,
+  QueuedOrder,
   TransactionsData,
   UserSummary,
   Wallet,
@@ -277,6 +278,24 @@ export const sellStock = async (symbol: string, quantity: number) => {
     return response.data;
   } catch (error) {
     throw new Error(apiErrorMessage(error, "We couldn't complete that sale. Please try again."));
+  }
+};
+
+export const getQueuedOrders = async () => {
+  try {
+    const response = await axios.get<ApiResponse<QueuedOrder[]>>(`${BASE_TRADE_URL}/trade/orders`);
+    return response.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't load your queued orders. Please try again."));
+  }
+};
+
+export const cancelQueuedOrder = async (orderId: string) => {
+  try {
+    const response = await axios.delete<ApiResponse<null>>(`${BASE_TRADE_URL}/trade/orders/${encodeURIComponent(orderId)}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't cancel that order. Please try again."));
   }
 };
 

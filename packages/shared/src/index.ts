@@ -167,6 +167,24 @@ export type TransactionRecord = {
 
 export type TransactionsData = { transactions: TransactionRecord[]; pagination: Pagination };
 
+// A main-wallet order placed while the market was closed (backend services/queuedOrders.ts).
+export type QueuedOrderStatus = "PENDING" | "FILLED" | "CANCELLED" | "FAILED";
+
+export type QueuedOrder = {
+  id: string;
+  symbol: string;
+  side: Side;
+  quantity: number;
+  quotedPrice: Decimal;
+  status: QueuedOrderStatus;
+  failureReason: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+};
+
+// POST /trade/buy|sell outside market hours answers 202 with this.
+export type QueuedTradeData = { queued: true; order: QueuedOrder };
+
 export type OwnProfile = UserSummary & {
   email: string;
   phoneNumber: string | null;

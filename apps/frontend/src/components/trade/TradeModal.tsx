@@ -5,6 +5,7 @@ import { getStockData, buyStock, sellStock, buyContestStock, sellContestStock } 
 import { formatInr } from "../../utils/format";
 import Modal from "../ui/Modal";
 import { apiErrorMessage } from "../../api/http";
+import { useMarketStatus } from "../../hooks/useMarketStatus";
 
 const PRICE_REFRESH_MS = 10_000;
 
@@ -37,6 +38,10 @@ function TradeModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const marketStatus = useMarketStatus();
+  // Main-wallet orders placed while the market is closed are queued by the
+  // server and filled at the opening price. Contests don't queue.
+  const queueing = !contestId && marketStatus.open === false;
 
   useEffect(() => {
     intervalRef.current = setInterval(async () => {
@@ -51,7 +56,8 @@ function TradeModal({
 
   const total = livePrice * (quantity || 0);
   const isBuy = side === "BUY";
-  const exceedsCash = isBuy && total > availableCash;
+  // A queued buy may run in next season's wallet; the server checks it then.
+  const exceedsCash = isBuy && !queueing && total > availableCash;
   const exceedsQty = !isBuy && quantity > availableQty;
   const isInvalid = !quantity || quantity < 1 || !Number.isInteger(quantity) || exceedsCash || exceedsQty;
 
@@ -61,18 +67,18 @@ function TradeModal({
     try {
       setIsSubmitting(true);
       setError("");
+      let result;
       if (contestId) {
-        if (isBuy) {
-          await buyContestStock(contestId, symbol, quantity);
-        } else {
-          await sellContestStock(contestId, symbol, quantity);
-        }
-      } else if (isBuy) {
-        await buyStock(symbol, quantity);
+        result = isBuy ? await buyContestStock(contestId, symbol, quantity) : await sellContestStock(contestId, symbol, quantity);
       } else {
-        await sellStock(symbol, quantity);
+        result = isBuy ? await buyStock(symbol, quantity) : await sellStock(symbol, quantity);
       }
-      toast.success(`${isBuy ? "Bought" : "Sold"} ${quantity} ${symbol}`);
+      // The server decides (by its clock) whether the order filled or was queued.
+      if (result?.data?.queued) {
+        toast.success(result.message);
+      } else {
+        toast.success(`${isBuy ? "Bought" : "Sold"} ${quantity} ${symbol}`);
+      }
       onSuccess();
       onClose();
     } catch (err) {
@@ -97,7 +103,7 @@ function TradeModal({
         </div>
 
         <div className="flex justify-between text-sm mb-4">
-          <span className="text-gray-400">Live price</span>
+          <span className="text-gray-400">{queueing ? "Last price" : "Live price"}</span>
           <span className="font-semibold">{formatInr(livePrice)}</span>
         </div>
 
@@ -116,10 +122,15 @@ function TradeModal({
         </p>
 
         <div className="flex justify-between text-base font-bold mb-2">
-          <span>Total</span>
+          <span>{queueing ? "Estimated total" : "Total"}</span>
           <span>{formatInr(total)}</span>
         </div>
 
+        {queueing && (
+          <p className="mb-3 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+            The market is closed. Your order will be placed when market opens, at the opening price.
+          </p>
+        )}
         {exceedsCash && <p className="text-red-500 text-sm mb-2">Total exceeds your available cash.</p>}
         {exceedsQty && <p className="text-red-500 text-sm mb-2">Quantity exceeds what you hold.</p>}
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
@@ -131,7 +142,7 @@ function TradeModal({
             isBuy ? "bg-green-600 hover:bg-green-500" : "bg-red-600 hover:bg-red-500"
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
-          {isSubmitting ? "Processing..." : `Confirm ${isBuy ? "Buy" : "Sell"}`}
+          {isSubmitting ? "Processing..." : `${queueing ? "Queue" : "Confirm"} ${isBuy ? "Buy" : "Sell"}`}
         </button>
     </Modal>
   );

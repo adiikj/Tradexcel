@@ -2,10 +2,10 @@
 import React, { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { PiArrowRight, PiChartLineUp } from "react-icons/pi";
-import type { PortfolioHolding, PortfolioSummary, TransactionRecord } from "@tradexcel/shared";
+import type { PortfolioHolding, PortfolioSummary, QueuedOrder, TransactionRecord } from "@tradexcel/shared";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
-import { getBatchStockData, getPortfolio, getPublicProfile, getTransactions, getUserProfile } from "../../api/api";
+import { getBatchStockData, getPortfolio, getPublicProfile, getQueuedOrders, getTransactions, getUserProfile } from "../../api/api";
 import TradeModal from "../trade/TradeModal";
 import QuickTrade from "../trade/QuickTrade";
 import { formatInr } from "../../utils/format";
@@ -22,6 +22,7 @@ import HoldingsTable, { type HoldingRow } from "./HoldingsTable";
 import AllocationDonut, { type Slice } from "./AllocationDonut";
 import WeeklyResults, { type WeekResult } from "./WeeklyResults";
 import RecentTrades from "./RecentTrades";
+import QueuedOrders, { recentQueuedOrders } from "./QueuedOrders";
 import { Card, StatTile } from "../ui/Panel";
 
 // Every wallet starts each weekly season with this much (backend tradeMath.ts).
@@ -40,6 +41,7 @@ function Portfolio() {
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
   const [quotes, setQuotes] = useState<Record<string, Quote>>({});
   const [trades, setTrades] = useState<TransactionRecord[]>([]);
+  const [queuedOrders, setQueuedOrders] = useState<QueuedOrder[]>([]);
   const [weeks, setWeeks] = useState<WeekResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -48,12 +50,17 @@ function Portfolio() {
   // State is only set after the first await, so effects can call this directly.
   const loadPortfolio = useCallback(async (isActive: () => boolean = () => true) => {
     try {
-      const [portfolioRes, tradesRes] = await Promise.all([getPortfolio(), getTransactions(1, 6).catch(() => null)]);
+      const [portfolioRes, tradesRes, ordersRes] = await Promise.all([
+        getPortfolio(),
+        getTransactions(1, 6).catch(() => null),
+        getQueuedOrders().catch(() => null),
+      ]);
       if (!isActive()) return;
       const nextHoldings = portfolioRes?.data?.holdings || [];
       setHoldings(nextHoldings);
       setSummary(portfolioRes?.data?.summary || null);
       setTrades(tradesRes?.data?.transactions || []);
+      setQueuedOrders(recentQueuedOrders(ordersRes?.data || [], Date.now()));
       setError("");
 
       // Today's move + 30-day trend for each holding (one batch request).
@@ -255,6 +262,8 @@ function Portfolio() {
                     {formatInr(walletBalance)}
                   </StatTile>
                 </div>
+
+                <QueuedOrders orders={queuedOrders} onChanged={fetchPortfolio} />
 
                 {/* Holdings + allocation */}
                 <div className="grid gap-4 lg:grid-cols-3">
