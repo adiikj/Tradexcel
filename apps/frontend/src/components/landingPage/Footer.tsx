@@ -1,108 +1,95 @@
-import React from 'react';
-import Link from 'next/link';
-import logo from '../../assets/logo-icon-transparent.png';
-import wordmark from '../../assets/tradexcel-wordmark-light.png';
+import React from "react";
+import Link from "next/link";
 import Image from "next/image";
+import logo from "../../assets/logo-icon-transparent.png";
+import wordmark from "../../assets/tradexcel-wordmark-light.png";
 
+// Only public pages: the in-app FAQ and Support need an account, so visitors
+// get the landing page FAQ and the contact page instead.
 const linkGroups = [
   {
-    heading: 'Company',
+    heading: "Product",
     links: [
-      { label: 'About Us', href: '/about' },
-      { label: 'Why Us?', href: '/why-us' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Contact', href: '/contactus' },
+      { label: "How it works", href: "/how-it-works" },
+      { label: "Why Tradexcel", href: "/why-us" },
+      { label: "FAQ", href: "/#faq" },
     ],
   },
   {
-    heading: 'Product',
+    heading: "Company",
     links: [
-      { label: 'How It Works', href: '/how-it-works' },
-      { label: 'FAQ', href: '/faq' },
-      { label: 'Support', href: '/support' },
+      { label: "About", href: "/about" },
+      { label: "Blog", href: "/blog" },
+      { label: "Contact", href: "/contactus" },
     ],
   },
   {
-    heading: 'Legal',
+    heading: "Legal",
     links: [
-      { label: 'Terms of Service', href: '/terms' },
-      { label: 'Privacy Policy', href: '/privacy' },
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Privacy Policy", href: "/privacy" },
     ],
   },
 ];
 
 export default function Footer() {
   return (
-    <footer className="bg-grey text-black font-pop border-t border-gray-200">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-14 md:py-16">
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-x-8 gap-y-10">
-          {/* Brand */}
-          <div className="col-span-2 lg:pr-8">
-            <Link href="/" className="flex items-center gap-2.5 w-fit">
-              <Image className="w-9 h-9" src={logo} alt="" />
-              <Image className="h-7 w-auto" src={wordmark} alt="Tradexcel" />
+    <footer className="border-t border-gray-200 bg-grey font-pop text-gray-900">
+      <div className="mx-auto max-w-7xl px-6 py-14 md:px-12 md:py-16">
+        <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+          <div className="max-w-sm">
+            <Link href="/" className="flex w-fit items-center gap-2.5" aria-label="Tradexcel home">
+              <Image className="h-8 w-8" src={logo} alt="" />
+              <Image className="h-5 w-auto" src={wordmark} alt="" />
             </Link>
-            <p className="text-gray-600 mt-4 max-w-xs text-sm leading-relaxed">
-              A virtual stock trading game for managing portfolios and competing in
-              real time, with real prices and zero real-money risk.
+            <p className="mt-4 text-sm leading-relaxed text-gray-600">
+              Learn to trade the real NSE market with virtual money. Compete every week, climb the leaderboard, risk nothing.
             </p>
+            <a href="mailto:contact@tradexcel.site" className="mt-4 inline-block text-sm font-medium text-gray-800 hover:text-blue-600">
+              contact@tradexcel.site
+            </a>
+            <div className="mt-6">
+              <Link href="/signup" className="inline-flex rounded-xl bg-btn-blue px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600">
+                Get started free
+              </Link>
+            </div>
           </div>
 
-          {linkGroups.map((group) => (
-            <div key={group.heading}>
-              <h6 className="text-xs font-semibold uppercase tracking-wider text-gray-900 mb-4">
-                {group.heading}
-              </h6>
-              <ul className="space-y-3">
-                {group.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors duration-200"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-
-          {/* Contact */}
-          <div>
-            <h6 className="text-xs font-semibold uppercase tracking-wider text-gray-900 mb-4">
-              Contact
-            </h6>
-            <ul className="space-y-3 text-sm text-gray-600">
-              <li>New Delhi, India</li>
-              <li>
-                <a
-                  href="mailto:contact@tradexcel.site"
-                  className="hover:text-blue-600 transition-colors duration-200"
-                >
-                  contact@tradexcel.site
-                </a>
-              </li>
-            </ul>
+          <div className="grid grid-cols-3 gap-8 lg:contents">
+            {linkGroups.map((group) => (
+              <nav key={group.heading} aria-label={group.heading}>
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-900">{group.heading}</h2>
+                <ul className="mt-4 space-y-3">
+                  {group.links.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className="text-sm text-gray-600 transition-colors hover:text-blue-600">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
           </div>
         </div>
+
+        {/* Disclaimer */}
+        <p className="mt-12 max-w-4xl text-xs leading-relaxed text-gray-500">
+          Tradexcel is an educational stock-market simulator. All trading uses virtual money and nothing on this site is investment, financial or trading
+          advice. Market data comes from third-party sources and may be delayed or inaccurate. Past performance in the game says nothing about real-world
+          results.
+        </p>
       </div>
 
       <div className="border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-gray-500">
-          <span>© {new Date().getFullYear()} Tradexcel. All rights reserved.</span>
-          <span>Virtual trading only. No real money, ever.</span>
-        </div>
-        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 pb-6 flex justify-center sm:justify-end text-sm text-gray-500">
-          Designed and developed by{' '}
-          <a
-            href="https://adiikj.dev"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-gray-700 hover:text-blue-600 transition-colors duration-200 ml-1"
-          >
-            Aditya
-          </a>
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 py-6 text-sm text-gray-500 sm:flex-row md:px-12">
+          <span>© {new Date().getFullYear()} Tradexcel. Virtual trading only.</span>
+          <span>
+            Designed and developed by{" "}
+            <a href="https://adiikj.dev" target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-700 transition-colors hover:text-blue-600">
+              Aditya
+            </a>
+          </span>
         </div>
       </div>
     </footer>
