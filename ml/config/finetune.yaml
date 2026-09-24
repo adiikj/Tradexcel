@@ -1,0 +1,25 @@
+# P3 fine-tuning. Hyperparameters were not searched on test data: the epoch is
+# picked on `val`, everything else is a standard small-model default.
+seed: 13
+fills_per_template: 6
+models:
+  minilm:
+    name: sentence-transformers/all-MiniLM-L6-v2
+    label: MiniLM-L6
+    pooling: mean
+  bge:
+    name: BAAI/bge-small-en-v1.5
+    label: bge-small
+    pooling: cls
+    # 12 layers vs MiniLM's 6: trade ~30% speed for much lower activation memory.
+    gradient_checkpointing: true
+train:
+  epochs: 6
+  batch_size: 32
+  lr: 3.0e-5
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  scale: 20.0 # softmax temperature for the contrastive loss (cosine * scale)
+  max_seq_length: 128
+  hard_negatives_per_anchor: 1
+  mined_candidates: 5 # sample the hard negative from the anchor's top-N wrong neighbours

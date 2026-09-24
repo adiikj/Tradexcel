@@ -1,0 +1,11 @@
+# P2 baselines: nothing here is trained beyond a linear head - this is the bar
+# the fine-tuned models in P3 have to beat.
+seed: 13
+fills_per_template: 6
+dense_models:
+  - name: sentence-transformers/all-MiniLM-L6-v2
+    label: MiniLM-L6 (pretrained)
+  - name: BAAI/bge-small-en-v1.5
+    label: bge-small (pretrained)
+rrf_k: 60
+latency_queries: 50

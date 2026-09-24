@@ -44,3 +44,12 @@ pnpm-debug.log*
 
 # pnpm workspace - npm lockfiles appear when running `npm run ...`
 package-lock.json
+
+# ml pipeline: reports and the model card are committed, everything generated is not
+!ml/**/*.md
+ml/.venv/
+ml/data/
+ml/models/
+ml/artifacts/
+__pycache__/
+.pytest_cache/

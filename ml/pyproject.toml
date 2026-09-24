@@ -1,0 +1,23 @@
+[project]
+name = "tradexcel-ml"
+version = "0.1.0"
+description = "Training and evaluation pipeline for the TradeXcel assistant (retrieval, intent classification, stock linking)."
+requires-python = ">=3.11"
+# Exact versions live in requirements.txt (pip freeze of the working env).
+dependencies = [
+  "torch",
+  "sentence-transformers",
+  "scikit-learn",
+  "numpy",
+  "rank-bm25",
+  "rapidfuzz",
+  "matplotlib",
+  "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
