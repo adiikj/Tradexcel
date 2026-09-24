@@ -72,7 +72,7 @@ function SignUp() {
         navigate.push("/signup/otp?" + queryParams);
       }
     } catch (err) {
-      setError(apiErrorMessage(err, "Error registering. Please try again."));
+      setError(apiErrorMessage(err, "We couldn't create your account. Please try again."));
     } finally {
       setIsLoading(false);
     }

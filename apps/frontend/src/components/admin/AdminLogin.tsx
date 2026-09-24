@@ -21,7 +21,7 @@ function AdminLogin() {
       markAdminSession(response.data.expiresAt);
       router.push("/admin/contests");
     } catch (err) {
-      setError(apiErrorMessage(err, "Login failed"));
+      setError(apiErrorMessage(err, "We couldn't sign you in. Please try again."));
     } finally {
       setIsLoading(false);
     }

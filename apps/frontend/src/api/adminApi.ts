@@ -28,7 +28,7 @@ export const adminLogin = async (password: string) => {
     const response = await adminHttp.post<{ data: { expiresAt: number } }>(`${BASE_URL}/admin/login`, { password });
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to log in"));
+    throw new Error(apiErrorMessage(error, "We couldn't sign you in. Please try again."));
   }
 };
 
@@ -45,7 +45,7 @@ export const adminGetContests = async () => {
     const response = await adminHttp.get(`${BASE_URL}/admin/contests`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch contests"));
+    throw new Error(apiErrorMessage(error, "We couldn't load contests. Please try again."));
   }
 };
 
@@ -62,7 +62,7 @@ export const adminCreateContest = async (payload: {
     const response = await adminHttp.post(`${BASE_URL}/admin/contests`, payload);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to create contest"));
+    throw new Error(apiErrorMessage(error, "We couldn't create the contest. Please try again."));
   }
 };
 
@@ -82,7 +82,7 @@ export const adminUpdateContest = async (
     const response = await adminHttp.patch(`${BASE_URL}/admin/contests/${contestId}`, payload);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to update contest"));
+    throw new Error(apiErrorMessage(error, "We couldn't update the contest. Please try again."));
   }
 };
 
@@ -94,6 +94,6 @@ export const adminUploadContestImage = async (contestId: string, file: File) => 
     const response = await adminHttp.post(`${BASE_URL}/admin/contests/${contestId}/image`, formData);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to upload contest image"));
+    throw new Error(apiErrorMessage(error, "We couldn't upload that image. Please try again."));
   }
 };

@@ -37,7 +37,7 @@ export const loginUser = async (emailOrUsername: string, credential: string, mod
     );
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "An unexpected error occurred while logging in"));
+    throw new Error(apiErrorMessage(error, "We couldn't sign you in. Please try again."));
   }
 };
 
@@ -64,7 +64,7 @@ export const registerUser = async ({
     });
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Error registering user."));
+    throw new Error(apiErrorMessage(error, "We couldn't create your account. Please try again."));
   }
 };
 
@@ -77,7 +77,7 @@ export const verifyOTP = async (email: string, otp: string) => {
     );
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Error verifying OTP"));
+    throw new Error(apiErrorMessage(error, "We couldn't check that code. Please try again."));
   }
 };
 
@@ -89,7 +89,7 @@ export const googleLogin = async (idToken: string) => {
     );
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Error signing in with Google"));
+    throw new Error(apiErrorMessage(error, "Google sign-in didn't work. Please try again."));
   }
 };
 
@@ -100,7 +100,7 @@ export const logoutUser = async () => {
       {});
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Error logging out"));
+    throw new Error(apiErrorMessage(error, "We couldn't sign you out. Please try again."));
   }
 };
 
@@ -109,7 +109,7 @@ export const getUserName = async () => {
     const response = await axios.get<ApiResponse<{ name: string }>>(`${BASE_URL}/name`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch user name"));
+    throw new Error(apiErrorMessage(error, "We couldn't load your name. Please try again."));
   }
 };
 
@@ -118,7 +118,7 @@ export const getUserProfile = async () => {
     const response = await axios.get<ApiResponse<OwnProfile>>(`${BASE_URL}/profile`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch user profile"));
+    throw new Error(apiErrorMessage(error, "We couldn't load your profile. Please try again."));
   }
 }
 
@@ -127,7 +127,7 @@ export const updateUserProfile = async (formData: Record<string, unknown>) => {
     const response = await axios.patch(`${BASE_URL}/update`, formData);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to update user profile"));
+    throw new Error(apiErrorMessage(error, "We couldn't save your profile. Please try again."));
   }
 };
 
@@ -136,7 +136,7 @@ export const changePasswordAndPin = async (formData: Record<string, string>) => 
     const response = await axios.patch(`${BASE_URL}/change-password-pin`, formData);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to update password and pin"));
+    throw new Error(apiErrorMessage(error, "We couldn't update your sign-in details. Please try again."));
   }
 };
 
@@ -145,7 +145,7 @@ export const getAvatar = async () => {
     const response = await axios.get<ApiResponse<{ avatar: string | null }>>(`${BASE_URL}/getavatar`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch user avatar"));
+    throw new Error(apiErrorMessage(error, "We couldn't load your photo. Please try again."));
   }
 };
 
@@ -154,7 +154,7 @@ export const updateAvatar = async (formData: FormData) => {
     const response = await axios.patch(`${BASE_URL}/updateavatar`, formData);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to update user avatar"));
+    throw new Error(apiErrorMessage(error, "We couldn't update your photo. Please try again."));
   }
 };
 
@@ -223,7 +223,7 @@ export const getChart = async (symbol: string, range: ChartRange) => {
     });
     return response.data.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to load chart"));
+    throw new Error(apiErrorMessage(error, "We couldn't load this chart. Please try again."));
   }
 };
 
@@ -232,7 +232,7 @@ export const getWallet = async () => {
     const response = await axios.get<ApiResponse<Wallet>>(`${BASE_TRADE_URL}/wallet`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch wallet"));
+    throw new Error(apiErrorMessage(error, "We couldn't load your wallet. Please try again."));
   }
 };
 
@@ -241,7 +241,7 @@ export const getPortfolio = async () => {
     const response = await axios.get<ApiResponse<PortfolioData>>(`${BASE_TRADE_URL}/portfolio`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch portfolio"));
+    throw new Error(apiErrorMessage(error, "We couldn't load your portfolio. Please try again."));
   }
 };
 
@@ -252,7 +252,7 @@ export const getTransactions = async (page = 1, limit = 20) => {
     });
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch transactions"));
+    throw new Error(apiErrorMessage(error, "We couldn't load your transactions. Please try again."));
   }
 };
 
@@ -264,7 +264,7 @@ export const buyStock = async (symbol: string, quantity: number) => {
     );
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to buy stock"));
+    throw new Error(apiErrorMessage(error, "We couldn't complete that purchase. Please try again."));
   }
 };
 
@@ -276,7 +276,7 @@ export const sellStock = async (symbol: string, quantity: number) => {
     );
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to sell stock"));
+    throw new Error(apiErrorMessage(error, "We couldn't complete that sale. Please try again."));
   }
 };
 
@@ -287,7 +287,7 @@ export const getLeaderboard = async (limit = 20) => {
     });
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch leaderboard"));
+    throw new Error(apiErrorMessage(error, "We couldn't load the leaderboard. Please try again."));
   }
 };
 
@@ -298,7 +298,7 @@ export const getContests = async (scope: "public" | "private" = "public") => {
     });
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch contests"));
+    throw new Error(apiErrorMessage(error, "We couldn't load contests. Please try again."));
   }
 };
 
@@ -314,7 +314,7 @@ export const createPrivateContest = async (payload: {
     const response = await axios.post<ApiResponse<Contest>>(`${BASE_TRADE_URL}/contests/private`, payload);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to create private league"));
+    throw new Error(apiErrorMessage(error, "We couldn't create your league. Please try again."));
   }
 };
 
@@ -326,7 +326,7 @@ export const joinPrivateContest = async (inviteCode: string) => {
     );
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to join private league"));
+    throw new Error(apiErrorMessage(error, "We couldn't join that league. Check the code and try again."));
   }
 };
 
@@ -335,7 +335,7 @@ export const getContest = async (contestId: string) => {
     const response = await axios.get<ApiResponse<Contest>>(`${BASE_TRADE_URL}/contests/${contestId}`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch contest"));
+    throw new Error(apiErrorMessage(error, "We couldn't load this contest. Please try again."));
   }
 };
 
@@ -344,7 +344,7 @@ export const joinContest = async (contestId: string) => {
     const response = await axios.post(`${BASE_TRADE_URL}/contests/${contestId}/join`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to join contest"));
+    throw new Error(apiErrorMessage(error, "We couldn't join this contest. Please try again."));
   }
 };
 
@@ -353,7 +353,7 @@ export const getContestStandings = async (contestId: string) => {
     const response = await axios.get<ApiResponse<ContestStandingsData>>(`${BASE_TRADE_URL}/contests/${contestId}/standings`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch standings"));
+    throw new Error(apiErrorMessage(error, "We couldn't load the standings. Please try again."));
   }
 };
 
@@ -362,7 +362,7 @@ export const getContestPortfolio = async (contestId: string) => {
     const response = await axios.get<ApiResponse<ContestPortfolioData>>(`${BASE_TRADE_URL}/contests/${contestId}/portfolio`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch contest portfolio"));
+    throw new Error(apiErrorMessage(error, "We couldn't load your contest portfolio. Please try again."));
   }
 };
 
@@ -374,7 +374,7 @@ export const buyContestStock = async (contestId: string, symbol: string, quantit
     );
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to buy stock in contest"));
+    throw new Error(apiErrorMessage(error, "We couldn't complete that purchase. Please try again."));
   }
 };
 
@@ -386,7 +386,7 @@ export const sellContestStock = async (contestId: string, symbol: string, quanti
     );
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to sell stock in contest"));
+    throw new Error(apiErrorMessage(error, "We couldn't complete that sale. Please try again."));
   }
 };
 
@@ -395,7 +395,7 @@ export const getAlerts = async () => {
     const response = await axios.get<ApiResponse<PriceAlert[]>>(`${BASE_TRADE_URL}/alerts`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch alerts"));
+    throw new Error(apiErrorMessage(error, "We couldn't load your alerts. Please try again."));
   }
 };
 
@@ -407,7 +407,7 @@ export const createAlert = async (symbol: string, targetPrice: number, direction
     );
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to create alert"));
+    throw new Error(apiErrorMessage(error, "We couldn't create that alert. Please try again."));
   }
 };
 
@@ -416,7 +416,7 @@ export const deleteAlert = async (alertId: string) => {
     const response = await axios.delete(`${BASE_TRADE_URL}/alerts/${alertId}`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to delete alert"));
+    throw new Error(apiErrorMessage(error, "We couldn't delete that alert. Please try again."));
   }
 };
 
@@ -427,7 +427,7 @@ export const searchPlayers = async (query: string) => {
     });
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to search players"));
+    throw new Error(apiErrorMessage(error, "We couldn't search right now. Please try again."));
   }
 };
 
@@ -436,7 +436,7 @@ export const getPublicProfile = async (username: string) => {
     const response = await axios.get<ApiResponse<PublicProfile>>(`${BASE_TRADE_URL}/users/${username}/profile`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch profile"));
+    throw new Error(apiErrorMessage(error, "We couldn't load this profile. Please try again."));
   }
 };
 
@@ -445,7 +445,7 @@ export const followUser = async (username: string) => {
     const response = await axios.post(`${BASE_TRADE_URL}/users/${username}/follow`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to follow user"));
+    throw new Error(apiErrorMessage(error, "We couldn't follow this trader. Please try again."));
   }
 };
 
@@ -454,7 +454,7 @@ export const unfollowUser = async (username: string) => {
     const response = await axios.delete(`${BASE_TRADE_URL}/users/${username}/follow`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to unfollow user"));
+    throw new Error(apiErrorMessage(error, "We couldn't unfollow this trader. Please try again."));
   }
 };
 
@@ -463,7 +463,7 @@ export const getFollowers = async (username: string) => {
     const response = await axios.get<ApiResponse<{ users: ListedUser[] }>>(`${BASE_TRADE_URL}/users/${username}/followers`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch followers"));
+    throw new Error(apiErrorMessage(error, "We couldn't load followers. Please try again."));
   }
 };
 
@@ -472,7 +472,7 @@ export const getFollowing = async (username: string) => {
     const response = await axios.get<ApiResponse<{ users: ListedUser[] }>>(`${BASE_TRADE_URL}/users/${username}/following`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch following"));
+    throw new Error(apiErrorMessage(error, "We couldn't load this list. Please try again."));
   }
 };
 
@@ -483,7 +483,7 @@ export const getActivityFeed = async (page = 1, limit = 20) => {
     });
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch activity feed"));
+    throw new Error(apiErrorMessage(error, "We couldn't load recent activity. Please try again."));
   }
 };
 
@@ -492,7 +492,7 @@ export const getNotifications = async () => {
     const response = await axios.get<ApiResponse<NotificationsData>>(`${BASE_TRADE_URL}/notifications`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch notifications"));
+    throw new Error(apiErrorMessage(error, "We couldn't load your notifications. Please try again."));
   }
 };
 
@@ -501,7 +501,7 @@ export const markNotificationsRead = async () => {
     const response = await axios.post(`${BASE_TRADE_URL}/notifications/read-all`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to mark notifications read"));
+    throw new Error(apiErrorMessage(error, "We couldn't update your notifications. Please try again."));
   }
 };
 
@@ -510,7 +510,7 @@ export const getNews = async () => {
     const response = await axios.get<ApiResponse<NewsData>>(`${BASE_TRADE_URL}/news`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch news"));
+    throw new Error(apiErrorMessage(error, "We couldn't load the news. Please try again."));
   }
 };
 
@@ -521,7 +521,7 @@ export const getFriendsLeaderboard = async (limit = 20) => {
     });
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch friends leaderboard"));
+    throw new Error(apiErrorMessage(error, "We couldn't load the leaderboard. Please try again."));
   }
 };
 
@@ -530,7 +530,7 @@ export const getAchievements = async () => {
     const response = await axios.get<ApiResponse<AchievementsData>>(`${BASE_TRADE_URL}/achievements`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch achievements"));
+    throw new Error(apiErrorMessage(error, "We couldn't load your achievements. Please try again."));
   }
 };
 
@@ -539,7 +539,7 @@ export const getHallOfFame = async () => {
     const response = await axios.get<ApiResponse<HallOfFameData>>(`${BASE_TRADE_URL}/hall-of-fame`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to fetch hall of fame"));
+    throw new Error(apiErrorMessage(error, "We couldn't load past champions. Please try again."));
   }
 };
 
@@ -548,7 +548,7 @@ export const sendContactMessage = async (name: string, email: string, message: s
     const response = await axios.post(`${BASE_TRADE_URL}/contact`, { name, email, message });
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to send message"));
+    throw new Error(apiErrorMessage(error, "We couldn't send your message. Please try again."));
   }
 };
 
@@ -560,7 +560,7 @@ export const sendSupportMessage = async (subject: string, message: string) => {
     );
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "Failed to send message"));
+    throw new Error(apiErrorMessage(error, "We couldn't send your message. Please try again."));
   }
 };
 

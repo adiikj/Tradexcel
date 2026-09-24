@@ -76,7 +76,7 @@ function EnterOTP() {
       persistSession(dispatch);
       navigate.push("/dashboard");
     } catch (err) {
-      setError(apiErrorMessage(err, "Invalid OTP. Please try again."));
+      setError(apiErrorMessage(err, "That code didn't work. Please try again."));
     } finally {
       setIsLoading(false);
     }

@@ -52,13 +52,38 @@ http.interceptors.response.use(
 
 export default http;
 
-// The backend's `{ message }` for a failed request, else the error's own
-// message, else `fallback`.
+// Wording that only makes sense to developers never reaches the screen.
+const TECHNICAL = /status code \d{3}|\b(error|status) [45]\d\d\b|network error|internal server error|^timeout of|econn|jwt|token|cannot read|undefined|null/i;
+
+export const MESSAGES = {
+  offline: "We can't reach Tradexcel right now. Check your connection and try again.",
+  timeout: "That took too long. Please try again.",
+  signIn: "Please sign in again to continue.",
+  forbidden: "You don't have access to that.",
+  tooMany: "You're doing that too often. Please wait a moment and try again.",
+  server: "Something went wrong on our side. Please try again in a moment.",
+} as const;
+
+function statusMessage(status: number, fallback: string): string {
+  if (status === 401) return MESSAGES.signIn;
+  if (status === 403) return MESSAGES.forbidden;
+  if (status === 429) return MESSAGES.tooMany;
+  if (status >= 500) return MESSAGES.server;
+  return fallback;
+}
+
+// A plain-language message for a failed request: the backend's own `message`
+// (written for users), else one chosen by what went wrong, else `fallback`.
+// Status codes, library text ("Network Error") and code crashes never show.
 export function apiErrorMessage(error: unknown, fallback: string): string {
   if (axios.isAxiosError(error)) {
     const message = (error.response?.data as { message?: unknown } | undefined)?.message;
-    if (typeof message === "string" && message) return message;
+    if (typeof message === "string" && message.trim() && !TECHNICAL.test(message)) return message;
+    if (!error.response) return error.code === "ECONNABORTED" ? MESSAGES.timeout : MESSAGES.offline;
+    return statusMessage(error.response.status, fallback);
   }
-  if (error instanceof Error && error.message) return error.message;
+  // api.ts rethrows as plain Errors carrying the message above. Anything else
+  // (TypeError, SyntaxError, ...) is a bug, not something to show users.
+  if (error instanceof Error && error.name === "Error" && error.message.trim() && !TECHNICAL.test(error.message)) return error.message;
   return fallback;
 }

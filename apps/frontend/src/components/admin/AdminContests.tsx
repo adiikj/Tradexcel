@@ -186,7 +186,7 @@ function AdminContests() {
       setContests(response?.data || []);
     } catch (err) {
       if (!isActive()) return;
-      setError(apiErrorMessage(err, "Failed to load contests."));
+      setError(apiErrorMessage(err, "We couldn't load contests. Please try again."));
     } finally {
       if (isActive()) setIsLoading(false);
     }

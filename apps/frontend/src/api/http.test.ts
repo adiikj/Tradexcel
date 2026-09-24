@@ -1,6 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import http, { apiErrorMessage } from "./http";
+import http, { apiErrorMessage, MESSAGES } from "./http";
 import { hasSession, markSession } from "../utils/sessionFlag";
 
 // Fake transport: each URL answers with the next status in its queue.
@@ -83,8 +83,33 @@ describe("apiErrorMessage", () => {
     expect(apiErrorMessage(error, "fallback")).toBe("Insufficient funds for this trade");
   });
 
-  it("falls back to the error's own message, then the fallback", () => {
-    expect(apiErrorMessage(new Error("Network Error"), "fallback")).toBe("Network Error");
+  it("uses a plain Error's message, but never technical text or crashes", () => {
+    expect(apiErrorMessage(new Error("Insufficient funds for this trade"), "fallback")).toBe("Insufficient funds for this trade");
+    expect(apiErrorMessage(new Error("Network Error"), "fallback")).toBe("fallback");
+    expect(apiErrorMessage(new Error("Request failed with status code 404"), "fallback")).toBe("fallback");
+    expect(apiErrorMessage(new TypeError("Cannot read properties of undefined"), "fallback")).toBe("fallback");
     expect(apiErrorMessage("weird", "fallback")).toBe("fallback");
+  });
+
+  const failed = (status: number, data: unknown = {}) =>
+    new AxiosError("Request failed with status code " + status, String(status), undefined, null, {
+      status,
+      statusText: "",
+      headers: {},
+      config: {} as InternalAxiosRequestConfig,
+      data,
+    });
+
+  it("never shows status codes or server jargon", () => {
+    expect(apiErrorMessage(failed(404), "We couldn't find that stock.")).toBe("We couldn't find that stock.");
+    expect(apiErrorMessage(failed(500, { message: "Internal Server Error" }), "fallback")).toBe(MESSAGES.server);
+    expect(apiErrorMessage(failed(503), "fallback")).toBe(MESSAGES.server);
+    expect(apiErrorMessage(failed(429), "fallback")).toBe(MESSAGES.tooMany);
+    expect(apiErrorMessage(failed(401, { message: "jwt expired" }), "fallback")).toBe(MESSAGES.signIn);
+  });
+
+  it("explains network failures", () => {
+    expect(apiErrorMessage(new AxiosError("Network Error", "ERR_NETWORK"), "fallback")).toBe(MESSAGES.offline);
+    expect(apiErrorMessage(new AxiosError("timeout of 10000ms exceeded", "ECONNABORTED"), "fallback")).toBe(MESSAGES.timeout);
   });
 });

@@ -5,8 +5,9 @@ import Link from "next/link";
 // Route-level error boundary: a crash in one page shows this instead of a
 // blank screen, and "Try again" re-renders the segment without a full reload.
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  // Details stay out of production consoles; developers still see them locally.
   useEffect(() => {
-    console.error(error);
+    if (process.env.NODE_ENV !== "production") console.error(error);
   }, [error]);
 
   return (
