@@ -1,330 +1,268 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import home from "../../assets/home.png";
-import leaderboard from "../../assets/leaderboard.png";
-import market from "../../assets/market.png";
-import portfolio from "../../assets/portfolio.png";
-import contest from "../../assets/contest.png";
-import faq from "../../assets/faq.png";
-import wallet from "../../assets/wallet.png";
-import home_w from "../../assets/home-w.png";
-import leaderboard_w from "../../assets/leaderboard-w.png";
-import market_w from "../../assets/market-w.png";
-import portfolio_w from "../../assets/portfolio-w.png";
-import contest_w from "../../assets/contest-w.png";
-import faq_w from "../../assets/faq-w.png";
-import wallet_w from "../../assets/wallet-w.png";
-import Image, { type StaticImageData } from "next/image";
-import ThemedImage from "../ui/ThemedImage";
+import type { IconType } from "react-icons";
+import {
+  PiChartLineUp,
+  PiChartLineUpFill,
+  PiChartPieSlice,
+  PiChartPieSliceFill,
+  PiHouse,
+  PiHouseFill,
+  PiLifebuoy,
+  PiLifebuoyFill,
+  PiList,
+  PiNewspaper,
+  PiNewspaperFill,
+  PiQuestion,
+  PiQuestionFill,
+  PiRanking,
+  PiRankingFill,
+  PiSquaresFour,
+  PiSquaresFourFill,
+  PiTrophy,
+  PiTrophyFill,
+  PiUsersThree,
+  PiUsersThreeFill,
+  PiWallet,
+  PiWalletFill,
+} from "react-icons/pi";
+import { notifyBrowserValueChange, useBrowserValue } from "../../hooks/useBrowserValue";
 
-// No dedicated PNG assets for Activity/News yet; rendered inline via currentColor instead.
-const ActivityIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
+// Outline icon normally, filled icon for the current page.
+type NavItem = { name: string; path: string; icon: IconType; activeIcon: IconType };
 
-const NewsIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4Z" />
-    <path d="M4 4v13a3 3 0 0 0 3 3" />
-    <line x1="8" y1="8" x2="16" y2="8" />
-    <line x1="8" y1="12" x2="16" y2="12" />
-    <line x1="8" y1="16" x2="12" y2="16" />
-  </svg>
-);
+const MENU_ITEMS: NavItem[] = [
+  { name: "Home", path: "/dashboard", icon: PiHouse, activeIcon: PiHouseFill },
+  { name: "Portfolio", path: "/portfolio", icon: PiChartPieSlice, activeIcon: PiChartPieSliceFill },
+  { name: "Wallet", path: "/wallet", icon: PiWallet, activeIcon: PiWalletFill },
+  { name: "Contest", path: "/contest", icon: PiTrophy, activeIcon: PiTrophyFill },
+  { name: "Market", path: "/market", icon: PiChartLineUp, activeIcon: PiChartLineUpFill },
+  { name: "Leaderboard", path: "/leaderboard", icon: PiRanking, activeIcon: PiRankingFill },
+  { name: "Activity", path: "/activity", icon: PiUsersThree, activeIcon: PiUsersThreeFill },
+  { name: "News", path: "/news", icon: PiNewspaper, activeIcon: PiNewspaperFill },
+  { name: "FAQ", path: "/faq", icon: PiQuestion, activeIcon: PiQuestionFill },
+  { name: "Support", path: "/support", icon: PiLifebuoy, activeIcon: PiLifebuoyFill },
+];
 
-const SupportIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <circle cx="12" cy="12" r="10" />
-    <circle cx="12" cy="12" r="4" />
-    <line x1="4.93" y1="4.93" x2="9.17" y2="9.17" />
-    <line x1="14.83" y1="14.83" x2="19.07" y2="19.07" />
-    <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" />
-    <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" />
-    <line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
-  </svg>
-);
-
-const MoreIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect x="3" y="3" width="7" height="7" rx="1.5" />
-    <rect x="14" y="3" width="7" height="7" rx="1.5" />
-    <rect x="3" y="14" width="7" height="7" rx="1.5" />
-    <rect x="14" y="14" width="7" height="7" rx="1.5" />
-  </svg>
-);
-
-// Shared icon renderer for every nav surface (mobile bar, "More" sheet, desktop sidebar).
-type NavItem = {
-  name: string;
-  path: string;
-  icon?: StaticImageData | null;
-  activeIcon?: StaticImageData | null;
-  svgIcon?: React.ComponentType<{ className?: string }>;
-};
-
-function ItemIcon({ item, isActive, className }: { item: NavItem; isActive: boolean; className?: string }) {
-  if (item.svgIcon) {
-    const Icon = item.svgIcon;
-    return <Icon className={className} />;
-  }
-  if (!item.icon || !item.activeIcon) return null;
-  // Active items and dark mode both use the white icon.
-  if (isActive) return <Image src={item.activeIcon} alt={item.name} className={className} />;
-  return <ThemedImage light={item.icon} dark={item.activeIcon} alt={item.name} className={className} />;
-}
+// Help pages sit below a divider in the sidebar.
+const HELP_PATHS = ["/faq", "/support"];
 
 // Only the highest-frequency actions get a permanent slot on the mobile bar; the rest live behind "More".
-const PRIMARY_MOBILE_NAMES = ["Home", "Portfolio", "Wallet", "Market"];
+const PRIMARY_MOBILE_PATHS = ["/dashboard", "/portfolio", "/wallet", "/market"];
+
+// Active for the page itself and anything nested under it (e.g. /contest/123).
+const isActivePath = (pathname: string | null, path: string) =>
+  !!pathname && (pathname === path || pathname.startsWith(`${path}/`));
+
+// The selected item: a flat, softly tinted pill.
+const ACTIVE_PILL = "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300";
+
+const COLLAPSED_KEY = "sidebarCollapsed";
+
+function readCollapsed(): boolean {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
 
 function Vheader() {
-  const [menuOpen, setMenuOpen] = useState(true);
+  const pathname = usePathname();
+  // Remembered across pages and reloads.
+  const collapsed = useBrowserValue(readCollapsed, false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const location = usePathname(); // Hook to get the current location
+  // The clicked item lights up at once instead of waiting for the next page to
+  // render. Each page mounts its own Vheader, so this resets on arrival.
+  const [pendingPath, setPendingPath] = useState<string | null>(null);
+  const activePath = pendingPath ?? pathname;
+  const markPending = (path: string) => (e: React.MouseEvent) => {
+    // Opening in a new tab or window leaves this page as it is.
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    setPendingPath(path);
+  };
 
-  const menuItems = [
-    { name: "Home", path: "/dashboard", icon: home, activeIcon: home_w },
-    { name: "Portfolio", path: "/portfolio", icon: portfolio, activeIcon: portfolio_w },
-    { name: "Wallet", path: "/wallet", icon: wallet, activeIcon: wallet_w },
-    { name: "Contest", path: "/contest", icon: contest, activeIcon: contest_w },
-    { name: "Market", path: "/market", icon: market, activeIcon: market_w },
-    { name: "Leaderboard", path: "/leaderboard", icon: leaderboard, activeIcon: leaderboard_w },
-    { name: "Activity", path: "/activity", icon: null, activeIcon: null, svgIcon: ActivityIcon },
-    { name: "News", path: "/news", icon: null, activeIcon: null, svgIcon: NewsIcon },
-    { name: "FAQ", path: "/faq", icon: faq, activeIcon: faq_w },
-    { name: "Support", path: "/support", icon: null, activeIcon: null, svgIcon: SupportIcon },
-  ];
+  const toggleCollapsed = () => {
+    try {
+      localStorage.setItem(COLLAPSED_KEY, String(!collapsed));
+    } catch {}
+    notifyBrowserValueChange();
+  };
 
-  const primaryMobileItems = menuItems.filter((item) => PRIMARY_MOBILE_NAMES.includes(item.name));
-  const moreMobileItems = menuItems.filter((item) => !PRIMARY_MOBILE_NAMES.includes(item.name));
+  const primaryMobileItems = MENU_ITEMS.filter((item) => PRIMARY_MOBILE_PATHS.includes(item.path));
+  const moreMobileItems = MENU_ITEMS.filter((item) => !PRIMARY_MOBILE_PATHS.includes(item.path));
+  const moreActive = moreMobileItems.some((item) => isActivePath(activePath, item.path));
+
+  const renderSidebarItem = (item: NavItem) => {
+    const isActive = isActivePath(activePath, item.path);
+    const Icon = isActive ? item.activeIcon : item.icon;
+    return (
+      <li key={item.path}>
+        <Link
+          href={item.path}
+          onClick={markPending(item.path)}
+          data-tour={`nav-${item.path.slice(1)}`}
+          aria-current={isActive ? "page" : undefined}
+          aria-label={collapsed ? item.name : undefined}
+          className={`group relative flex items-center rounded-2xl p-2.5 text-[15px] font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+            collapsed ? "justify-center" : "gap-3"
+          } ${
+            isActive
+              ? ACTIVE_PILL
+              : "text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+          }`}
+        >
+          <Icon
+            aria-hidden="true"
+            className={`h-6 w-6 shrink-0 transition-transform duration-300 ${isActive ? "" : "group-hover:-translate-y-0.5"}`}
+          />
+          {!collapsed && <span className="truncate">{item.name}</span>}
+          {collapsed && (
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-full z-50 ml-3 -translate-x-1 whitespace-nowrap rounded-lg bg-gray-900 px-2.5 py-1 text-xs font-medium text-white opacity-0 shadow-lg transition-all group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100 dark:bg-gray-700"
+            >
+              {item.name}
+            </span>
+          )}
+        </Link>
+      </li>
+    );
+  };
 
   return (
-    <div
-      className={`relative ${
-        "bg-grey text-black dark:bg-gray-900 dark:text-white"
-      } font-pop transition-all duration-300`}
-    >
-      <div>
-        {/* Mobile: 4 primary items + a "More" sheet for the rest */}
-        <div className="lg:hidden fixed bottom-0 w-full z-10">
-          <div
-            className={`flex justify-around items-center py-2 ${
-              "bg-grey dark:bg-gray-900"
-            }`}
-          >
-            {primaryMobileItems.map((item) => {
-              const isActive = location === item.path;
-              return (
-                <Link href={item.path} key={item.name} className="flex flex-col items-center">
-                  <span
-                    className={`flex flex-col items-center ${
-                      isActive
-                        ? 'bg-blue-500 text-white'
-                        : "bg-transparent text-black dark:text-white"
-                    } p-2 rounded-lg transition-all duration-300 ease-in-out`}
-                  >
-                    <ItemIcon
-                      item={item}
-                      isActive={isActive}
-                      className={`w-6 h-6 sm:w-8 sm:h-8 transition-all duration-300 ease-in-out ${
-                        isActive ? 'scale-110' : ''
-                      }`}
-                    />
-                    <span
-                      className={`text-xs sm:text-sm font-medium mt-1 ${
-                        isActive ? 'text-white' : 'text-black dark:text-white'
-                      }`}
-                    >
-                      {item.name}
-                    </span>
-                  </span>
-                </Link>
-              );
-            })}
-            <button onClick={() => setMoreOpen(true)} className="flex flex-col items-center">
-              <span
-                className={`flex flex-col items-center ${
-                  moreOpen
-                    ? 'bg-blue-500 text-white'
-                    : "bg-transparent text-black dark:text-white"
-                } p-2 rounded-lg transition-all duration-300 ease-in-out`}
-              >
-                <MoreIcon className="w-6 h-6 sm:w-8 sm:h-8 transition-all duration-300 ease-in-out" />
-                <span className={`text-xs sm:text-sm font-medium mt-1 text-black dark:text-white`}>
-                  More
-                </span>
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* "More" bottom sheet - everything not on the primary mobile bar */}
-        <AnimatePresence>
-          {moreOpen && (
-            <React.Fragment key="more-sheet">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setMoreOpen(false)}
-                className="lg:hidden fixed inset-0 bg-black/50 z-20"
-              />
-              <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 32, stiffness: 320 }}
-                className={`lg:hidden fixed bottom-0 inset-x-0 z-30 rounded-t-3xl pt-3 pb-8 px-4 ${
-                  "bg-white text-black dark:bg-gray-900 dark:text-white"
-                }`}
-              >
-                <div className={`w-10 h-1.5 rounded-full mx-auto mb-4 bg-gray-300 dark:bg-gray-700`} />
-                <div className="grid grid-cols-3 gap-3">
-                  {moreMobileItems.map((item) => {
-                    const isActive = location === item.path;
-                    return (
-                      <Link
-                        href={item.path}
-                        key={item.name}
-                        onClick={() => setMoreOpen(false)}
-                        className={`flex flex-col items-center gap-2 py-4 rounded-xl transition-colors duration-200 ${
-                          isActive ? 'bg-blue-500 text-white' : "bg-gray-100 dark:bg-gray-800"
-                        }`}
-                      >
-                        <ItemIcon item={item} isActive={isActive} className="w-6 h-6" />
-                        <span className="text-xs font-medium text-center">{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            </React.Fragment>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Desktop: sticky vertical menu */}
-      <div
-        className={`hidden md:block sticky top-0 h-screen self-start text-center transition-all duration-500 ${
-          menuOpen ? 'w-48' : 'w-16'
-        } overflow-x-hidden overflow-y-auto`}
+    <>
+      {/* Desktop: sticky vertical menu under the top bar */}
+      <nav
+        aria-label="Main"
+        className={`hidden md:flex sticky top-16 h-[calc(100vh-4rem)] self-start shrink-0 flex-col bg-grey font-pop transition-[width] duration-500 ease-out dark:bg-gray-900 ${
+          collapsed ? "w-[76px]" : "w-52"
+        }`}
       >
-        <div className="flex flex-col items-center pb-6 font-bold text-xl">
+        <div className={`flex px-3 pt-3 ${collapsed ? "justify-center" : ""}`}>
           <button
             type="button"
-            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded p-2 self-start"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label={menuOpen ? "Collapse sidebar" : "Expand sidebar"}
-            aria-expanded={menuOpen}
+            onClick={toggleCollapsed}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!collapsed}
+            className="rounded-2xl p-2.5 text-gray-600 transition-colors hover:bg-white hover:text-gray-900 hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              className={`w-8 h-8 text-black dark:text-white`}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+            <PiList aria-hidden="true" className="h-6 w-6" />
           </button>
+        </div>
 
-          <ul>
-            <li className={`p-2 pt-6 ${menuOpen ? '' : 'flex justify-center'}`}>
-              {menuOpen ? (
-                <div className="flex flex-col justify-center text-center gap-6 text-base">
-                  {menuItems.map((item) => (
-                    <Link href={item.path} key={item.name}>
-                      <span
-                        className={`text-base font-medium text-center flex items-center gap-2 p-2 rounded-lg transition-all duration-500 ease-in-out ${
-                          location === item.path
-                            ? 'bg-blue-500 text-white'
-                            : "bg-transparent text-black dark:text-white"
+        <ul className="mt-3 flex-1 space-y-1.5 px-3">
+          {MENU_ITEMS.filter((item) => !HELP_PATHS.includes(item.path)).map(renderSidebarItem)}
+        </ul>
+        <ul className="mx-3 space-y-1.5 border-t border-gray-300/70 py-4 dark:border-gray-700/70">
+          {MENU_ITEMS.filter((item) => HELP_PATHS.includes(item.path)).map(renderSidebarItem)}
+        </ul>
+      </nav>
+
+      {/* Mobile: 4 primary items + a "More" sheet for the rest */}
+      <nav
+        aria-label="Main"
+        className="md:hidden fixed inset-x-0 bottom-0 z-30 border-t border-gray-200/80 bg-grey/95 pb-[env(safe-area-inset-bottom)] font-pop backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/95"
+      >
+        <ul className="flex items-center justify-around px-1 py-2">
+          {primaryMobileItems.map((item) => {
+            const isActive = isActivePath(activePath, item.path);
+            const Icon = isActive ? item.activeIcon : item.icon;
+            return (
+              <li key={item.path}>
+                <Link
+                  href={item.path}
+                  onClick={markPending(item.path)}
+                  data-tour={`nav-${item.path.slice(1)}`}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`flex min-w-[4.25rem] flex-col items-center gap-0.5 rounded-2xl px-2 py-1.5 transition-colors duration-150 ${
+                    isActive ? ACTIVE_PILL : "text-gray-600 dark:text-gray-400"
+                  }`}
+                >
+                  <Icon aria-hidden="true" className="h-6 w-6" />
+                  <span className="text-[11px] font-medium">{item.name}</span>
+                </Link>
+              </li>
+            );
+          })}
+          <li>
+            <button
+              type="button"
+              onClick={() => setMoreOpen(true)}
+              data-tour="nav-more"
+              aria-haspopup="dialog"
+              aria-expanded={moreOpen}
+              className={`flex min-w-[4.25rem] flex-col items-center gap-0.5 rounded-2xl px-2 py-1.5 transition-colors duration-150 ${
+                moreActive ? ACTIVE_PILL : "text-gray-600 dark:text-gray-400"
+              }`}
+            >
+              {moreActive ? <PiSquaresFourFill aria-hidden="true" className="h-6 w-6" /> : <PiSquaresFour aria-hidden="true" className="h-6 w-6" />}
+              <span className="text-[11px] font-medium">More</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      {/* "More" bottom sheet - everything not on the primary mobile bar */}
+      <AnimatePresence>
+        {moreOpen && (
+          <React.Fragment key="more-sheet">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMoreOpen(false)}
+              className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px]"
+            />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="More pages"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 32, stiffness: 320 }}
+              className="md:hidden fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-grey px-4 pt-3 pb-[calc(2rem+env(safe-area-inset-bottom))] font-pop text-gray-900 dark:bg-gray-900 dark:text-white"
+            >
+              <button
+                type="button"
+                onClick={() => setMoreOpen(false)}
+                aria-label="Close"
+                className="mx-auto mb-5 block h-1.5 w-10 rounded-full bg-gray-300 dark:bg-gray-700"
+              />
+              <ul className="grid grid-cols-3 gap-3">
+                {moreMobileItems.map((item) => {
+                  const isActive = isActivePath(activePath, item.path);
+                  const Icon = isActive ? item.activeIcon : item.icon;
+                  return (
+                    <li key={item.path}>
+                      <Link
+                        href={item.path}
+                        onClick={(e) => {
+                          markPending(item.path)(e);
+                          setMoreOpen(false);
+                        }}
+                        aria-current={isActive ? "page" : undefined}
+                        className={`flex flex-col items-center gap-2 rounded-2xl py-4 transition-colors duration-200 ${
+                          isActive ? ACTIVE_PILL : "bg-white text-gray-700 shadow-sm hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                         }`}
                       >
-                        {item.svgIcon ? (
-                          <item.svgIcon className="w-6 h-6 transition-all duration-300 ease-in-out" />
-                        ) : (
-                          <ItemIcon
-                            item={item}
-                            isActive={location === item.path}
-                            className="w-6 h-6 transition-all duration-300 ease-in-out"
-                          />
-                        )}
-                        <span className="hidden md:inline">{item.name}</span>
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div>
-                  {menuItems.map((item) => (
-                    <Link href={item.path} key={item.name}>
-                      {item.svgIcon ? (
-                        <item.svgIcon
-                          className={`m-1 mb-5 p-2 rounded-lg transition-all duration-500 ease-in-out ${
-                            location === item.path
-                              ? 'bg-blue-500 w-10 h-10 transform scale-110'
-                              : 'w-11 h-11'
-                          }`}
-                        />
-                      ) : (
-                        <ItemIcon
-                          item={item}
-                          isActive={location === item.path}
-                          className={`m-1 mb-5 p-2 rounded-lg transition-all duration-500 ease-in-out ${
-                            location === item.path
-                              ? 'bg-blue-500 w-10 h-10 transform scale-110'
-                              : 'w-11 h-11'
-                          }`}
-                        />
-                      )}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+                        <Icon aria-hidden="true" className="h-7 w-7" />
+                        <span className="text-center text-xs font-medium">{item.name}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </motion.div>
+          </React.Fragment>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
 export default Vheader;
-
