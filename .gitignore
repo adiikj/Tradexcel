@@ -53,3 +53,6 @@ ml/models/
 ml/artifacts/
 __pycache__/
 .pytest_cache/
+
+# chat assistant: downloaded model + cached index embeddings
+apps/backend/.cache/

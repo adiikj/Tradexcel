@@ -16,13 +16,15 @@
     "backfill:wallets": "tsx src/scripts/backfillWallets.ts",
     "seed:demo": "tsx src/scripts/seedDemoUsers.ts",
     "chat:validate": "tsx src/scripts/validateKb.ts",
-    "chat:export": "tsx src/scripts/exportKb.ts"
+    "chat:export": "tsx src/scripts/exportKb.ts",
+    "chat:eval": "tsx src/scripts/evalChat.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@huggingface/transformers": "^4.3.0",
     "@prisma/client": "^6.0.0",
     "@tradexcel/shared": "workspace:*",
     "bcrypt": "^5.1.1",

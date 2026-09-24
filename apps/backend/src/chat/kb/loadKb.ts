@@ -6,7 +6,7 @@ import { cardFileSchema, CATEGORY_INTENT, FACTUAL_CATEGORIES, type KbCard } from
 import { resolvePlaceholders } from "./facts.js";
 
 // src/chat/kb (or dist/chat/kb) -> apps/backend
-const BACKEND_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+export const BACKEND_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 export const REPO_ROOT = resolve(BACKEND_ROOT, "../..");
 export const KB_DIR = join(BACKEND_ROOT, "chat/kb");
 const FRONTEND_APP_DIR = join(REPO_ROOT, "apps/frontend/src/app");
