@@ -9,6 +9,8 @@ import { startAlertCheckerJob } from './jobs/alertChecker.js';
 import { startWeeklyResetJob } from './jobs/weeklyReset.js';
 import { startQueuedOrdersJob } from './jobs/queuedOrders.js';
 import { initPriceSocket } from './realtime/priceSocket.js';
+import { chatEnabled } from './chat/runtime/config.js';
+import { warmChatEngine } from './chat/runtime/engine.js';
 import logger from "./utils/logger.js";
 
 connectDB()
@@ -27,6 +29,8 @@ connectDB()
     startWeeklyResetJob();
     startQueuedOrdersJob();
     initPriceSocket(server);
+    // Loads the assistant's model in the background; the server is already serving.
+    if (chatEnabled()) warmChatEngine();
 
 })
 .catch((error)=>{

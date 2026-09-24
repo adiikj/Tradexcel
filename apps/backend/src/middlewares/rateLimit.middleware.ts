@@ -93,3 +93,14 @@ export const contactLimiter = rateLimit({
     next(new ApiError(429, "You've reached the daily limit for contact messages. Please try again tomorrow."));
   },
 });
+
+// Chat assistant: each message runs the encoder, so keep it to a human pace.
+export const chatLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, _res, next) => {
+    next(new ApiError(429, "You're sending messages quickly. Please wait a moment."));
+  },
+});

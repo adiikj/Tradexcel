@@ -99,6 +99,10 @@ import contactRouter from './routes/contact.routes.js';
 
 app.use('/api/v1', contactRouter);
 
+import chatRouter from './routes/chat.routes.js';
+
+app.use('/api/v1', chatRouter);
+
 import { errorHandler } from './middlewares/error.middleware.js';
 
 app.use(errorHandler);
