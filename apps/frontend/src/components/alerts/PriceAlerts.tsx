@@ -28,7 +28,7 @@ function PriceAlerts() {
       setAlerts(response?.data || []);
     } catch (err) {
       if (!isActive()) return;
-      setError(apiErrorMessage(err, "Failed to load alerts."));
+      setError(apiErrorMessage(err, "We couldn't load your alerts. Please try again."));
     } finally {
       if (isActive()) setIsLoading(false);
     }
@@ -64,7 +64,7 @@ function PriceAlerts() {
       setTargetPrice("");
       await fetchAlerts();
     } catch (err) {
-      toast.error(apiErrorMessage(err, "Failed to create alert."));
+      toast.error(apiErrorMessage(err, "We couldn't create that alert. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
@@ -76,7 +76,7 @@ function PriceAlerts() {
       toast.success("Alert deleted.");
       setAlerts((prev) => prev.filter((a) => a.id !== id));
     } catch (err) {
-      toast.error(apiErrorMessage(err, "Failed to delete alert."));
+      toast.error(apiErrorMessage(err, "We couldn't delete that alert. Please try again."));
     }
   };
 
@@ -92,9 +92,9 @@ function PriceAlerts() {
         <Header />
         <div className="flex flex-col md:flex-row">
           <Vheader />
-          <main className="flex-1 min-w-0 pb-24 md:pb-0 p-6 m-2 md:m-10">
+          <main className="mb-20 min-w-0 flex-1 md:mb-0 px-5 py-6 md:px-8 md:py-8 lg:px-12 lg:py-10">
             <h1 className="text-2xl md:text-3xl font-bold">Price Alerts</h1>
-            <div className="h-2 w-32 md:w-36 bg-blue-500 rounded-full mb-6 animate-line"></div>
+            <div className="h-0.5 w-32 md:w-36 bg-blue-600 dark:bg-blue-400 rounded-full mb-6 animate-line"></div>
 
             {/* Create alert form */}
             <form

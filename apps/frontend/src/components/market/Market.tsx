@@ -191,11 +191,11 @@ function Market() {
         <Header />
         <div className="flex flex-col md:flex-row">
           <Vheader />
-          <main className="flex-1 min-w-0 p-4 md:p-6 lg:px-10 mb-20 md:mb-0 space-y-4">
+          <main className="flex-1 min-w-0 px-5 py-6 md:px-8 md:py-8 lg:px-12 lg:py-10 mb-20 md:mb-0 space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">Market</h1>
-                <div className="h-2 w-28 bg-blue-500 rounded-full mt-1 animate-line"></div>
+                <div className="h-0.5 w-28 bg-blue-600 dark:bg-blue-400 rounded-full mt-1 animate-line"></div>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <LiveStatusBadge connected={liveConnected} marketOpen={marketStatus.open} />
