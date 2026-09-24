@@ -1,5 +1,5 @@
 {
- "kb_hash": "af341c167819c4b7",
+ "kb_hash": "8a1fcb11b5dfeafd",
  "guard_patterns": {
   "advice": [
    "\\bshould (i|we) (buy|sell|dump|exit|invest in|add|average|book)\\b",
@@ -6642,6 +6642,18 @@
   },
   {
    "text": "what should i call you",
+   "symbols": [],
+   "ambiguous": [],
+   "guard": null
+  },
+  {
+   "text": "who is tex",
+   "symbols": [],
+   "ambiguous": [],
+   "guard": null
+  },
+  {
+   "text": "hey tex",
    "symbols": [],
    "ambiguous": [],
    "guard": null

@@ -3,7 +3,7 @@ cards:
     category: smalltalk
     title: Hello
     answer: |
-      Hi! I'm the TradeXcel assistant. Ask me how something works, look up a live stock price, or check how your portfolio is doing.
+      Hi, I'm **Tex**, your Tradexcel assistant! Ask me how something works, look up a live stock price, or check how your portfolio is doing.
     questions:
       - hi
       - hello
@@ -20,8 +20,8 @@ cards:
     category: smalltalk
     title: What I can help with
     answer: |
-      I can help with:
-      - **How TradeXcel works**: trading, the weekly reset, contests, alerts, badges
+      I'm **Tex**, and I can help with:
+      - **How Tradexcel works**: trading, the weekly reset, contests, alerts, badges
       - **Live prices**: "What's TCS trading at?"
       - **Your account**: balance, holdings, rank, badges, contests
       - **Trading basics**: P&L, P/E, diversification and more
@@ -78,7 +78,7 @@ cards:
     category: smalltalk
     title: How are you
     answer: |
-      Doing well, thanks for asking! Ready to help with anything on TradeXcel. What's on your mind?
+      Doing well, thanks for asking! Ready to help with anything on Tradexcel. What's on your mind?
     questions:
       - how are you
       - how's it going
@@ -132,7 +132,7 @@ cards:
     category: smalltalk
     title: My name
     answer: |
-      I'm the **TradeXcel assistant**, a helper built into TradeXcel. I run on the platform itself and answer from TradeXcel's own guides and your account data.
+      I'm **Tex**, the assistant built into Tradexcel. I run on the platform itself and answer from Tradexcel's own guides and your account data, not a general-purpose AI.
     questions:
       - what's your name
       - do you have a name
@@ -142,6 +142,8 @@ cards:
       - who built this bot
       - are you made by tradexcel
       - what should i call you
+      - who is tex
+      - hey tex
     tags: [identity]
     related: [smalltalk.capabilities]
     hard_negatives: [smalltalk.capabilities]

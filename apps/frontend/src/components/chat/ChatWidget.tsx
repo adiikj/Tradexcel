@@ -1,21 +1,27 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { PiChatCircleDots, PiPaperPlaneRight, PiSparkle, PiTrash, PiX } from "react-icons/pi";
+import { PiArrowsClockwise, PiChartLineUp, PiGraduationCap, PiPaperPlaneRight, PiTrash, PiWallet, PiX } from "react-icons/pi";
 import { sendChatMessage } from "../../api/api";
 import { hasSession } from "../../utils/sessionFlag";
 import { isAppPath } from "../../utils/appRoutes";
 import { useBrowserValue } from "../../hooks/useBrowserValue";
 import ChatMessageView from "./ChatMessageView";
+import TexAvatar from "./TexAvatar";
 import { clearMessages, loadMessages, saveMessages, type ChatMessage } from "./chatStorage";
 
 const MAX_LENGTH = 500;
-const STARTERS = ["How does the weekly reset work?", "What's my portfolio worth?", "TCS price", "What is a P/E ratio?"];
+const STARTERS = [
+  { text: "How does the weekly reset work?", icon: PiArrowsClockwise },
+  { text: "What's my portfolio worth?", icon: PiWallet },
+  { text: "TCS price", icon: PiChartLineUp },
+  { text: "What is a P/E ratio?", icon: PiGraduationCap },
+];
 
 let nextId = 0;
 const newId = () => `${Date.now()}-${nextId++}`;
 
-// Floating assistant for signed-in app pages. Mounted once (in Providers) so
+// Tex, the floating assistant for signed-in app pages. Mounted once (in Providers) so
 // the conversation carries across page navigation; also kept in
 // sessionStorage for reloads.
 export default function ChatWidget() {
@@ -97,27 +103,29 @@ export default function ChatWidget() {
           ref={launcherRef}
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Open the TradeXcel assistant"
+          aria-label="Ask Tex, the Tradexcel assistant"
           aria-expanded={false}
-          className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-transform hover:scale-105 hover:bg-blue-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 md:bottom-6 md:right-6"
+          className="group fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-40 flex items-center gap-2 rounded-full bg-white p-1.5 font-pop text-sm font-semibold text-gray-900 shadow-lg ring-1 ring-gray-200 transition-all hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 dark:bg-gray-800 dark:text-white dark:ring-gray-700 md:bottom-6 md:right-6 md:pr-4"
         >
-          <PiChatCircleDots aria-hidden="true" className="h-7 w-7" />
+          <TexAvatar size="md" className="h-11 w-11 md:h-9 md:w-9" />
+          <span className="hidden md:inline">Ask Tex</span>
         </button>
       )}
 
       {open && (
         <section
           role="dialog"
-          aria-label="TradeXcel assistant"
+          aria-label="Tex, the Tradexcel assistant"
           className="fixed inset-x-0 bottom-0 z-50 flex h-[85dvh] flex-col rounded-t-3xl bg-white font-pop text-gray-900 shadow-2xl ring-1 ring-gray-200 dark:bg-gray-900 dark:text-white dark:ring-gray-800 md:inset-x-auto md:bottom-6 md:right-6 md:h-[min(620px,calc(100vh-3rem))] md:w-[400px] md:rounded-2xl"
         >
           <header className="flex items-center gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
-              <PiSparkle aria-hidden="true" className="h-5 w-5" />
-            </span>
+            <TexAvatar />
             <div className="min-w-0 flex-1">
-              <h2 className="text-sm font-semibold">TradeXcel assistant</h2>
-              <p className="truncate text-xs text-gray-500 dark:text-gray-400">Help, live prices and your account</p>
+              <h2 className="text-sm font-semibold">Tex</h2>
+              <p className="flex items-center gap-1.5 truncate text-xs text-gray-500 dark:text-gray-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true" />
+                Your Tradexcel assistant
+              </p>
             </div>
             {messages.length > 0 && (
               <button
@@ -142,19 +150,22 @@ export default function ChatWidget() {
 
           <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4" aria-live="polite">
             {messages.length === 0 && (
-              <div className="flex max-w-[92%] flex-col gap-2">
-                <p className="rounded-2xl rounded-bl-md bg-gray-100 px-3.5 py-2.5 text-sm leading-relaxed dark:bg-gray-800">
-                  Hi! Ask me how anything in TradeXcel works, check a stock&apos;s price, or see how your portfolio, rank and contests are doing.
+              <div className="flex flex-col items-center px-2 pt-4 text-center">
+                <TexAvatar size="lg" />
+                <h3 className="mt-3 text-lg font-semibold">Hi, I&apos;m Tex</h3>
+                <p className="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">
+                  I can explain how Tradexcel works, check live stock prices, and look up your portfolio, rank and contests.
                 </p>
-                <div className="flex flex-wrap gap-2" aria-label="Suggested questions">
-                  {STARTERS.map((s) => (
+                <div className="mt-5 grid w-full grid-cols-2 gap-2" aria-label="Suggested questions">
+                  {STARTERS.map(({ text, icon: Icon }) => (
                     <button
-                      key={s}
+                      key={text}
                       type="button"
-                      onClick={() => send(s)}
-                      className="rounded-full px-3 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-300 hover:bg-gray-100 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-800"
+                      onClick={() => send(text)}
+                      className="flex flex-col items-start gap-2 rounded-xl bg-gray-50 p-3 text-left text-xs font-medium text-gray-700 ring-1 ring-gray-200 transition-colors hover:bg-blue-50 hover:ring-blue-300 dark:bg-gray-800/60 dark:text-gray-200 dark:ring-gray-700 dark:hover:bg-blue-500/10 dark:hover:ring-blue-500/50"
                     >
-                      {s}
+                      <Icon aria-hidden="true" className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      {text}
                     </button>
                   ))}
                 </div>
@@ -164,10 +175,13 @@ export default function ChatWidget() {
               <ChatMessageView key={m.id} message={m} showSuggestions={m.id === lastAssistant && !pending} onSend={send} onNavigate={onNavigate} disabled={pending} />
             ))}
             {pending && (
-              <div className="flex w-16 items-center justify-center gap-1 rounded-2xl rounded-bl-md bg-gray-100 px-3 py-3 dark:bg-gray-800" aria-label="Assistant is typing" role="status">
-                {[0, 150, 300].map((delay) => (
-                  <span key={delay} className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: `${delay}ms` }} />
-                ))}
+              <div className="flex items-end gap-2">
+                <TexAvatar size="sm" />
+                <div className="flex w-16 items-center justify-center gap-1 rounded-2xl rounded-bl-md bg-gray-100 px-3 py-3 dark:bg-gray-800" aria-label="Tex is typing" role="status">
+                  {[0, 150, 300].map((delay) => (
+                    <span key={delay} className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400" style={{ animationDelay: `${delay}ms` }} />
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -181,7 +195,7 @@ export default function ChatWidget() {
           >
             <div className="flex items-end gap-2 rounded-2xl bg-gray-100 px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 dark:bg-gray-800">
               <label htmlFor="chat-input" className="sr-only">
-                Message the assistant
+                Message Tex
               </label>
               <textarea
                 id="chat-input"
@@ -196,7 +210,7 @@ export default function ChatWidget() {
                     send(input);
                   }
                 }}
-                placeholder="Ask about TradeXcel or a stock…"
+                placeholder="Ask Tex about Tradexcel or a stock…"
                 className="max-h-28 flex-1 resize-none bg-transparent py-1 text-sm outline-none placeholder:text-gray-400"
               />
               <button

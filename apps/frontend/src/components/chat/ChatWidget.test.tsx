@@ -27,7 +27,7 @@ function signIn(on: boolean) {
 }
 
 async function ask(text: string) {
-  fireEvent.change(screen.getByLabelText("Message the assistant"), { target: { value: text } });
+  fireEvent.change(screen.getByLabelText("Message Tex"), { target: { value: text } });
   await act(async () => {
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
   });
@@ -44,18 +44,18 @@ describe("ChatWidget", () => {
   it("only shows on signed-in app pages", () => {
     nav.pathname = "/";
     const { rerender } = render(<ChatWidget />);
-    expect(screen.queryByLabelText("Open the TradeXcel assistant")).toBeNull();
+    expect(screen.queryByLabelText("Ask Tex, the Tradexcel assistant")).toBeNull();
 
     nav.pathname = "/dashboard";
     signIn(false);
     rerender(<ChatWidget />);
-    expect(screen.queryByLabelText("Open the TradeXcel assistant")).toBeNull();
+    expect(screen.queryByLabelText("Ask Tex, the Tradexcel assistant")).toBeNull();
   });
 
   it("sends a message and renders the reply with links and suggestions", async () => {
     api.sendChatMessage.mockResolvedValue(reply());
     render(<ChatWidget />);
-    fireEvent.click(screen.getByLabelText("Open the TradeXcel assistant"));
+    fireEvent.click(screen.getByLabelText("Ask Tex, the Tradexcel assistant"));
     await ask("when does my wallet reset");
 
     expect(api.sendChatMessage).toHaveBeenCalledWith("when does my wallet reset");
@@ -76,7 +76,7 @@ describe("ChatWidget", () => {
       reply({ kind: "data", text: "- **TCS**: ₹3,500", links: [], suggestions: [], quotes: [{ symbol: "TCS.NS", name: "TCS", price: 3500, change: 35, changePercent: 1.01 }] })
     );
     render(<ChatWidget />);
-    fireEvent.click(screen.getByLabelText("Open the TradeXcel assistant"));
+    fireEvent.click(screen.getByLabelText("Ask Tex, the Tradexcel assistant"));
     await ask("tcs price");
     const card = screen.getByRole("link", { name: /1\.01% today/ });
     expect(card.getAttribute("href")).toBe("/market?symbol=TCS.NS");
@@ -85,7 +85,7 @@ describe("ChatWidget", () => {
   it("offers a retry when the request fails", async () => {
     api.sendChatMessage.mockRejectedValueOnce(new Error("The assistant is still starting up."));
     render(<ChatWidget />);
-    fireEvent.click(screen.getByLabelText("Open the TradeXcel assistant"));
+    fireEvent.click(screen.getByLabelText("Ask Tex, the Tradexcel assistant"));
     await ask("hello");
     expect(screen.getByText("The assistant is still starting up.")).toBeTruthy();
 
@@ -101,14 +101,14 @@ describe("ChatWidget", () => {
   it("closes on Escape and keeps the conversation across remounts", async () => {
     api.sendChatMessage.mockResolvedValue(reply({ text: "Kept answer", links: [], suggestions: [] }));
     const { unmount } = render(<ChatWidget />);
-    fireEvent.click(screen.getByLabelText("Open the TradeXcel assistant"));
+    fireEvent.click(screen.getByLabelText("Ask Tex, the Tradexcel assistant"));
     await ask("remember me");
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog")).toBeNull();
     unmount();
 
     render(<ChatWidget />);
-    fireEvent.click(screen.getByLabelText("Open the TradeXcel assistant"));
+    fireEvent.click(screen.getByLabelText("Ask Tex, the Tradexcel assistant"));
     expect(screen.getByText("Kept answer")).toBeTruthy();
   });
 
