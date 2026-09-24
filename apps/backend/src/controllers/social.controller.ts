@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
+import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
@@ -188,7 +189,7 @@ const listQuerySchema = z.object({
 const getFollowers = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = listQuerySchema.safeParse(req.query);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid query parameters", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const viewerId = req.user!.id;
   const target = await findUserByUsername(req.params.username);
@@ -216,7 +217,7 @@ const getFollowers = asyncHandler(async (req: AuthRequest, res: Response) => {
 const getFollowing = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = listQuerySchema.safeParse(req.query);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid query parameters", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const viewerId = req.user!.id;
   const target = await findUserByUsername(req.params.username);
@@ -251,7 +252,7 @@ const feedQuerySchema = z.object({
 const getActivityFeed = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = feedQuerySchema.safeParse(req.query);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid query parameters", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { page, limit } = parsed.data;
   const viewerId = req.user!.id;

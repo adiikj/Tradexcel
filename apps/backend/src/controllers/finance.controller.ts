@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import { ApiError } from '../utils/ApiError.js';
+import { validationError } from "../utils/validation.js";
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { getQuote } from '../services/pricing.js';
@@ -27,12 +28,12 @@ async function fetchStockChartData(symbol: string): Promise<StockChartResult> {
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=30d&interval=1d`;
     const response = await fetch(url);
     if (!response.ok) {
-        throw new ApiError(500, `Error fetching data from Yahoo Finance ${symbol}`);
+        throw new ApiError(502, "Market data isn't available right now. Please try again in a moment.");
     }
 
     const data: any = await response.json();
     if (!data?.chart?.result || data.chart.result.length === 0) {
-        throw new ApiError(404, 'Stock data not found or invalid symbol');
+        throw new ApiError(404, "We couldn't find that stock.");
     }
 
     const stockData = data.chart.result[0];
@@ -40,7 +41,7 @@ async function fetchStockChartData(symbol: string): Promise<StockChartResult> {
     const adjClosePrices = stockData.indicators?.adjclose[0]?.adjclose || [];
 
     if (!timestamps.length || !adjClosePrices.length) {
-        throw new ApiError(404, 'Insufficient data for stock chart');
+        throw new ApiError(404, "There isn't enough price history to chart this stock yet.");
     }
 
     const dataLimit = Math.min(timestamps.length, 30);
@@ -81,7 +82,7 @@ const getStockData = asyncHandler(async (req: Request, res: Response, next: Next
         return res.status(responseData.status as number).json(responseData);
     } catch (error: any) {
         if (error instanceof ApiError) return next(error);
-        return next(new ApiError(500, 'Internal Server Error'));
+        return next(new ApiError(502, "Market data isn't available right now. Please try again in a moment."));
     }
 });
 
@@ -93,10 +94,10 @@ const getBatchStockData = asyncHandler(async (req: Request, res: Response, next:
     const symbols = [...new Set(raw.split(',').map((s) => s.trim()).filter(Boolean))];
 
     if (symbols.length === 0) {
-        return next(new ApiError(400, 'symbols query parameter is required'));
+        return next(new ApiError(400, "Choose at least one stock."));
     }
     if (symbols.length > MAX_BATCH_SYMBOLS) {
-        return next(new ApiError(400, `Too many symbols requested (max ${MAX_BATCH_SYMBOLS})`));
+        return next(new ApiError(400, `You can look up at most ${MAX_BATCH_SYMBOLS} stocks at once.`));
     }
 
     const entries = await Promise.all(
@@ -124,7 +125,7 @@ const chartParamsSchema = z.object({
 const getChartData = asyncHandler(async (req: Request, res: Response) => {
     const parsed = chartParamsSchema.safeParse({ symbol: req.params.symbol, range: req.query.range });
     if (!parsed.success) {
-        throw new ApiError(400, 'Invalid chart request', parsed.error.issues);
+        throw validationError(parsed.error);
     }
     const data = await getChart(parsed.data.symbol.toUpperCase(), parsed.data.range);
     return res.status(200).json(new ApiResponse(200, 'Chart fetched successfully', data));

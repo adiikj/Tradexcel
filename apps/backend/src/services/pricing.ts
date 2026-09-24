@@ -80,6 +80,6 @@ export async function fetchQuoteOrThrow(symbol: string): Promise<Quote> {
   try {
     return await getQuote(symbol);
   } catch (error: any) {
-    throw new ApiError(404, `No live price available for ${symbol}`);
+    throw new ApiError(503, `We couldn't get a live price for ${symbol.replace(/\.(NS|BO)$/, "")} right now. Please try again shortly.`);
   }
 }

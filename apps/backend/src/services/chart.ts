@@ -77,7 +77,7 @@ export async function getChart(symbol: string, range: ChartRange): Promise<Chart
 
   const body = (await response.json()) as { chart?: { result?: YahooChartResult[] } };
   const result = body.chart?.result?.[0];
-  if (!result) throw new ApiError(404, `No chart data for ${symbol}`);
+  if (!result) throw new ApiError(404, "Chart data isn't available for this stock right now.");
 
   const meta = result.meta ?? {};
   const intradayRange = range === "1D" || range === "5D";

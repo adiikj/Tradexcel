@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
+import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ADMIN_COOKIE } from "../constants.js";
@@ -39,7 +40,7 @@ function safeCompare(a: string, b: string): boolean {
 const adminLogin = asyncHandler(async (req: AdminRequest, res: Response) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
 
   const adminPassword = process.env.ADMIN_PASSWORD;

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Request, Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
+import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendEmail } from "../services/mailer.js";
@@ -21,7 +22,7 @@ const contactSchema = z.object({
 const sendContactMessage = asyncHandler(async (req: Request, res: Response) => {
   const parsed = contactSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { name, email, message } = parsed.data;
 
@@ -47,7 +48,7 @@ const supportSchema = z.object({
 const sendSupportMessage = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = supportSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { subject, message } = parsed.data;
   const { name, email } = req.user!;

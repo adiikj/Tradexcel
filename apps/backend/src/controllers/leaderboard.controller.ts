@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
+import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
@@ -70,7 +71,7 @@ const leaderboardQuerySchema = z.object({
 const getLeaderboard = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = leaderboardQuerySchema.safeParse(req.query);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid query parameters", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { limit } = parsed.data;
   const userId = req.user!.id;
@@ -92,7 +93,7 @@ const getLeaderboard = asyncHandler(async (req: AuthRequest, res: Response) => {
 const getFriendsLeaderboard = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = leaderboardQuerySchema.safeParse(req.query);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid query parameters", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { limit } = parsed.data;
   const userId = req.user!.id;

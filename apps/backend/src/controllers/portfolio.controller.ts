@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
+import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
@@ -98,7 +99,7 @@ const transactionsQuerySchema = z.object({
 const getTransactions = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = transactionsQuerySchema.safeParse(req.query);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid query parameters", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { page, limit } = parsed.data;
   const userId = req.user!.id;

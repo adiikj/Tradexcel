@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
+import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
@@ -50,7 +51,7 @@ async function loadLiveContestEntry(contestId: string, userId: string) {
 const buyContestStock = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = tradeSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { symbol, quantity } = parsed.data;
   const userId = req.user!.id;
@@ -58,7 +59,7 @@ const buyContestStock = asyncHandler(async (req: AuthRequest, res: Response) => 
 
   const { contest, entry } = await loadLiveContestEntry(contestId, userId);
   if (!contest.symbols.includes(symbol)) {
-    throw new ApiError(400, `${symbol} is not in this contest's stock universe`);
+    throw new ApiError(400, `${symbol.replace(/\.(NS|BO)$/, "")} isn't one of the stocks in this contest.`);
   }
 
   const price = await resolveContestPrice(contest, symbol);
@@ -116,7 +117,7 @@ const buyContestStock = asyncHandler(async (req: AuthRequest, res: Response) => 
 const sellContestStock = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = tradeSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { symbol, quantity } = parsed.data;
   const userId = req.user!.id;

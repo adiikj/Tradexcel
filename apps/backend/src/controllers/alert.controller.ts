@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
+import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
@@ -26,7 +27,7 @@ const createAlertSchema = z.object({
 const createAlert = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = createAlertSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { symbol, targetPrice, direction } = parsed.data;
   const userId = req.user!.id;
@@ -45,7 +46,7 @@ const listAlertsQuerySchema = z.object({
 const getAlerts = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = listAlertsQuerySchema.safeParse(req.query);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid query parameters", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { status } = parsed.data;
   const userId = req.user!.id;

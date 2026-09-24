@@ -18,9 +18,12 @@ app.use(globalLimiter);
 app.use(
   pinoHttp({
     logger,
+    // Only failed requests are logged; successful traffic is just noise.
+    customLogLevel: (_req, res, err) => (err || res.statusCode >= 500 ? "error" : res.statusCode >= 400 ? "warn" : "silent"),
     serializers: {
+      // Path only: query strings can carry emails, codes or tokens.
       req(req) {
-        return { method: req.method, url: req.url };
+        return { method: req.method, path: String(req.url).split("?")[0] };
       },
       res(res) {
         return { statusCode: res.statusCode };
@@ -32,7 +35,8 @@ app.use(
 
 app.use(express.json({limit : "16kb"}))
 app.use(express.urlencoded({extended: true, limit : "16kb"}))
-app.use(express.static("public"))
+// No express.static: public/temp holds uploads briefly before they go to
+// Cloudinary, and nothing there should be reachable over HTTP.
 app.use(cookieparser())
 app.options("*", cors(corsOptions)); // Enable preflight response for all routes
 

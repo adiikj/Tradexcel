@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
+import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
@@ -24,7 +25,7 @@ interface AuthRequest {
 const buyStock = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = tradeSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { symbol, quantity } = parsed.data;
   const userId = req.user!.id;
@@ -87,7 +88,7 @@ const buyStock = asyncHandler(async (req: AuthRequest, res: Response) => {
 const sellStock = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = tradeSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { symbol, quantity } = parsed.data;
   const userId = req.user!.id;

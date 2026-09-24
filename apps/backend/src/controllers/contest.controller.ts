@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { z } from "zod";
 import { Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
+import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
@@ -106,7 +107,7 @@ async function generateUniqueInviteCode() {
     }
   }
 
-  throw new ApiError(500, "Unable to generate an invite code right now");
+  throw new ApiError(500, "We couldn't create an invite code right now. Please try again.");
 }
 
 // The DB status only ever starts UPCOMING; what a client sees is derived from the clock.
@@ -166,7 +167,7 @@ async function resolveHistoricalDates(
 const createContest = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = contestInputSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { name, startAt, endAt, startingBalance, symbols, prize, historicalStartDate } = parsed.data;
 
@@ -192,7 +193,7 @@ const createContest = asyncHandler(async (req: AuthRequest, res: Response) => {
 const createPrivateContest = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = contestInputSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
 
   const userId = req.user!.id;
@@ -258,7 +259,7 @@ const updateContestSchema = z
 const updateContest = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = updateContestSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { name, startAt, endAt, startingBalance, symbols, prize } = parsed.data;
 
@@ -296,7 +297,7 @@ const updateContestImage = asyncHandler(async (req: AuthRequest, res: Response) 
 
   const uploaded = await uploadOnCloudinary(imageLocalPath);
   if (!uploaded?.url) {
-    throw new ApiError(500, "Error uploading image");
+    throw new ApiError(500, "We couldn't upload that image. Please try again.");
   }
 
   const contest = await prisma.contest.update({
@@ -312,7 +313,7 @@ const updateContestImage = asyncHandler(async (req: AuthRequest, res: Response) 
 const getContests = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = contestScopeSchema.safeParse(req.query);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid query parameters", parsed.error.issues);
+    throw validationError(parsed.error);
   }
 
   const userId = req.user!.id;
@@ -400,7 +401,7 @@ const joinContest = asyncHandler(async (req: AuthRequest, res: Response) => {
 const joinPrivateContest = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = joinPrivateContestSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
 
   const userId = req.user!.id;

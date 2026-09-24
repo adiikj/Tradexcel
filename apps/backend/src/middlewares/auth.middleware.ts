@@ -13,7 +13,7 @@ export const verifyJWT = asyncHandler(async (req: AuthRequest, res: Response, ne
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
 
         if(!token){
-            throw new ApiError(401, "Unauthorized");
+            throw new ApiError(401, "Please sign in to continue.");
         }
 
         const decodedToken: any = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET as string);
@@ -23,13 +23,14 @@ export const verifyJWT = asyncHandler(async (req: AuthRequest, res: Response, ne
         });
 
         if(!user){
-            throw new ApiError(404, "Invalid Access Token");
+            throw new ApiError(401, "Your session has expired. Please sign in again.");
         }
 
         req.user = user;
         next();
     } catch (error) {
-        throw new ApiError(401, "Invalid Access Token");
+        if (error instanceof ApiError) throw error;
+        throw new ApiError(401, "Your session has expired. Please sign in again.");
     }
 });
 

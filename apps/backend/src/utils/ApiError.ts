@@ -6,7 +6,8 @@ class ApiError extends Error {
 
     constructor(
         statusCode: number,
-        message = 'Internal Server Error',
+        // Shown to users as-is, so always plain language.
+        message = 'Something went wrong on our side. Please try again in a moment.',
         errors: any[] = [],
         stack = ""
     ){

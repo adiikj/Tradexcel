@@ -18,7 +18,7 @@ export async function resolveContestPrice(contest: ContestForPricing, symbol: st
     where: { symbol_date: { symbol, date: simulatedDate } },
   });
   if (!row) {
-    throw new ApiError(404, `No historical price for ${symbol} on ${simulatedDate.toISOString().slice(0, 10)}`);
+    throw new ApiError(404, `There's no price for ${symbol.replace(/\.(NS|BO)$/, "")} on this contest day. Try another stock.`);
   }
   return row.close;
 }

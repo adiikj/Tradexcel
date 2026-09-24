@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
+import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import prisma from "../db/prisma.js";
 import {
@@ -56,7 +57,7 @@ async function sendOtpEmail(email: string, otp: string) {
     });
   } catch (error: any) {
     logger.error({ err: error }, "Error sending OTP email");
-    throw new ApiError(500, "Error sending verification email");
+    throw new ApiError(500, "We couldn't send the verification email. Please try again in a moment.");
   }
 }
 
@@ -96,7 +97,7 @@ const generateAccessAndRefreshTokens = async (userId: string) => {
   } catch (error: any) {
     if (error instanceof ApiError) throw error;
     logger.error({ err: error }, "Error generating tokens");
-    throw new ApiError(500, "Error generating tokens");
+    throw new ApiError(500, "We couldn't sign you in right now. Please try again in a moment.");
   }
 };
 
@@ -138,23 +139,23 @@ const refreshAccessToken = asyncHandler(async (req: any, res: any) => {
   const incomingRefreshToken = req.cookies.refreshToken;
 
   if (!incomingRefreshToken) {
-    throw new ApiError(401, "Unauthorized Request");
+    throw new ApiError(401, "Your session has expired. Please sign in again.");
   }
 
   let decodedToken: any;
   try {
     decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET as string);
-  } catch (error: any) {
-    throw new ApiError(401, error?.message || "Invalid refresh token");
+  } catch {
+    throw new ApiError(401, "Your session has expired. Please sign in again.");
   }
 
   const user = await prisma.user.findUnique({ where: { id: decodedToken?.id } });
   if (!user) {
-    throw new ApiError(404, "Invalid refresh token");
+    throw new ApiError(401, "Your session has expired. Please sign in again.");
   }
 
   if (incomingRefreshToken !== user?.refreshToken) {
-    throw new ApiError(401, "Refresh Token is expired or used");
+    throw new ApiError(401, "Your session has expired. Please sign in again.");
   }
 
   return issueSession(user.id, res, "Access token refreshed successfully", false);
@@ -177,7 +178,7 @@ const registerSchema = z.object({
 const registerUser = asyncHandler(async (req: any, res: any) => {
   const parsed = registerSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { name, username, email, password, pin, dob } = parsed.data;
 
@@ -230,7 +231,7 @@ const verifyOtpSchema = z.object({
 const verifyOTP = asyncHandler(async (req: any, res: any) => {
   const parsed = verifyOtpSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { email, otp } = parsed.data;
 
@@ -275,7 +276,7 @@ const loginSchema = z
 const loginUser = asyncHandler(async (req: any, res: any) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { emailOrUsername, password, pin } = parsed.data;
 
@@ -283,34 +284,23 @@ const loginUser = asyncHandler(async (req: any, res: any) => {
     where: { OR: [{ email: emailOrUsername }, { username: emailOrUsername }] },
   });
 
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
-  if (!user.otpVerified) {
-    throw new ApiError(403, "Please verify your email before logging in.");
-  }
-
+  // One answer for every failed attempt (unknown account, no password/PIN set,
+  // wrong secret), so the login form can't be used to find out which emails
+  // or usernames have accounts.
   const credential = password ?? pin!;
-  const storedHash = password ? user.password : user.pin;
-
-  if (!storedHash) {
-    if (user.googleId) {
-      throw new ApiError(
-        400,
-        `This account uses Google Sign-In. Continue with Google, or set a ${
-          password ? "password" : "PIN"
-        } from your profile to enable this login method.`
-      );
-    }
+  const storedHash = password ? user?.password : user?.pin;
+  const isValid = Boolean(user && storedHash && (await verifyPassword(credential, storedHash)));
+  if (!user || !isValid) {
     throw new ApiError(
-      400,
-      password ? "This account has no password set - try logging in with your PIN." : "This account has no PIN set."
+      401,
+      password
+        ? "Incorrect email, username or password. If you signed up with Google, use Continue with Google."
+        : "Incorrect email, username or PIN. If you haven't set a PIN yet, sign in with your password."
     );
   }
-
-  const isValid = await verifyPassword(credential, storedHash);
-  if (!isValid) {
-    throw new ApiError(401, "Invalid credentials");
+  // Checked only after the password, so it doesn't reveal unverified accounts to strangers.
+  if (!user.otpVerified) {
+    throw new ApiError(403, "Please verify your email before signing in.");
   }
 
   return issueSession(user.id, res, "User logged in successfully");
@@ -324,7 +314,7 @@ const googleLoginSchema = z.object({
 const googleLogin = asyncHandler(async (req: any, res: any) => {
   const parsed = googleLoginSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
 
   const client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID);
@@ -335,8 +325,8 @@ const googleLogin = asyncHandler(async (req: any, res: any) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     payload = ticket.getPayload();
-  } catch (error: any) {
-    throw new ApiError(401, "Invalid Google ID token");
+  } catch {
+    throw new ApiError(401, "Google sign-in didn't work. Please try again.");
   }
 
   if (!payload?.email || !payload.email_verified) {
@@ -461,7 +451,7 @@ const changePasswordPinSchema = z.object({
 const changeCurrentPasswordAndPin = asyncHandler(async (req: any, res: any) => {
   const parsed = changePasswordPinSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
   const { oldPassword, newPassword, oldPin, newPin } = parsed.data;
 
@@ -474,20 +464,20 @@ const changeCurrentPasswordAndPin = asyncHandler(async (req: any, res: any) => {
 
   if (newPassword) {
     if (user.password && (!oldPassword || !(await verifyPassword(oldPassword, user.password)))) {
-      throw new ApiError(401, "Invalid old password");
+      throw new ApiError(401, "Your current password is incorrect.");
     }
     updateData.password = await hashPassword(newPassword);
   }
 
   if (newPin) {
     if (user.pin && (!oldPin || !(await verifyPassword(oldPin, user.pin)))) {
-      throw new ApiError(401, "Invalid old PIN");
+      throw new ApiError(401, "Your current PIN is incorrect.");
     }
     updateData.pin = await hashPassword(newPin);
   }
 
   if (Object.keys(updateData).length === 0) {
-    throw new ApiError(400, "Nothing to update");
+    throw new ApiError(400, "Enter a new password or PIN to save.");
   }
 
   await prisma.user.update({ where: { id: user.id }, data: updateData });
@@ -511,11 +501,11 @@ const updateUserSchema = z.object({
 const updateUser = asyncHandler(async (req: any, res: any) => {
   const parsed = updateUserSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, "Invalid input", parsed.error.issues);
+    throw validationError(parsed.error);
   }
 
   if (Object.keys(parsed.data).length === 0) {
-    throw new ApiError(400, "No fields provided for update");
+    throw new ApiError(400, "There's nothing new to save.");
   }
 
   const user = await prisma.user.update({
@@ -537,7 +527,7 @@ const getAvatar = asyncHandler(async (req: any, res: any) => {
     throw new ApiError(404, "User not found");
   }
   if (!user.avatar) {
-    throw new ApiError(404, "Avatar not found");
+    throw new ApiError(404, "You haven't added a profile photo yet.");
   }
 
   res.status(200).json(new ApiResponse(200, "Avatar fetched successfully", { avatar: user.avatar }));
@@ -547,13 +537,13 @@ const updateAvatar = asyncHandler(async (req: any, res: any) => {
   const avatarLocalPath = req.file?.path;
 
   if (!avatarLocalPath) {
-    throw new ApiError(400, "Avatar is required");
+    throw new ApiError(400, "Please choose an image to upload.");
   }
 
   const avatar = await uploadOnCloudinary(avatarLocalPath);
 
   if (!avatar?.url) {
-    throw new ApiError(500, "Error uploading avatar");
+    throw new ApiError(500, "We couldn't upload your photo. Please try again.");
   }
 
   const user = await prisma.user.update({
