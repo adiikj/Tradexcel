@@ -1,6 +1,6 @@
 
 import type { StockListing } from "../../types/market";
-import type { StockSnapshot } from "@tradexcel/shared";// Ranks a stock universe by today's real price change and returns the top 5. Shared by TopGainers/TopLosers.
+import type { StockSnapshot } from "@tradexcel/shared";// Ranks a stock universe by today's real price change and returns the top few (5 by default). Shared by TopGainers/TopLosers.
 
 type StockMeta = StockListing;
 
@@ -15,7 +15,8 @@ const LABELS = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
 export function rankFromData(
   universe: StockMeta[],
   dataMap: Record<string, StockData>,
-  direction: "gainers" | "losers"
+  direction: "gainers" | "losers",
+  limit = 5
 ) {
   // The stock list has a few duplicate symbols; keep one entry each.
   const seen = new Set<string>();
@@ -54,5 +55,5 @@ export function rankFromData(
 
   ranked.sort((a, b) => (direction === "gainers" ? b.signedChange - a.signedChange : a.signedChange - b.signedChange));
 
-  return ranked.slice(0, 5);
+  return ranked.slice(0, limit);
 }

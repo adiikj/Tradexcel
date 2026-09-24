@@ -1,234 +1,304 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import TopGainers from './TopGainers';
-import TopLosers from './TopLosers';
-import { getUserName, getPortfolio } from '../../api/api';
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import quotes from './Quote.json';
-import { formatInr, formatPercent, formatSignedInr } from '../../utils/format';
-import { useLiveQuotes } from '../../hooks/useLiveQuotes';
-import { useMarketStatus } from '../../hooks/useMarketStatus';
-import LiveStatusBadge from '../layout/LiveStatusBadge';
-import MarketClosedBanner from '../layout/MarketClosedBanner';
-import type { PortfolioHolding, PortfolioSummary } from "@tradexcel/shared";
+import type { Contest, PortfolioHolding, PortfolioSummary, RankedUser } from "@tradexcel/shared";
+import { getContests, getLeaderboard, getPortfolio, getUserName } from "../../api/api";
+import { formatInr, formatSignedInr } from "../../utils/format";
+import { useLiveQuotes } from "../../hooks/useLiveQuotes";
+import { useMarketStatus } from "../../hooks/useMarketStatus";
+import { useMinuteClock } from "../../hooks/useMinuteClock";
+import { STARTING_BALANCE, formatCountdown, nextReset } from "../../utils/season";
+import { changeGlyph, changeTextClass } from "../market/marketColors";
+import LiveStatusBadge from "../layout/LiveStatusBadge";
+import MarketClosedBanner from "../layout/MarketClosedBanner";
+import { Card } from "../ui/Panel";
+import stockList from "../market/StockData.json";
+import type { StockListing } from "../../types/market";
+import MarketMovers from "./MarketMovers";
+import QuickTrade from "../trade/QuickTrade";
+import AllocationDonut, { colorSlices, type Slice } from "../portfolio/AllocationDonut";
+import { useTheme } from "../../context/ThemeContext";
+import quotes from "./Quote.json";
 
-// Module-level so React keeps their identity between renders.
-const StatSkeleton = () => (
-  <span className={`inline-block h-6 md:h-8 w-20 rounded animate-pulse bg-gray-300 dark:bg-gray-700`} />
-);
-const HeroSkeleton = () => (
-  <span className={`inline-block h-8 md:h-10 w-40 rounded animate-pulse bg-gray-300 dark:bg-gray-700`} />
-);
+const NAMES = new Map((stockList as StockListing[]).map((s) => [s.symbol, s.shortName]));
+const stockName = (symbol: string) => NAMES.get(symbol) ?? symbol.replace(/\.(NS|BO)$/, "");
+
+const signedPct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
+
+function greeting(now: number | null) {
+  if (now == null) return "Welcome back";
+  const hour = new Date(now).getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+const Skeleton = ({ className }: { className: string }) => <span className={`inline-block animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800 ${className}`} />;
 
 function MainContent() {
-  const [selectedMarket, setSelectedMarket] = useState('gainers');
-  const [userName, setUserName] = useState('');
-  const [isLoadingUserName, setIsLoadingUserName] = useState(true);
-  const [dailyQuote] = useState(() => quotes[new Date().getDate() % quotes.length]);
+  const [userName, setUserName] = useState<string | null>(null);
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
   const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
   const [isLoadingSummary, setIsLoadingSummary] = useState(true);
+  const [me, setMe] = useState<RankedUser | null>(null);
+  const [totalPlayers, setTotalPlayers] = useState(0);
+  const [liveContests, setLiveContests] = useState<Contest[] | null>(null);
+  const now = useMinuteClock();
+  const { darkMode } = useTheme();
 
-  const handleToggle = (marketType: string) => {
-    setSelectedMarket(marketType);
-  };
+  // State is only set after the request resolves, so the effect can call this directly.
+  const loadPortfolio = useCallback(() => {
+    return getPortfolio()
+      .then((res) => {
+        setSummary(res?.data?.summary || null);
+        setHoldings(res?.data?.holdings || []);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoadingSummary(false));
+  }, []);
 
   useEffect(() => {
-    const fetchUserName = async () => {
-      try {
-        const name = await getUserName();
-        setUserName(name.data.name);
-      } catch {
-        setUserName('User');
-      } finally {
-        setIsLoadingUserName(false);
-      }
-    };
+    getUserName()
+      .then((res) => setUserName(res?.data?.name ?? ""))
+      .catch(() => setUserName(""));
 
-    const fetchSummary = async () => {
-      try {
-        setIsLoadingSummary(true);
-        const response = await getPortfolio();
-        setSummary(response?.data?.summary || null);
-        setHoldings(response?.data?.holdings || []);
-      } catch {
-        // Summary stays null; the skeleton below just keeps showing.
-      } finally {
-        setIsLoadingSummary(false);
-      }
-    };
+    loadPortfolio();
 
-    fetchUserName();
-    fetchSummary();
-  }, []);
+    getLeaderboard(1)
+      .then((res) => {
+        setMe(res?.data?.currentUser ?? null);
+        setTotalPlayers(res?.data?.totalPlayers ?? 0);
+      })
+      .catch(() => {});
+
+    getContests("public")
+      .then((res) => setLiveContests((res?.data || []).filter((c: Contest) => c.status === "LIVE")))
+      .catch(() => setLiveContests([]));
+  }, [loadPortfolio]);
 
   const { quotes: liveQuotes, connected: liveConnected } = useLiveQuotes(holdings.map((h) => h.symbol));
   const marketStatus = useMarketStatus();
 
-  // Same math as portfolio.controller.ts's getPortfolio, executed client-side
-  // against the already-known avgBuyPrice/quantity once a live tick arrives.
+  // Same math as portfolio.controller.ts's getPortfolio, run client-side on each live tick.
   const liveHoldings = holdings.map((holding) => {
     const tick = liveQuotes[holding.symbol];
     if (!tick) return holding;
-
-    const quantity = Number(holding.quantity);
-    const currentValue = tick.price * quantity;
-
-    return { ...holding, currentPrice: tick.price, currentValue, priceStale: false };
+    return { ...holding, currentPrice: tick.price, currentValue: tick.price * Number(holding.quantity), priceStale: false };
   });
 
-  const walletBalance = Number(summary?.walletBalance ?? 0);
-  const totalInvested = Number(summary?.totalInvested ?? 0);
+  const cash = Number(summary?.walletBalance ?? 0);
+  const invested = Number(summary?.totalInvested ?? 0);
   const holdingsValue = liveHoldings.reduce((sum, h) => sum + Number(h.currentValue ?? h.investedValue ?? 0), 0);
-  const totalPnl = holdingsValue - totalInvested;
-  const returnsPercent = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
-  const isPnlPositive = totalPnl >= 0;
-  const netWorth = walletBalance + holdingsValue;
-  const cashValue = walletBalance;
-  const holdingsPercent = netWorth > 0 ? (holdingsValue / netWorth) * 100 : 0;
-  const cashPercent = netWorth > 0 ? (cashValue / netWorth) * 100 : 0;
+  const netWorth = cash + holdingsValue;
+  const seasonReturn = netWorth - STARTING_BALANCE;
+  const openPnl = holdingsValue - invested;
+
+  const byValue = [...liveHoldings].sort((a, b) => Number(b.currentValue ?? b.investedValue) - Number(a.currentValue ?? a.investedValue));
+  const topHoldings = byValue.slice(0, 5);
+  const valueOf = (h: PortfolioHolding) => Number(h.currentValue ?? h.investedValue);
+
+  // Same slicing as the Portfolio page's donut: 4 holdings, "Other", cash.
+  const otherValue = byValue.slice(4).reduce((sum, h) => sum + valueOf(h), 0);
+  const slices: Slice[] = [
+    ...byValue.slice(0, 4).map((h): Slice => ({ key: h.symbol, label: stockName(h.symbol), value: valueOf(h), kind: "holding" })),
+    ...(otherValue > 0 ? [{ key: "other", label: "Other", value: otherValue, kind: "other" } as Slice] : []),
+    { key: "cash", label: "Cash", value: cash, kind: "cash" },
+  ];
+  const colors = new Map(colorSlices(slices, darkMode).map((s) => [s.key, s.color]));
+
+  const dailyQuote = now != null ? quotes[new Date(now).getDate() % quotes.length] : null;
 
   return (
-    <main className={`flex flex-col md:flex-row md:items-start w-10/12 md:w-10/12 rounded-2xl h-auto font-pop mx-7 md:mx-auto bg-white text-black dark:bg-gray-800 dark:text-white transition-colors duration-300`}>
-      {/* Portfolio Section */}
-      <div className="flex flex-col w-full md:w-3/5 m-6 ml-0 md:m-14 ">
-        <div className="flex flex-col items-start">
-          <div className="flex flex-col items-start mb-2 md:mt-0">
-            <div className="text-2xl md:text-4xl font-semibold mt-5 flex items-center gap-2">
-              Welcome{" "}
-              {isLoadingUserName ? (
-                <span className={`inline-block h-8 md:h-10 w-32 rounded animate-pulse bg-gray-300 dark:bg-gray-700`} />
-              ) : (
-                <span className="text-blue-500">{userName}!</span>
-              )}
-            </div>
-            <div className="h-2 w-44 bg-blue-500 rounded-full animate-line"></div>
-            <div className=" text-lg mt-10 font-semibold">Today&apos;s Quote</div>
-            <div className="h-1 w-20 bg-blue-500 rounded-full animate-line" style={{ animationDelay: '0.15s' }}></div>
-            <div className="text-sm md:text-base mt-2 mb-5">
-              <p>&quot;{dailyQuote.quote}&quot;</p>
-              <p className="mt-2 text-sm md:text-sm text-right">- {dailyQuote.author}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="text-lg md:text-xl font-semibold mb-1">My Portfolio</div>
-        <div className="h-2 w-20 bg-blue-500 rounded-full mb-6 animate-line" style={{ animationDelay: '0.3s' }}></div>
-        <MarketClosedBanner />
-        <div className={`w-full rounded-3xl p-5 md:p-6 bg-grey text-black dark:bg-gray-900 dark:text-white transition-colors duration-300`}>
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className={`w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold ${
-                "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400"
-              }`}
-            >
-              ₹
-            </span>
-            <span className="text-xs uppercase tracking-widest text-gray-400">Net Worth</span>
-            <LiveStatusBadge connected={liveConnected} marketOpen={marketStatus.open} />
-          </div>
-          <div className="flex flex-wrap items-baseline gap-3 mb-5">
-            <span className="text-2xl md:text-3xl font-bold tabular-nums">
-              {isLoadingSummary ? <HeroSkeleton /> : formatInr(netWorth)}
-            </span>
-            {!isLoadingSummary && (
-              <span
-                className={`text-xs md:text-sm px-2.5 py-1 rounded-full font-semibold tabular-nums ${
-                  isPnlPositive ? "bg-green-500/15 text-green-500" : "bg-red-500/15 text-red-500"
-                }`}
-              >
-                {formatSignedInr(totalPnl)} ({formatPercent(returnsPercent)})
-              </span>
+    <main className="mb-20 min-w-0 flex-1 space-y-4 font-pop md:mb-0 px-5 py-6 md:px-8 md:py-8 lg:px-12 lg:py-10">
+      {/* Greeting */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold md:text-3xl">
+            {greeting(now)}
+            {userName == null ? <Skeleton className="ml-2 h-7 w-28 align-middle" /> : userName && <>, {userName.split(" ")[0]}</>}
+          </h1>
+          <div className="mt-1 h-0.5 w-24 rounded-full bg-blue-600 dark:bg-blue-400 animate-line" />
+          <p data-tour="season" className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            {now != null ? <>Season resets in {formatCountdown(nextReset(new Date(now)).getTime() - now)}</> : " "}
+            {liveContests != null && liveContests.length > 0 && (
+              <>
+                {" · "}
+                <Link href="/contest" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                  {liveContests.length} {liveContests.length === 1 ? "contest" : "contests"} live
+                </Link>
+              </>
             )}
-          </div>
-
-          <div className={`flex flex-wrap gap-x-8 gap-y-4 pt-4 border-t border-gray-300 dark:border-gray-700`}>
-            <div>
-              <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Invested</div>
-              <div className="text-base font-semibold tabular-nums">
-                {isLoadingSummary ? <StatSkeleton /> : formatInr(summary?.totalInvested)}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Cash</div>
-              <div className="text-base font-semibold tabular-nums">
-                {isLoadingSummary ? <StatSkeleton /> : formatInr(summary?.walletBalance)}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Holdings</div>
-              <div className="text-base font-semibold tabular-nums">
-                {isLoadingSummary ? <StatSkeleton /> : holdings.length}
-              </div>
-            </div>
-          </div>
-
-          {/* Allocation: real cash-vs-holdings split */}
-          {!isLoadingSummary && netWorth > 0 && (
-            <div className={`mt-5 pt-5 border-t border-gray-300 dark:border-gray-700`}>
-              <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Allocation</div>
-              <div className="w-full h-3 rounded-full overflow-hidden flex">
-                <div className="bg-blue-500" style={{ width: `${holdingsPercent}%` }} title={`Holdings: ${holdingsPercent.toFixed(1)}%`} />
-                <div className="bg-gray-300 dark:bg-gray-600" style={{ width: `${cashPercent}%` }} title={`Cash: ${cashPercent.toFixed(1)}%`} />
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
-                <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                  <span className="w-2 h-2 rounded-full bg-blue-500" />
-                  Holdings · {holdingsPercent.toFixed(1)}%
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                  <span className={`w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600`} />
-                  Cash · {cashPercent.toFixed(1)}%
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-        {!isLoadingSummary && holdings.length === 0 && (
-          <p className="mt-3 text-sm text-gray-400">
-            No holdings yet.{" "}
-            <Link href="/market" className="text-blue-500 underline">
-              make your first trade
-            </Link>
-            .
           </p>
-        )}
+        </div>
+        <div data-tour="quick-trade">
+          <QuickTrade cash={cash} holdings={holdings} onTraded={loadPortfolio} />
+        </div>
       </div>
 
-      {/* Market Section */}
-      <div className="flex flex-col w-full md:w-2/5 m-14 ml-2 md:mt-16 mt-6">
-        <div className="text-lg md:text-xl font-semibold mb-1">Today&apos;s Market</div>
-        <div className="h-2 w-20 bg-blue-500 rounded-full mb-6 animate-line" style={{ animationDelay: '0.45s' }}></div>
-        <div className={`w-full h-auto rounded-3xl p-5 flex flex-col items-center mt-0 bg-grey text-black dark:bg-gray-900 dark:text-white transition-colors duration-300`}>
-          <div className={`flex w-full mb-4 p-1 rounded-xl bg-gray-200 dark:bg-gray-800`}>
-            <button
-              className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 active:scale-95 ${
-                selectedMarket === 'gainers'
-                  ? 'bg-green-500 text-white shadow'
-                  : "text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white"
-              }`}
-              onClick={() => handleToggle('gainers')}
-            >
-              Top Gainers
-            </button>
-            <button
-              className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 active:scale-95 ${
-                selectedMarket === 'losers'
-                  ? 'bg-red-500 text-white shadow'
-                  : "text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white"
-              }`}
-              onClick={() => handleToggle('losers')}
-            >
-              Top Losers
-            </button>
+      {dailyQuote && (
+        <figure className="rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:shadow-none dark:ring-gray-800 md:px-5">
+          <div className="min-w-0 text-sm">
+            <blockquote className="inline italic text-gray-700 dark:text-gray-200">{dailyQuote.quote}</blockquote>
+            <figcaption className="inline text-gray-500 dark:text-gray-400"> — {dailyQuote.author}</figcaption>
           </div>
+        </figure>
+      )}
 
-          {/* Market Content */}
-          <div className="w-full h-full text-center text-sm">
-            {selectedMarket === 'gainers' ? <TopGainers /> : <TopLosers />}
-            <Link href="/market" className="text-sm md:text-sm text-blue-500 hover:underline">See More &gt;</Link>
+      <MarketClosedBanner />
+
+      {/* Left: portfolio (net worth, then holdings). Right: today's market. */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <section className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:shadow-none dark:ring-gray-800 lg:col-span-2">
+          <div data-tour="networth" className="p-5 md:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-xs text-gray-500 dark:text-gray-400">Net worth</h2>
+              <LiveStatusBadge connected={liveConnected} marketOpen={marketStatus.open} />
+            </div>
+            {isLoadingSummary ? (
+              <div className="mt-2 space-y-2">
+                <Skeleton className="h-10 w-52" />
+                <Skeleton className="block h-4 w-40" />
+              </div>
+            ) : (
+              <>
+                <p className="mt-1 text-4xl font-semibold tracking-tight tabular-nums">{formatInr(netWorth)}</p>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  <span className={`font-semibold ${changeTextClass(seasonReturn)}`}>
+                    {changeGlyph(seasonReturn)} {formatSignedInr(seasonReturn)} ({signedPct((seasonReturn / STARTING_BALANCE) * 100)})
+                  </span>{" "}
+                  this season
+                </p>
+              </>
+            )}
+            <dl className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 border-t border-gray-100 pt-4 dark:border-gray-800 sm:grid-cols-4">
+              <div>
+                <dt className="text-xs text-gray-500 dark:text-gray-400">Cash</dt>
+                <dd className="mt-0.5 font-semibold tabular-nums">{isLoadingSummary ? <Skeleton className="h-5 w-20" /> : formatInr(cash)}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-gray-500 dark:text-gray-400">Invested</dt>
+                <dd className="mt-0.5 font-semibold tabular-nums">{isLoadingSummary ? <Skeleton className="h-5 w-20" /> : formatInr(holdingsValue)}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-gray-500 dark:text-gray-400">Open P&amp;L</dt>
+                <dd className={`mt-0.5 font-semibold tabular-nums ${isLoadingSummary ? "" : changeTextClass(openPnl)}`}>
+                  {isLoadingSummary ? <Skeleton className="h-5 w-20" /> : formatSignedInr(openPnl)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-gray-500 dark:text-gray-400">Leaderboard</dt>
+                <dd className="mt-0.5 font-semibold tabular-nums">
+                  {me ? (
+                    <Link href="/leaderboard" className="hover:underline">
+                      #{me.rank}
+                      <span className="font-normal text-gray-500 dark:text-gray-400"> of {totalPlayers}</span>
+                    </Link>
+                  ) : (
+                    <Link href="/leaderboard" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                      View
+                    </Link>
+                  )}
+                </dd>
+              </div>
+            </dl>
           </div>
-        </div>
+          <div data-tour="holdings" className="border-t border-gray-100 p-5 dark:border-gray-800 md:p-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 className="text-base font-semibold">Holdings</h2>
+              {holdings.length > 0 && (
+                <Link href="/portfolio" className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400">
+                  View portfolio
+                </Link>
+              )}
+            </div>
+            {isLoadingSummary ? (
+              <div className="space-y-2">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-12 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
+                ))}
+              </div>
+            ) : topHoldings.length === 0 ? (
+              <div className="flex flex-col items-center py-8 text-center">
+                <p className="font-medium">No holdings yet</p>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">You have {formatInr(cash || STARTING_BALANCE)} to invest this season.</p>
+                <Link href="/market" className="mt-4 rounded-xl bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                  Make your first trade
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid items-center gap-6 sm:grid-cols-[1fr_auto]">
+                  <ul className="-mx-2 min-w-0">
+                    {topHoldings.map((h, i) => {
+                      const value = valueOf(h);
+                      const pnl = value - Number(h.investedValue);
+                      const pnlPct = Number(h.investedValue) > 0 ? (pnl / Number(h.investedValue)) * 100 : 0;
+                      const share = netWorth > 0 ? (value / netWorth) * 100 : 0;
+                      return (
+                        <li key={h.id}>
+                          <Link
+                            href={`/market?symbol=${encodeURIComponent(h.symbol)}`}
+                            className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                          >
+                            <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: colors.get(i < 4 ? h.symbol : "other") }} />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-semibold">{stockName(h.symbol)}</span>
+                              <span className="block text-xs tabular-nums text-gray-500 dark:text-gray-400">
+                                {h.quantity} shares · {share.toFixed(0)}% of net worth
+                              </span>
+                            </span>
+                            <span className="text-right">
+                              <span className="block text-sm font-semibold tabular-nums">{formatInr(value)}</span>
+                              <span className={`block text-xs tabular-nums ${changeTextClass(pnl)}`}>
+                                {changeGlyph(pnl)} {signedPct(pnlPct)}
+                              </span>
+                            </span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                    <li className="flex items-center gap-3 px-2 py-2.5">
+                      <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: colors.get("cash") }} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-semibold">Cash</span>
+                        <span className="block text-xs tabular-nums text-gray-500 dark:text-gray-400">
+                          {netWorth > 0 ? ((cash / netWorth) * 100).toFixed(0) : 0}% of net worth
+                        </span>
+                      </span>
+                      <span className="text-sm font-semibold tabular-nums">{formatInr(cash)}</span>
+                    </li>
+                  </ul>
+                  <AllocationDonut slices={slices} total={netWorth} legend={false} />
+                </div>
+                {holdings.length < 5 && (
+                  <p className="rounded-xl bg-violet-50 px-3 py-2.5 text-xs text-violet-900 dark:bg-violet-500/10 dark:text-violet-200">
+                    You hold {holdings.length} {holdings.length === 1 ? "stock" : "stocks"}. Spreading across 5 or more earns the{" "}
+                    <Link href="/achievements" className="font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300">
+                      Diversified
+                    </Link>{" "}
+                    badge.{" "}
+                    <Link href="/market" className="font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300">
+                      Find stocks
+                    </Link>
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <Card
+          title="Today's market"
+          tour="movers"
+          action={
+            <Link href="/market" className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400">
+              All stocks
+            </Link>
+          }
+        >
+          {/* Longer list when the holdings list is long, so both columns end together. */}
+          <MarketMovers limit={topHoldings.length >= 4 ? 8 : 6} />
+        </Card>
       </div>
     </main>
   );

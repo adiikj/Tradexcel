@@ -13,14 +13,3 @@ export type MarketStock = {
 
 // An entry of components/market/StockData.json.
 export type StockListing = { symbol: string; shortName: string; fullName: string };
-
-// What the stock chart cards render (Market list, dashboard movers).
-export type StockCardData = {
-  shortName: string;
-  fullName: string;
-  stockPrices: number[];
-  labels: string[];
-  percentageChange: string;
-  price: string;
-  todayChange: string;
-};
