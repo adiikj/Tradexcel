@@ -117,6 +117,12 @@ function SignIn() {
           </div>
         </div>
 
+        <div className="-mt-2 text-right">
+          <Link href="/forgot-password" className="text-xs font-semibold text-blue-600 hover:underline">
+            Forgot password or PIN?
+          </Link>
+        </div>
+
         <button type="submit" disabled={isLoading} className={AUTH_SUBMIT}>
           {isLoading ? <Spinner /> : "Sign in"}
         </button>

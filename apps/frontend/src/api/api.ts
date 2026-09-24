@@ -132,6 +132,24 @@ export const updateUserProfile = async (formData: Record<string, unknown>) => {
   }
 };
 
+export const forgotPassword = async (email: string) => {
+  try {
+    const response = await axios.post<ApiResponse<null>>(`${BASE_URL}/forgot-password`, { email });
+    return response.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't send a reset code. Please try again."));
+  }
+};
+
+export const resetPassword = async (data: { email: string; code: string; newPassword?: string; newPin?: string }) => {
+  try {
+    const response = await axios.post<ApiResponse<null>>(`${BASE_URL}/reset-password`, data);
+    return response.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't reset your details. Please try again."));
+  }
+};
+
 export const changePasswordAndPin = async (formData: Record<string, string>) => {
   try {
     const response = await axios.patch(`${BASE_URL}/change-password-pin`, formData);
