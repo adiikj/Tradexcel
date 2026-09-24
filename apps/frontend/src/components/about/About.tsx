@@ -2,137 +2,109 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { FiTarget, FiShield, FiUsers, FiTrendingUp } from "react-icons/fi";
-import Newsletter from "../landingPage/Newsletter";
+import BrowserFrame from "../landingPage/BrowserFrame";
+import FinalCta from "../landingPage/FinalCta";
+import { PageHero, SectionHeading, reveal } from "../landingPage/marketing";
+import dashboard from "../../assets/dashboard.png";
 
-const values = [
-  {
-    icon: FiShield,
-    title: "Risk-Free by Design",
-    desc: "Every rupee on Tradexcel is virtual. Learn how markets move, make mistakes, and build conviction without ever risking real money.",
-  },
-  {
-    icon: FiTrendingUp,
-    title: "Real Market Data",
-    desc: "Prices, gainers and losers mirror the live market, so the habits you build here translate to the real thing.",
-  },
-  {
-    icon: FiUsers,
-    title: "Built for Competition",
-    desc: "Leaderboards and contests turn practice into a game. Climb the ranks and prove your strategy against everyone else.",
-  },
-  {
-    icon: FiTarget,
-    title: "Beginner Friendly",
-    desc: "A clean, focused interface that gets out of your way, whether it's your first trade or your thousandth.",
-  },
+const story = [
+  { title: "Most people never make the first trade", desc: "Investing feels intimidating and expensive, so the first step keeps getting postponed." },
+  { title: "Real money makes mistakes costly", desc: "The fastest way to learn is by doing, but with real savings every mistake hurts." },
+  { title: "So we took the money out", desc: "Tradexcel gives you the real market with virtual cash. Make the mistakes here, keep the lessons." },
 ];
 
-const stats = [
-  { value: "₹1,00,000", label: "Virtual starting balance" },
-  { value: "Real-time", label: "Market price updates" },
-  { value: "0", label: "Rupees of real risk" },
+const values = [
+  { title: "Risk-free by design", desc: "Every rupee on Tradexcel is virtual. Learn how markets move, make mistakes, and build conviction without ever risking real money." },
+  { title: "Real market data", desc: "Prices, gainers and losers mirror the live NSE, so the habits you build here carry over to the real thing." },
+  { title: "Built for competition", desc: "Weekly seasons, leaderboards and contests turn practice into a game. Prove your strategy against everyone else." },
+  { title: "Beginner friendly", desc: "A clean, focused interface that gets out of your way, whether it's your first trade or your thousandth." },
 ];
 
 function About() {
   return (
     <>
-      {/* Hero */}
-      <section className="bg-grey w-full px-6 md:px-16 lg:px-24 pt-16 pb-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="max-w-3xl mx-auto"
-        >
-          <p className="text-blue-500 font-pop text-lg font-semibold">About Tradexcel</p>
-          <h1 className="py-4 font-pop font-semibold text-4xl md:text-5xl lg:leading-tight">
+      <PageHero
+        eyebrow="About Tradexcel"
+        title={
+          <>
             Learn to trade by <span className="text-blue-500">actually trading</span>
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Tradexcel is a gamified stock-trading simulator. Buy and sell real stocks with
-            virtual money, track your portfolio, and compete on the leaderboard, all the
-            thrill of the market with none of the financial risk.
-          </p>
+          </>
+        }
+        subtitle="Tradexcel is a stock-trading simulator. Buy and sell real NSE stocks with virtual money, track your portfolio, and compete every week, with all the thrill of the market and none of the risk."
+      >
+        <motion.div className="mx-auto max-w-5xl" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}>
+          <BrowserFrame src={dashboard} alt="The Tradexcel dashboard" />
+        </motion.div>
+      </PageHero>
+
+      {/* Why it exists */}
+      <section className="bg-white px-6 py-20 md:px-12 md:py-24">
+        <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_1.2fr] lg:gap-16">
+          <motion.div {...reveal()}>
+            <SectionHeading
+              align="left"
+              eyebrow="Our mission"
+              title="Make market confidence accessible to everyone"
+              subtitle="By the time you trade for real, the mechanics should feel like second nature."
+            />
+            <Link
+              href="/signup"
+              className="mt-8 inline-flex items-center justify-center rounded-xl bg-btn-blue px-8 py-4 text-base font-semibold text-white transition-colors duration-200 hover:bg-blue-600"
+            >
+              Start trading free
+            </Link>
+          </motion.div>
+          <ol className="space-y-4">
+            {story.map((s, i) => (
+              <motion.li key={s.title} {...reveal(i * 0.08)} className="flex gap-5 rounded-3xl border border-gray-200 bg-white p-6">
+                <span className="font-pop text-3xl font-semibold tabular-nums text-blue-600">0{i + 1}</span>
+                <span>
+                  <span className="block font-pop text-lg font-semibold">{s.title}</span>
+                  <span className="mt-1 block text-gray-600">{s.desc}</span>
+                </span>
+              </motion.li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* Principles */}
+      <section className="bg-grey px-6 py-20 md:px-12 md:py-24">
+        <motion.div {...reveal()}>
+          <SectionHeading eyebrow="What we stand for" title="The principles behind every feature" />
+        </motion.div>
+        <div className="mx-auto mt-12 grid max-w-6xl gap-5 md:grid-cols-2">
+          {values.map((v, i) => (
+            <motion.div key={v.title} {...reveal((i % 2) * 0.08)} className="rounded-3xl bg-white p-8">
+              <p className="font-pop text-sm font-semibold tabular-nums text-gray-400">0{i + 1}</p>
+              <h3 className="mt-3 font-pop text-2xl font-semibold">{v.title}</h3>
+              <p className="mt-3 leading-relaxed text-gray-600">{v.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Who's behind it */}
+      <section className="bg-white px-6 py-20 md:px-12">
+        <motion.div {...reveal()} className="mx-auto grid max-w-6xl items-center gap-8 rounded-3xl border border-gray-200 p-8 md:grid-cols-[auto_1fr_auto] md:p-10">
+          <span aria-hidden="true" className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 font-pop text-2xl font-semibold text-blue-700">
+            A
+          </span>
+          <div>
+            <p className="font-pop text-sm font-semibold uppercase tracking-widest text-blue-600">Who&apos;s behind it</p>
+            <p className="mt-2 font-pop text-xl font-semibold">An independent project, designed and built by Aditya in New Delhi.</p>
+            <p className="mt-2 text-gray-600">Have an idea, found a bug, or just want to say hi? Messages go straight to the person who built it.</p>
+          </div>
+          <Link
+            href="/contactus"
+            className="inline-flex items-center justify-center rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-base font-semibold text-gray-800 transition-colors duration-200 hover:border-blue-300 hover:text-blue-600"
+          >
+            Get in touch
+          </Link>
         </motion.div>
       </section>
 
-      {/* Mission */}
-      <section className="bg-white w-full px-6 md:px-16 lg:px-24 py-16 md:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.7 }}
-          >
-            <p className="text-blue-500 font-pop font-semibold">OUR MISSION</p>
-            <h2 className="text-3xl md:text-4xl font-semibold font-pop mt-2 mb-4">
-              Make market confidence accessible to everyone
-            </h2>
-            <p className="text-gray-600 leading-relaxed">
-              Most people never start investing because the first trade feels intimidating
-              and expensive. Tradexcel removes that barrier. You get a virtual portfolio, live
-              market conditions, and a playful, competitive environment to sharpen your
-              instincts. By the time you trade for real, the mechanics are second nature.
-            </p>
-            <Link href="/signup">
-              <button className="mt-8 px-10 py-4 rounded-lg bg-btn-blue text-white text-sm font-medium">
-                Start Trading Free
-              </button>
-            </Link>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.7 }}
-            className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-6"
-          >
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                className="bg-grey rounded-2xl p-6 text-center md:text-left"
-              >
-                <div className="text-3xl font-semibold font-pop text-blue-500">{s.value}</div>
-                <div className="text-gray-600 text-sm mt-1">{s.label}</div>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Values */}
-      <section className="bg-grey w-full px-6 md:px-16 lg:px-24 py-16 md:py-20">
-        <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-semibold font-pop">What we stand for</h2>
-          <p className="text-gray-600 mt-3">The principles behind every feature we build.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-            {values.map((v, i) => {
-              const Icon = v.icon;
-              return (
-                <motion.div
-                  key={v.title}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className="bg-white rounded-2xl p-6 text-left"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-500 text-2xl">
-                    <Icon />
-                  </div>
-                  <h3 className="text-lg font-semibold font-pop mt-5">{v.title}</h3>
-                  <p className="text-gray-600 text-sm mt-2 leading-relaxed">{v.desc}</p>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <Newsletter />
+      <FinalCta />
     </>
   );
 }

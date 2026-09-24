@@ -1,102 +1,73 @@
 "use client";
 import React from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
-import { FiUserPlus, FiDollarSign, FiActivity, FiAward } from "react-icons/fi";
+import GettingStarted from "../landingPage/GettingStarted";
+import FinalCta from "../landingPage/FinalCta";
+import { PageHero, SectionHeading, reveal } from "../landingPage/marketing";
 
-const steps = [
-  {
-    icon: FiUserPlus,
-    title: "Create your account",
-    desc: "Sign up in under a minute with your email or phone. No payment details, no real money, ever.",
-  },
-  {
-    icon: FiDollarSign,
-    title: "Get ₹1,00,000 virtual cash",
-    desc: "Your wallet is funded instantly with virtual money to invest however you like.",
-  },
-  {
-    icon: FiActivity,
-    title: "Trade real stocks",
-    desc: "Buy and sell at live market prices. Track holdings, returns and balance from your portfolio in real time.",
-  },
-  {
-    icon: FiAward,
-    title: "Climb the leaderboard",
-    desc: "Watch your portfolio grow, enter contests, and compete with traders across Tradexcel to reach the top.",
-  },
+// A week on Tradexcel, as it actually runs (see backend weeklyReset.ts and marketHours.ts).
+const week = [
+  { when: "Mon to Fri, 9:15 AM to 3:30 PM IST", title: "The market is live", desc: "Prices move with the NSE. Buy, sell and watch your net worth change in real time." },
+  { when: "Any time", title: "Contests run alongside", desc: "Public contests and private leagues have their own cash and schedule, separate from your wallet." },
+  { when: "Monday, 5:30 AM IST", title: "The week closes", desc: "Holdings are sold at market price, your result is saved, and the best return of the week becomes weekly champion." },
+  { when: "Straight after", title: "A fresh season starts", desc: "Your wallet is back to ₹1,00,000 and everyone starts level again." },
+];
+
+const questions = [
+  { q: "Is it really free?", a: "Yes. Tradexcel is free, and no real money is ever involved. There's nothing to deposit and no card to add." },
+  { q: "Are the prices real?", a: "Yes. Every trade uses live NSE prices during market hours, and the last traded price when the market is closed." },
+  { q: "What happens to my stocks on Monday?", a: "They're sold at market price, your result for the week is recorded, and you start again with ₹1,00,000." },
+  { q: "Can I play with friends?", a: "Create a private league with your own stocks and schedule, then share the invite code with friends." },
 ];
 
 function HowItWorks() {
   return (
     <>
-      {/* Hero */}
-      <section className="bg-grey w-full px-6 md:px-16 lg:px-24 pt-16 pb-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="max-w-3xl mx-auto"
-        >
-          <p className="text-blue-500 font-pop text-lg font-semibold">How it works</p>
-          <h1 className="py-4 font-pop font-semibold text-4xl md:text-5xl lg:leading-tight">
-            From sign-up to your first trade in <span className="text-blue-500">minutes</span>
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Four simple steps stand between you and a smarter way to learn the market.
-          </p>
+      <PageHero
+        eyebrow="How it works"
+        title={
+          <>
+            From sign-up to your first trade <span className="text-blue-500">in minutes</span>
+          </>
+        }
+        subtitle="Four steps stand between you and a smarter way to learn the market."
+      />
+
+      <GettingStarted showHeading={false} />
+
+      {/* The weekly rhythm */}
+      <section className="bg-white px-6 py-20 md:px-12 md:py-24">
+        <motion.div {...reveal()}>
+          <SectionHeading eyebrow="Your week" title="Every week is a new season" subtitle="Tradexcel runs on a weekly rhythm, so there's always a fresh chance to climb the leaderboard." />
         </motion.div>
+        <ol className="relative mx-auto mt-14 grid max-w-6xl gap-5 md:grid-cols-4">
+          {week.map((w, i) => (
+            <motion.li key={w.title} {...reveal(i * 0.08)} className="relative rounded-3xl border border-gray-200 bg-white p-6">
+              <span className="font-pop text-sm font-semibold tabular-nums text-gray-400">0{i + 1}</span>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-blue-600">{w.when}</p>
+              <h3 className="mt-2 font-pop text-lg font-semibold">{w.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600">{w.desc}</p>
+            </motion.li>
+          ))}
+        </ol>
       </section>
 
-      {/* Steps */}
-      <section className="bg-white w-full px-6 md:px-16 lg:px-24 py-16 md:py-24">
-        <div className="max-w-3xl mx-auto relative">
-          {/* vertical line */}
-          <div className="hidden sm:block absolute left-8 top-4 bottom-4 w-px bg-blue-100" />
-          <div className="space-y-12">
-            {steps.map((s, i) => {
-              const Icon = s.icon;
-              return (
-                <motion.div
-                  key={s.title}
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, amount: 0.4 }}
-                  transition={{ duration: 0.5 }}
-                  className="relative flex items-start gap-6"
-                >
-                  <div className="relative z-10 shrink-0 w-16 h-16 rounded-2xl bg-btn-blue text-white flex items-center justify-center text-2xl shadow-md">
-                    <Icon />
-                  </div>
-                  <div className="pt-1">
-                    <div className="text-blue-500 font-pop font-semibold text-sm">
-                      STEP {i + 1}
-                    </div>
-                    <h3 className="text-xl md:text-2xl font-semibold font-pop mt-1">
-                      {s.title}
-                    </h3>
-                    <p className="text-gray-600 mt-2 leading-relaxed">{s.desc}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="text-center mt-16">
-          <Link href="/signup">
-            <button className="px-10 py-4 rounded-lg bg-btn-blue text-white text-sm font-medium">
-              Create Your Free Account
-            </button>
-          </Link>
-          <p className="text-gray-500 text-sm mt-4">
-            Already have an account?{" "}
-            <Link href="/signin" className="text-blue-500 font-medium">
-              Sign in
-            </Link>
-          </p>
+      {/* Quick answers */}
+      <section className="bg-grey px-6 py-20 md:px-12 md:py-24">
+        <motion.div {...reveal()}>
+          <SectionHeading eyebrow="Quick answers" title="Before you start" />
+        </motion.div>
+        <div className="mx-auto mt-12 grid max-w-5xl gap-5 md:grid-cols-2">
+          {questions.map((item, i) => (
+            <motion.div key={item.q} {...reveal((i % 2) * 0.08)} className="rounded-3xl bg-white p-7">
+              <h3 className="font-pop text-lg font-semibold">{item.q}</h3>
+              <p className="mt-2 leading-relaxed text-gray-600">{item.a}</p>
+            </motion.div>
+          ))}
         </div>
       </section>
+
+      <FinalCta />
     </>
   );
 }

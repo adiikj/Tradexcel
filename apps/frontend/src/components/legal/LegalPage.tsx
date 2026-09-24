@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { motion } from "framer-motion";
+import { PageHero } from "../landingPage/marketing";
 
 export interface LegalSection {
   heading: string;
@@ -14,45 +14,49 @@ interface LegalPageProps {
   sections: LegalSection[];
 }
 
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+// Terms and Privacy: the shared page header, then the text with an
+// "On this page" list that stays in view on wide screens.
 function LegalPage({ title, updated, intro, sections }: LegalPageProps) {
   return (
     <>
-      {/* Hero */}
-      <section className="bg-grey w-full px-6 md:px-16 lg:px-24 pt-16 pb-16 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="max-w-3xl mx-auto"
-        >
-          <h1 className="font-pop font-semibold text-4xl md:text-5xl">{title}</h1>
-          <p className="text-gray-500 text-sm mt-4">Last updated: {updated}</p>
-        </motion.div>
-      </section>
+      <PageHero eyebrow={`Last updated ${updated}`} title={title} />
 
-      {/* Body */}
-      <section className="bg-white w-full px-6 md:px-16 lg:px-24 py-16">
-        <div className="max-w-3xl mx-auto">
-          <p className="text-gray-600 leading-relaxed">{intro}</p>
-          <div className="mt-10 space-y-10">
-            {sections.map((s, i) => (
-              <motion.div
-                key={s.heading}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5 }}
-              >
-                <h2 className="text-xl md:text-2xl font-semibold font-pop">
-                  {i + 1}. {s.heading}
-                </h2>
-                {s.body.map((p, j) => (
-                  <p key={j} className="text-gray-600 leading-relaxed mt-3">
-                    {p}
-                  </p>
+      <section className="bg-white px-6 py-16 md:px-12 md:py-20">
+        <div className="mx-auto grid max-w-5xl gap-12 lg:grid-cols-[14rem_1fr]">
+          <nav aria-label="On this page" className="hidden lg:block">
+            <div className="sticky top-28">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">On this page</p>
+              <ol className="mt-4 space-y-2 text-sm">
+                {sections.map((s, i) => (
+                  <li key={s.heading}>
+                    <a href={`#${slug(s.heading)}`} className="text-gray-600 hover:text-blue-600">
+                      {i + 1}. {s.heading}
+                    </a>
+                  </li>
                 ))}
-              </motion.div>
-            ))}
+              </ol>
+            </div>
+          </nav>
+
+          <div className="max-w-3xl">
+            <p className="text-lg leading-relaxed text-gray-700">{intro}</p>
+            <div className="mt-12 space-y-12">
+              {sections.map((s, i) => (
+                <div key={s.heading} id={slug(s.heading)} className="scroll-mt-28">
+                  <h2 className="font-pop text-xl font-semibold md:text-2xl">
+                    <span className="mr-2 text-gray-400">{i + 1}.</span>
+                    {s.heading}
+                  </h2>
+                  {s.body.map((p, j) => (
+                    <p key={j} className="mt-3 leading-relaxed text-gray-600">
+                      {p}
+                    </p>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
