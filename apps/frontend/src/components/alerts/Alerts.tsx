@@ -1,10 +1,22 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import alert from "../../assets/alerts.png";
-import alert_w from "../../assets/alerts-w.png";
+import {
+  PiArrowRight,
+  PiBellSimple,
+  PiBellSimpleRinging,
+  PiBellSlash,
+  PiChecks,
+  PiTrendDown,
+  PiTrendUp,
+  PiTrophyFill,
+  PiUserPlus,
+  PiX,
+} from "react-icons/pi";
 import { getAlerts, getNotifications, markNotificationsRead } from "../../api/api";
-import ThemedImage from "../ui/ThemedImage";
+import { HEADER_BADGE, HEADER_ICON_BUTTON } from "../layout/headerStyles";
+import { timeAgo } from "../../utils/format";
+import Avatar from "../ui/Avatar";
 
 const NOTIFICATION_POLL_MS = 20000;
 
@@ -39,8 +51,39 @@ function playNotificationChime() {
   }
 }
 
-// One row in the bell dropdown: a triggered price alert or a social notification.
-type BellItem = { id: string; message: string; time: string; link: string | null };
+// One row in the bell panel: a triggered price alert or a social notification.
+type BellKind = "alert-up" | "alert-down" | "follow" | "achievement";
+type BellItem = {
+  id: string;
+  kind: BellKind;
+  message: string;
+  time: string;
+  link: string | null;
+  unread: boolean;
+  avatar?: string | null;
+};
+
+// Icon bubble per kind; followers show their own avatar instead.
+function BellIcon({ item }: { item: BellItem }) {
+  if (item.kind === "follow" && item.avatar !== undefined) {
+    return (
+      <span className="relative shrink-0">
+        <Avatar src={item.avatar} size={36} className="h-9 w-9 rounded-full object-cover" />
+        <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-white ring-2 ring-white dark:ring-gray-900">
+          <PiUserPlus aria-hidden="true" className="h-2.5 w-2.5" />
+        </span>
+      </span>
+    );
+  }
+  const styles: Record<BellKind, { icon: React.ReactNode; className: string }> = {
+    "alert-up": { icon: <PiTrendUp aria-hidden="true" className="h-5 w-5" />, className: "bg-teal-50 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300" },
+    "alert-down": { icon: <PiTrendDown aria-hidden="true" className="h-5 w-5" />, className: "bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-300" },
+    follow: { icon: <PiUserPlus aria-hidden="true" className="h-5 w-5" />, className: "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300" },
+    achievement: { icon: <PiTrophyFill aria-hidden="true" className="h-5 w-5" />, className: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" },
+  };
+  const { icon, className } = styles[item.kind];
+  return <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${className}`}>{icon}</span>;
+}
 
 const Alerts = () => {
   const [alertsOpen, setAlertsOpen] = useState(false);
@@ -67,26 +110,30 @@ const Alerts = () => {
           .filter((a) => a.triggered)
           .map((a): BellItem => ({
             id: `alert-${a.id}`,
-            message: `${a.symbol} went ${a.direction === "ABOVE" ? "above" : "below"} ₹${a.targetPrice}`,
+            kind: a.direction === "ABOVE" ? "alert-up" : "alert-down",
+            message: `${a.symbol.replace(/\.NS$/, "")} went ${a.direction === "ABOVE" ? "above" : "below"} ₹${Number(a.targetPrice).toLocaleString("en-IN")}`,
             time: a.triggeredAt ?? a.createdAt,
-            link: null,
+            link: `/market?symbol=${encodeURIComponent(a.symbol)}`,
+            unread: false,
           }));
 
-        const followNotifications = (notificationsRes?.data?.notifications || []).map((n): BellItem => ({
+        const socialNotifications = (notificationsRes?.data?.notifications || []).map((n): BellItem => ({
           id: `notif-${n.id}`,
+          kind: n.type === "ACHIEVEMENT" ? "achievement" : "follow",
           message: n.message,
           time: n.createdAt,
           link: n.link,
+          unread: !n.read,
+          avatar: n.actor ? n.actor.avatar : undefined,
         }));
 
-        const merged = [...triggeredAlerts, ...followNotifications].sort(
+        const merged = [...triggeredAlerts, ...socialNotifications].sort(
           (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
         );
 
         const currentIds = new Set(merged.map((n) => n.id));
         const isFirstLoad = seenIdsRef.current === null;
-        const hasNewArrival =
-          !isFirstLoad && merged.some((n) => !seenIdsRef.current!.has(n.id));
+        const hasNewArrival = !isFirstLoad && merged.some((n) => !seenIdsRef.current!.has(n.id));
 
         if (hasNewArrival && !alertsOpenRef.current) {
           playNotificationChime();
@@ -95,7 +142,13 @@ const Alerts = () => {
         }
 
         seenIdsRef.current = currentIds;
-        setNotifications(merged);
+        // While the panel is open, keep this session's "new" dots instead of
+        // letting a poll wipe them (the server already counts them as read).
+        setNotifications((prev) => {
+          if (!alertsOpenRef.current) return merged;
+          const shownUnread = new Set(prev.filter((n) => n.unread).map((n) => n.id));
+          return merged.map((n) => (shownUnread.has(n.id) ? { ...n, unread: true } : n));
+        });
         setUnreadCount(notificationsRes?.data?.unreadCount || 0);
       } catch {
         // Keep showing the last known state if a poll fails.
@@ -110,8 +163,15 @@ const Alerts = () => {
     };
   }, []);
 
+  const closePanel = () => {
+    setAlertsOpen(false);
+    // Items seen in this session stop showing as new.
+    setNotifications((prev) => prev.map((n) => (n.unread ? { ...n, unread: false } : n)));
+  };
+
   const handleAlertsClick = () => {
-    setAlertsOpen((prevState) => !prevState);
+    if (alertsOpen) return closePanel();
+    setAlertsOpen(true);
     if (unreadCount > 0) {
       setUnreadCount(0);
       markNotificationsRead().catch(() => {});
@@ -119,25 +179,32 @@ const Alerts = () => {
   };
 
   const handleClearNotification = (id: string) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.filter((notification) => notification.id !== id)
-    );
+    setNotifications((prev) => prev.filter((notification) => notification.id !== id));
   };
 
   const handleClearAllNotifications = () => {
     setNotifications([]);
   };
 
+  // Close on outside click or Escape.
   useEffect(() => {
+    if (!alertsOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (alertsRef.current && !alertsRef.current.contains(event.target as Node)) {
-        setAlertsOpen(false);
-      }
+      if (alertsRef.current && !alertsRef.current.contains(event.target as Node)) closePanel();
     };
-
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closePanel();
+    };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [alertsOpen]);
+
+  const newCount = notifications.filter((n) => n.unread).length;
+  const BellGlyph = justArrived ? PiBellSimpleRinging : PiBellSimple;
 
   return (
     <div ref={alertsRef} className="relative">
@@ -146,24 +213,14 @@ const Alerts = () => {
         onClick={handleAlertsClick}
         aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
         aria-expanded={alertsOpen}
-        className={`relative flex items-center p-2 rounded-md cursor-pointer transition-all duration-300 ${
-          alertsOpen
-            ? "bg-gray-200 text-black dark:bg-gray-700 dark:text-white"
-            : "text-black dark:text-white"
-        }`}
+        aria-haspopup="dialog"
+        className={`${HEADER_ICON_BUTTON} ${alertsOpen ? "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white" : ""}`}
       >
-        <ThemedImage
-          className={`w-5 h-5 sm:w-6 sm:h-6 ${justArrived ? "animate-bell-ring" : ""}`}
-          light={alert}
-          dark={alert_w}
-          alt=""
-        />
+        <BellGlyph aria-hidden="true" className={`h-5 w-5 ${justArrived ? "animate-bell-ring" : ""}`} />
         {unreadCount > 0 && (
           <span
             aria-hidden="true"
-            className={`absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-semibold leading-none ${
-              justArrived ? "scale-125" : "scale-100"
-            } transition-transform duration-300`}
+            className={`${HEADER_BADGE} bg-red-500 transition-transform duration-300 ${justArrived ? "scale-125" : "scale-100"}`}
           >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
@@ -172,65 +229,99 @@ const Alerts = () => {
 
       {alertsOpen && (
         <div
-          className={`absolute right-0 top-10 sm:top-12 w-72 sm:w-96 md:w-80 lg:w-96 max-w-[calc(100vw-2rem)] ${
-            "bg-white text-black dark:bg-gray-800 dark:text-white"
-          } rounded-md shadow-lg z-10 p-4 max-h-80 overflow-y-auto`}
+          role="dialog"
+          aria-label="Notifications"
+          className="fixed inset-x-2 top-[4.25rem] z-40 flex max-h-[70vh] flex-col overflow-hidden rounded-2xl bg-white font-pop text-gray-900 shadow-2xl ring-1 ring-gray-200 dark:bg-gray-900 dark:text-white dark:ring-gray-700 sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-[22rem]"
         >
-          <h4 className="font-bold text-base md:text-lg mb-4">Notifications</h4>
-          <ul className="space-y-4">
-            {notifications.length > 0 ? (
-              notifications.map((notification) => {
-                const content = (
-                  <div className="flex-1">
-                    <p className="font-medium text-sm md:text-base">{notification.message}</p>
-                    <small className="text-gray-400 text-xs md:text-sm">
-                      {new Date(notification.time).toLocaleString("en-IN")}
-                    </small>
-                  </div>
-                );
+          {/* Header */}
+          <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold">Notifications</h2>
+              {newCount > 0 && (
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
+                  {newCount} new
+                </span>
+              )}
+            </div>
+            {notifications.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClearAllNotifications}
+                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+              >
+                <PiChecks aria-hidden="true" className="h-4 w-4" /> Clear all
+              </button>
+            )}
+          </div>
 
+          {/* List */}
+          {notifications.length > 0 ? (
+            <ul className="flex-1 divide-y divide-gray-100 overflow-y-auto dark:divide-gray-800">
+              {notifications.map((notification) => {
+                const content = (
+                  <>
+                    <BellIcon item={notification} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm leading-snug text-gray-800 dark:text-gray-100">{notification.message}</span>
+                      <span className="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">
+                        <time dateTime={notification.time} title={new Date(notification.time).toLocaleString("en-IN")}>
+                          {timeAgo(notification.time)}
+                        </time>
+                      </span>
+                    </span>
+                  </>
+                );
                 return (
                   <li
                     key={notification.id}
-                    className={`flex justify-between items-start gap-2 p-3 rounded-md shadow-sm ${
-                      "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
-                    } transition-all duration-300`}
+                    className={`group relative flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60 ${
+                      notification.unread ? "bg-blue-50/60 dark:bg-blue-500/5" : ""
+                    }`}
                   >
+                    {notification.unread && (
+                      <span aria-label="New" className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-blue-500" />
+                    )}
                     {notification.link ? (
-                      <Link href={notification.link} onClick={() => setAlertsOpen(false)} className="flex-1">
+                      <Link
+                        href={notification.link}
+                        onClick={closePanel}
+                        className="flex min-w-0 flex-1 items-start gap-3 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      >
                         {content}
                       </Link>
                     ) : (
-                      content
+                      <span className="flex min-w-0 flex-1 items-start gap-3">{content}</span>
                     )}
                     <button
+                      type="button"
                       onClick={() => handleClearNotification(notification.id)}
-                      className={`text-sm md:text-sm px-3 py-1 rounded ${
-                        "bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-500 dark:hover:bg-red-400 dark:text-white"
-                      }`}
+                      aria-label={`Dismiss: ${notification.message}`}
+                      className="shrink-0 rounded-full p-1 text-gray-400 opacity-0 transition-opacity hover:bg-gray-200 hover:text-gray-700 focus:opacity-100 group-hover:opacity-100 dark:hover:bg-gray-700 dark:hover:text-white"
                     >
-                      Clear
+                      <PiX aria-hidden="true" className="h-4 w-4" />
                     </button>
                   </li>
                 );
-              })
-            ) : (
-              <p className="text-center text-gray-400">No notifications</p>
-            )}
-          </ul>
-
-          {notifications.length > 0 && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={handleClearAllNotifications}
-                className={`px-4 py-2 rounded-md text-sm ${
-                  "bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-500 dark:hover:bg-red-400 dark:text-white"
-                }`}
-              >
-                Clear All
-              </button>
+              })}
+            </ul>
+          ) : (
+            <div className="flex flex-col items-center px-6 py-10 text-center">
+              <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-gray-800">
+                <PiBellSlash aria-hidden="true" className="h-6 w-6" />
+              </span>
+              <p className="text-sm font-medium">You&apos;re all caught up</p>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Price alerts, new followers and badges show up here.</p>
             </div>
           )}
+
+          {/* Footer */}
+          <Link
+            href="/alerts"
+            onClick={closePanel}
+            className="flex items-center justify-center gap-1.5 border-t border-gray-100 px-4 py-2.5 text-sm font-medium text-blue-600 hover:bg-gray-50 dark:border-gray-800 dark:text-blue-400 dark:hover:bg-gray-800/60"
+          >
+            Manage price alerts <PiArrowRight aria-hidden="true" className="h-4 w-4" />
+          </Link>
         </div>
       )}
     </div>

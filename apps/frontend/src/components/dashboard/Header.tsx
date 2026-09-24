@@ -1,29 +1,46 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useDispatch } from "react-redux";
+import { PiCaretDown, PiGlobe, PiCompass, PiMoon, PiSignOut, PiSun, PiTrophy, PiUser } from "react-icons/pi";
 import { logout } from "../../redux/authSlice";
 import logo from "../../assets/logo-icon-transparent.png";
 import wordmarkLight from "../../assets/tradexcel-wordmark-light.png";
 import wordmarkDark from "../../assets/tradexcel-wordmark-dark.png";
-import dark from "../../assets/dark.png";
-import lighty from "../../assets/light-y.png";
-import Alerts from "../alerts/Alerts"; // Importing Alerts component
+import Alerts from "../alerts/Alerts";
 import GlobalSearch from "../layout/GlobalSearch";
 import AchievementsBadge from "../layout/AchievementsBadge";
-import { getAvatar, logoutUser } from "../../api/api";
+import { getUserProfile, logoutUser } from "../../api/api";
 import { clearSession } from "../../utils/sessionFlag";
 import { useTheme } from "../../context/ThemeContext";
-import Image from "next/image";
+import { useMarketStatus } from "../../hooks/useMarketStatus";
 import Avatar from "../ui/Avatar";
 import ThemedImage from "../ui/ThemedImage";
+import { HEADER_ICON_BUTTON } from "../layout/headerStyles";
+import { requestTour } from "../tour/ProductTour";
+
+function MarketStatusPill() {
+  const { open } = useMarketStatus();
+  if (open === null) return null;
+  return (
+    <span
+      className={`hidden lg:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${
+        open ? "bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-300" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+      }`}
+    >
+      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${open ? "bg-teal-500 animate-pulse" : "bg-gray-400"}`} />
+      {open ? "Market open" : "Market closed"}
+    </span>
+  );
+}
 
 const Header = () => {
   const { darkMode, toggleDarkMode } = useTheme();
   const dispatch = useDispatch();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const [profile, setProfile] = useState<{ name: string; username: string; avatar: string | null } | null>(null);
 
   const handleLogout = async () => {
     // The auth cookies are httpOnly, so only the backend can clear them.
@@ -36,122 +53,145 @@ const Header = () => {
   };
 
   useEffect(() => {
-    const fetchAvatar = async () => {
-      try {
-        const data = await getAvatar();  // Call the API to get the avatar
-        setAvatar(data?.data?.avatar || null);  // Backend wraps the payload as { data: { avatar } }
-      } catch {
-        // Avatar stays null; the default profile image is shown instead.
-      }
+    let active = true;
+    getUserProfile()
+      .then((res) => {
+        if (active && res?.data) setProfile({ name: res.data.name, username: res.data.username, avatar: res.data.avatar });
+      })
+      .catch(() => {
+        // Falls back to the default avatar with no name.
+      });
+    return () => {
+      active = false;
     };
-
-    fetchAvatar();  // Fetch the avatar when the component mounts
   }, []);
 
-  // Close profile dropdown when clicking outside
+  // Close the account menu on outside click or Escape.
   useEffect(() => {
+    if (!menuOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setMenuOpen(false);
     };
-
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [menuOpen]);
 
-  const handleProfileClick = () => {
-    setMenuOpen((prevState) => !prevState);
-  };
+  const menuLink =
+    "flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800";
 
   return (
-    <div
-      className={`w-full h-14 md:h-16 flex justify-between font-pop items-center ${
-        "bg-grey text-black dark:bg-gray-900 dark:text-white"
-      } px-4 transition-all duration-300`}
-    >
-      {/* Logo */}
-      <Link href="/dashboard">
-        <div className="flex flex-row items-center gap-2 py-2">
-          <Image className="h-6 w-6 md:w-7 md:h-7" src={logo} alt="" />
-          <span className="hidden md:contents">
-            <ThemedImage className="h-4 w-auto" light={wordmarkLight} dark={wordmarkDark} alt="Tradexcel" />
-          </span>
-        </div>
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center gap-3 border-b border-gray-200 bg-white/85 px-4 font-pop text-gray-900 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/85 dark:text-white md:gap-6 md:px-5">
+      {/* Brand */}
+      <Link href="/dashboard" aria-label="Tradexcel home" className="flex shrink-0 items-center gap-2 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+        <Image className="h-7 w-7" src={logo} alt="" />
+        <span className="hidden lg:contents">
+          <ThemedImage className="h-4 w-auto" light={wordmarkLight} dark={wordmarkDark} alt="" />
+        </span>
       </Link>
 
-      {/* Global Search */}
-      <GlobalSearch />
+      {/* Search */}
+      <div data-tour="search" className="flex flex-1 justify-end sm:justify-start">
+        <GlobalSearch />
+      </div>
 
-      {/* Right Section */}
-      <div className="flex items-center gap-2 md:gap-3">
-        {/* Dark Mode Toggle */}
+      {/* Actions */}
+      <div className="flex items-center gap-1 md:gap-2">
+        <MarketStatusPill />
+
+        {/* Replays the walkthrough: in place on the dashboard, otherwise the dashboard picks up the request. */}
+        <Link
+          href="/dashboard"
+          onClick={requestTour}
+          data-tour="tour-button"
+          aria-label="Take the tour"
+          title="Take the tour"
+          className={HEADER_ICON_BUTTON}
+        >
+          <PiCompass aria-hidden="true" className="h-5 w-5" />
+        </Link>
+
         <button
           type="button"
           onClick={toggleDarkMode}
           aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-          className="text-lg bg-transparent border-0 cursor-pointer"
+          className={HEADER_ICON_BUTTON}
         >
-          <ThemedImage light={dark} dark={lighty} alt="" className="w-5 h-5 sm:w-6 sm:h-6" />
+          {/* CSS picks the icon so it's right on first paint. */}
+          <PiMoon aria-hidden="true" className="h-5 w-5 dark:hidden" />
+          <PiSun aria-hidden="true" className="hidden h-5 w-5 dark:block" />
         </button>
 
-        {/* Achievements */}
         <AchievementsBadge />
+        <div data-tour="alerts" className="flex">
+          <Alerts />
+        </div>
 
-        {/* Alerts Component */}
-        <Alerts />
+        <span aria-hidden="true" className="mx-1 hidden h-6 w-px bg-gray-200 dark:bg-gray-700 sm:block" />
 
-        {/* Profile */}
-        <div ref={menuRef} className="relative">
+        {/* Account */}
+        <div ref={menuRef} data-tour="account" className="relative">
           <button
             type="button"
-            onClick={handleProfileClick}
+            onClick={() => setMenuOpen((open) => !open)}
             aria-label="Account menu"
             aria-haspopup="menu"
             aria-expanded={menuOpen}
-            className={`block rounded-full ${
-              "bg-white dark:bg-gray-800"
-            } w-8 h-8 md:w-9 md:h-9 cursor-pointer overflow-hidden`}
+            className="flex items-center gap-2 rounded-full p-1 pr-1 transition-colors hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-gray-800 md:pr-2"
           >
-            <Avatar src={avatar} size={36} className="w-full h-full object-cover" />
+            <Avatar src={profile?.avatar} size={32} className="h-8 w-8 rounded-full object-cover ring-1 ring-gray-200 dark:ring-gray-700" />
+            <span className="hidden max-w-[8rem] truncate text-sm font-medium md:block">{profile?.name ?? ""}</span>
+            <PiCaretDown aria-hidden="true" className={`hidden h-4 w-4 text-gray-400 transition-transform md:block ${menuOpen ? "rotate-180" : ""}`} />
           </button>
 
           {menuOpen && (
-            <div
-              className={`absolute right-0 mt-2 w-32 ${
-                "bg-white text-black dark:bg-gray-900 dark:text-white"
-              } rounded-md shadow-lg z-10`}
-            >
-              <ul role="menu" className="flex flex-col text-sm font-pop">
+            <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-700">
+              {profile && (
+                <div className="border-b border-gray-100 px-3 py-3 dark:border-gray-800">
+                  <p className="truncate text-sm font-semibold">{profile.name}</p>
+                  {profile.username && <p className="truncate text-xs text-gray-500 dark:text-gray-400">@{profile.username}</p>}
+                </div>
+              )}
+              <ul role="menu" className="py-1">
                 <li role="none">
-                  <Link
-                    href="/your-profile"
-                    role="menuitem"
-                    className={`block p-2 cursor-pointer ${
-                      "hover:bg-gray-100 dark:hover:bg-gray-800"
-                    }`}
-                  >
-                    Your Profile
+                  <Link href="/your-profile" role="menuitem" className={menuLink} onClick={() => setMenuOpen(false)}>
+                    <PiUser aria-hidden="true" className="h-4 w-4" /> Your profile
                   </Link>
                 </li>
+                {profile && (
+                  <li role="none">
+                    <Link href={`/u/${profile.username}`} role="menuitem" className={menuLink} onClick={() => setMenuOpen(false)}>
+                      <PiGlobe aria-hidden="true" className="h-4 w-4" /> Public profile
+                    </Link>
+                  </li>
+                )}
                 <li role="none">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={handleLogout}
-                    className={`w-full text-left p-2 cursor-pointer ${
-                      "hover:bg-gray-100 dark:hover:bg-gray-800"
-                    }`}
-                  >
-                    Logout
-                  </button>
+                  <Link href="/achievements" role="menuitem" className={menuLink} onClick={() => setMenuOpen(false)}>
+                    <PiTrophy aria-hidden="true" className="h-4 w-4" /> Achievements
+                  </Link>
                 </li>
               </ul>
+              <div className="border-t border-gray-100 py-1 dark:border-gray-800">
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+                >
+                  <PiSignOut aria-hidden="true" className="h-4 w-4" /> Log out
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 

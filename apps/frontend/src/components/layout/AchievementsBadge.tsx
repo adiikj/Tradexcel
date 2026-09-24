@@ -2,24 +2,9 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { getAchievements } from "../../api/api";
+import { HEADER_BADGE, HEADER_ICON_BUTTON } from "./headerStyles";
+import { PiTrophy } from "react-icons/pi";
 
-const TrophyIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M8 21h8" />
-    <path d="M12 17v4" />
-    <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" />
-    <path d="M17 5h3a2 2 0 0 1-2 4h-1" />
-    <path d="M7 5H4a2 2 0 0 0 2 4h1" />
-  </svg>
-);
 
 
 // Lives in the header (not the sidebar) deliberately - achievements are meant
@@ -41,18 +26,12 @@ function AchievementsBadge() {
   return (
     <Link
       href="/achievements"
-      title="Achievements"
-      className={`relative flex items-center p-2 rounded-md transition-all duration-300 ${
-        "text-black hover:bg-gray-200 dark:text-white dark:hover:bg-gray-700"
-      }`}
+      aria-label={earnedCount !== null && totalCount !== null ? `Achievements (${earnedCount} of ${totalCount} earned)` : "Achievements"}
+      className={`${HEADER_ICON_BUTTON} hidden sm:inline-flex`}
     >
-      <TrophyIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+      <PiTrophy aria-hidden="true" className="h-5 w-5" />
       {earnedCount !== null && totalCount !== null && (
-        <span
-          className={`absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 flex items-center justify-center rounded-full text-white text-[10px] font-semibold leading-none ${
-            earnedCount > 0 ? "bg-blue-500" : "bg-gray-400"
-          }`}
-        >
+        <span aria-hidden="true" className={`${HEADER_BADGE} ${earnedCount > 0 ? "bg-blue-600" : "bg-gray-400"}`}>
           {earnedCount}
         </span>
       )}
