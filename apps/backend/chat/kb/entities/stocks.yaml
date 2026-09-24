@@ -1,0 +1,164 @@
+# Stock-name recognition data. The base list is the frontend's StockData.json
+# (symbol, shortName, fullName); this file only adds what people actually type.
+#
+# aliases:      extra surface forms that map to exactly one symbol.
+# ambiguous:    a word shared by several listed companies. `default` is used
+#               when the question gives no other hint (and the reply says so);
+#               without one the assistant asks which company was meant.
+# common_words: symbols/names that are also everyday words. They only count as
+#               a stock when written in caps or next to a cue like "price",
+#               "share", "stock" or "buy".
+aliases:
+  HDFCBANK.NS: [hdfc bank, hdfcbank]
+  ICICIBANK.NS: [icici bank, icicibank]
+  BAJFINANCE.NS: [bajaj finance, bajfinance, bajaj fin]
+  BAJAJFINSV.NS: [bajaj finserv]
+  INFY.NS: [infosys, infy]
+  TCS.NS: [tata consultancy, tcs]
+  SBIN.NS: [state bank, sbi bank, sbin]
+  RELIANCE.NS: [ril, reliance industries, reliance]
+  BHARTIARTL.NS: [airtel, bharti airtel, bharti]
+  KOTAKBANK.NS: [kotak, kotak bank, kotak mahindra]
+  AXISBANK.NS: [axis, axis bank]
+  HINDUNILVR.NS: [hul, hindustan unilever]
+  ITC.NS: [itc]
+  LT.NS: [larsen, larsen and toubro, larsen & toubro, l and t]
+  M&M.NS: [m&m, mahindra and mahindra, mahindra & mahindra, m and m]
+  MARUTI.NS: [maruti, maruti suzuki]
+  TATASTEEL.NS: [tata steel]
+  TATAPOWER.NS: [tata power]
+  TATACONSUM.NS: [tata consumer]
+  TATACHEM.NS: [tata chemicals]
+  TATACOMM.NS: [tata communications]
+  TATAELXSI.NS: [tata elxsi, elxsi]
+  ADANIENT.NS: [adani enterprises, adani ent]
+  ADANIPORTS.NS: [adani ports]
+  ADANIGREEN.NS: [adani green]
+  ADANIPOWER.NS: [adani power]
+  ATGL.NS: [adani total gas, adani gas]
+  SUNPHARMA.NS: [sun pharma]
+  SUNTV.NS: [sun tv]
+  DRREDDY.NS: [dr reddy, dr reddys, dr. reddy's, reddy labs]
+  DIVISLAB.NS: [divis, divi's lab, divis lab]
+  APOLLOHOSP.NS: [apollo hospitals, apollo hospital]
+  APOLLOTYRE.NS: [apollo tyres, apollo tyre]
+  HEROMOTOCO.NS: [hero motocorp, hero moto, hero honda]
+  EICHERMOT.NS: [eicher, royal enfield, eicher motors]
+  TVSMOTOR.NS: [tvs, tvs motor]
+  ASIANPAINT.NS: [asian paints, asian paint]
+  ULTRACEMCO.NS: [ultratech, ultratech cement]
+  NESTLEIND.NS: [nestle]
+  POWERGRID.NS: [power grid, powergrid]
+  COALINDIA.NS: [coal india]
+  ONGC.NS: [ongc]
+  IOC.NS: [indian oil, iocl]
+  BPCL.NS: [bharat petroleum]
+  HINDPETRO.NS: [hpcl, hindustan petroleum]
+  BANKBARODA.NS: [bank of baroda, baroda]
+  PNB.NS: [punjab national bank]
+  CANBK.NS: [canara, canara bank]
+  INDUSINDBK.NS: [indusind, indusind bank]
+  YESBANK.NS: [yes bank]
+  IDFCFIRSTB.NS: [idfc first, idfc bank]
+  INDIGO.NS: [indigo, interglobe]
+  DMART.NS: [dmart, d mart, avenue supermarts]
+  NYKAA.NS: [nykaa]
+  PAYTM.NS: [paytm, one97]
+  POLICYBZR.NS: [policybazaar, pb fintech]
+  LODHA.NS: [lodha, macrotech]
+  IDEA.NS: [vodafone idea, vodafone]
+  HAL.NS: [hindustan aeronautics]
+  BEL.NS: [bharat electronics]
+  BHEL.NS: [bharat heavy electricals]
+  SAIL.NS: [steel authority]
+  IRCTC.NS: [irctc]
+  IRFC.NS: [irfc, indian railway finance]
+  RVNL.NS: [rvnl, rail vikas]
+  TECHM.NS: [tech mahindra, techm]
+  HCLTECH.NS: [hcl, hcl tech]
+  WIPRO.NS: [wipro]
+  LTTS.NS: [l&t technology, l&t tech]
+  LTF.NS: [l&t finance]
+  M&MFIN.NS: [mahindra finance, m&m finance]
+  MOTHERSON.NS: [motherson, samvardhana motherson]
+  GODREJCP.NS: [godrej consumer]
+  GODREJPROP.NS: [godrej properties]
+  GODREJIND.NS: [godrej industries]
+  JSWSTEEL.NS: [jsw steel]
+  JSWENERGY.NS: [jsw energy]
+  PIDILITIND.NS: [pidilite, fevicol]
+  BRITANNIA.NS: [britannia]
+  COLPAL.NS: [colgate]
+  PGHH.NS: [p&g, procter and gamble]
+  UBL.NS: [united breweries, kingfisher]
+  VBL.NS: [varun beverages]
+  ZYDUSLIFE.NS: [zydus, cadila]
+  LALPATHLAB.NS: [lal pathlabs, lal path labs]
+  HDFCLIFE.NS: [hdfc life]
+  HDFCAMC.NS: [hdfc amc]
+  SBILIFE.NS: [sbi life]
+  SBICARD.NS: [sbi card, sbi cards]
+  ICICIPRULI.NS: [icici pru, icici prudential]
+  ICICIGI.NS: [icici lombard]
+  MAZDOCK.NS: [mazagon dock, mazagon]
+  COCHINSHIP.NS: [cochin shipyard]
+  ZEEL.NS: [zee, zee entertainment]
+  PVRINOX.NS: [pvr, inox]
+  BAJAJHLDNG.NS: [bajaj holdings]
+
+ambiguous:
+  - term: tata
+    candidates: [TCS.NS, TATASTEEL.NS, TATAPOWER.NS, TATACONSUM.NS, TATACHEM.NS, TATACOMM.NS, TATAELXSI.NS]
+  - term: adani
+    candidates: [ADANIENT.NS, ADANIPORTS.NS, ADANIGREEN.NS, ADANIPOWER.NS, ATGL.NS]
+  - term: bajaj
+    candidates: [BAJFINANCE.NS, BAJAJFINSV.NS, BAJAJHLDNG.NS]
+  - term: hdfc
+    candidates: [HDFCBANK.NS, HDFCLIFE.NS, HDFCAMC.NS]
+    default: HDFCBANK.NS
+  - term: icici
+    candidates: [ICICIBANK.NS, ICICIPRULI.NS, ICICIGI.NS]
+    default: ICICIBANK.NS
+  - term: sbi
+    candidates: [SBIN.NS, SBILIFE.NS, SBICARD.NS]
+    default: SBIN.NS
+  - term: godrej
+    candidates: [GODREJCP.NS, GODREJPROP.NS, GODREJIND.NS]
+  - term: jsw
+    candidates: [JSWSTEEL.NS, JSWENERGY.NS]
+  - term: mahindra
+    candidates: [M&M.NS, TECHM.NS, M&MFIN.NS, KOTAKBANK.NS]
+    default: M&M.NS
+  - term: apollo
+    candidates: [APOLLOHOSP.NS, APOLLOTYRE.NS, APLAPOLLO.NS]
+  - term: sun
+    candidates: [SUNPHARMA.NS, SUNTV.NS]
+  - term: torrent
+    candidates: [TORNTPHARM.NS, TORNTPOWER.NS]
+  - term: l&t
+    candidates: [LT.NS, LTTS.NS, LTF.NS]
+    default: LT.NS
+  - term: pnb
+    candidates: [PNB.NS, PNBHOUSING.NS]
+    default: PNB.NS
+
+common_words:
+  - IDEA.NS
+  - OIL.NS
+  - SAIL.NS
+  - CLEAN.NS
+  - AMBER.NS
+  - ASTRAL.NS
+  - GLAND.NS
+  - TITAN.NS
+  - TRENT.NS
+  - PRESTIGE.NS
+  - TRIDENT.NS
+  - PHOENIXLTD.NS
+  - BRIGADE.NS
+  - ESCORTS.NS
+  - METROPOLIS.NS
+  - SUPREMEIND.NS
+  - BSE.NS
+  - CAMS.NS
+  - CUB.NS

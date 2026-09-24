@@ -1,0 +1,199 @@
+cards:
+  - id: account.sign_in_options
+    category: account
+    title: Ways to sign in (password, PIN, Google)
+    answer: |
+      You can sign in with your **email or username** plus either:
+      - your **4-digit PIN** (the default on the sign-in page), or
+      - your **password**. Tap *Use password instead* to switch.
+
+      You can also use **Sign in with Google**. Google accounts can add a password or PIN later from your profile.
+    questions:
+      - how do i sign in
+      - what is the pin for
+      - can i log in with my username
+      - can i use a pin instead of a password
+      - how do i log in with google
+      - what's the 4 digit pin
+      - login options?
+      - i signed up with google, can i set a password
+      - do i need both password and pin
+    tags: [login, sign in, pin, google]
+    links:
+      - { label: Your profile, href: /your-profile }
+    related: [account.change_password_pin, account.forgot_password]
+    hard_negatives: [account.change_password_pin]
+    sources:
+      - apps/backend/src/controllers/user.controller.ts
+      - apps/frontend/src/components/auth/SignIn.tsx
+
+  - id: account.change_password_pin
+    category: account
+    title: Changing your password or PIN
+    answer: |
+      Go to **Your Profile** and use **Change password** or **Change PIN**. You'll need your current one to confirm.
+      If you signed up with Google and never set one, the same section says **Set a password** / **Set a PIN** and doesn't ask for an old one.
+    questions:
+      - how do i change my password
+      - how to change my pin
+      - where can i update my password
+      - i want a new pin
+      - set a password for my google account
+      - change login pin
+      - it says my current pin is incorrect
+      - update security settings
+      - reset my pin from settings
+    tags: [password, pin, security, profile]
+    links:
+      - { label: Your profile, href: /your-profile }
+    related: [account.sign_in_options, account.forgot_password]
+    hard_negatives: [account.forgot_password]
+    sources:
+      - apps/backend/src/controllers/user.controller.ts
+      - apps/frontend/src/components/dashboard/YourProfile.tsx
+
+  - id: account.forgot_password
+    category: account
+    title: Forgot your password or PIN
+    answer: |
+      On the sign-in page, tap **Forgot password or PIN?** and enter your email. We'll send you a **6-digit code** that's valid for 10 minutes. Enter it with your new password or PIN and you're done. For safety, this signs you out on your other devices.
+      No email? Check your spam folder. You can resend the code once a minute. If you signed up with Google, you can just use **Sign in with Google**.
+    questions:
+      - i forgot my password
+      - forgot pin what do i do
+      - how do i reset my password
+      - i can't log in
+      - locked out of my account
+      - there's no forgot password link
+      - recover my account
+      - lost my pin and password
+      - password reset email?
+      - my reset code isn't working
+    tags: [forgot, reset, locked out]
+    links:
+      - { label: Reset password, href: /forgot-password }
+      - { label: Contact us, href: /contactus }
+    related: [account.sign_in_options, account.change_password_pin]
+    hard_negatives: [account.change_password_pin]
+    sources:
+      - apps/backend/src/routes/user.routes.ts
+      - apps/backend/src/controllers/user.controller.ts
+      - apps/frontend/src/components/auth/ForgotPassword.tsx
+
+  - id: account.otp
+    category: account
+    title: Email verification code (OTP)
+    answer: |
+      When you sign up, we email you a **6-digit code**. It's valid for **10 minutes**. Your wallet is created as soon as you verify.
+      If it expired or never arrived, check your spam folder, then **sign up again with the same details** to get a new code.
+    questions:
+      - i didn't get the otp
+      - my verification code expired
+      - how long is the otp valid
+      - invalid verification code
+      - where do i enter the code from my email
+      - resend otp
+      - signup verification not working
+      - it says please verify your email before signing in
+      - how do i verify my account
+    tags: [otp, verification, signup, email]
+    links:
+      - { label: Sign up, href: /signup }
+    related: [account.sign_in_options]
+    sources:
+      - apps/backend/src/controllers/user.controller.ts
+      - apps/frontend/src/components/auth/EnterOTP.tsx
+
+  - id: account.signup
+    category: account
+    title: Creating an account
+    answer: |
+      Tap **Create a free account** and enter your name, a username, your email, a password (8+ characters) and a 4-digit PIN. We'll email you a 6-digit code, and once you enter it your wallet is ready with {{STARTING_BALANCE}}.
+      Or use **Sign in with Google** and skip the password.
+    questions:
+      - how do i create an account
+      - how to sign up
+      - register on tradexcel
+      - what do i need to sign up
+      - is an email required to join
+      - how long does the password need to be
+      - can i sign up without google
+      - make a new account
+      - join tradexcel
+    tags: [signup, register, account]
+    links:
+      - { label: Sign up, href: /signup }
+    related: [account.otp, account.google]
+    hard_negatives: [account.sign_in_options, account.otp]
+    sources:
+      - apps/backend/src/controllers/user.controller.ts
+      - apps/frontend/src/components/auth/SignUp.tsx
+
+  - id: account.google
+    category: account
+    title: Signing in with Google
+    answer: |
+      **Sign in with Google** works for new and existing players:
+      - If you already have an account with the same email, Google is simply linked to it.
+      - New players verify a one-time code we email them, then get a username based on their email and their Google photo as their avatar. You can change both in **Your Profile**.
+    questions:
+      - does google sign in link to my existing account
+      - why did google login ask for a code
+      - i used google, what's my username
+      - can i change the username google gave me
+      - google sign in created a new account
+      - is it safe to log in with google
+      - signed up with email, can i now use google
+      - google login not working
+    tags: [google, oauth, sign in]
+    links:
+      - { label: Your profile, href: /your-profile }
+    related: [account.sign_in_options, profile.edit]
+    hard_negatives: [account.sign_in_options]
+    sources:
+      - apps/backend/src/controllers/user.controller.ts
+      - apps/frontend/src/components/auth/GoogleAuthButton.tsx
+
+  - id: account.session_expired
+    category: account
+    title: '"Your session has expired" and staying signed in'
+    answer: |
+      You stay signed in on a device until your session runs out. You're also signed out when you **sign in on another device**, because only your latest sign-in is kept active.
+      When you see *"Your session has expired"*, just sign in again. Your portfolio is exactly as you left it.
+    questions:
+      - why was i logged out
+      - it says your session has expired
+      - i keep getting signed out
+      - can i stay logged in on two devices
+      - logged in on my phone and got kicked out on laptop
+      - how long does a login last
+      - why do i have to sign in again
+      - session timeout
+    tags: [session, logout, devices]
+    links:
+      - { label: Sign in, href: /signin }
+    related: [account.sign_in_options]
+    sources:
+      - apps/backend/src/controllers/user.controller.ts
+      - apps/backend/src/middlewares/auth.middleware.ts
+
+  - id: account.sign_out
+    category: account
+    title: Signing out
+    answer: |
+      Open the profile menu in the header (your photo) and choose **Log out**. If you're on a shared computer, always log out when you're done.
+    questions:
+      - how do i log out
+      - where is the sign out button
+      - sign me out
+      - logout option
+      - how to switch accounts
+      - log out of tradexcel
+      - exit my account on this computer
+      - how to sign out on mobile
+    tags: [logout, sign out]
+    related: [account.session_expired]
+    hard_negatives: [account.session_expired]
+    sources:
+      - apps/backend/src/controllers/user.controller.ts
+      - apps/frontend/src/components/dashboard/Header.tsx

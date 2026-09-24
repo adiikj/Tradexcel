@@ -1,0 +1,286 @@
+cards:
+  - id: social.follow
+    category: platform
+    title: Following other traders
+    answer: |
+      Open a player's profile (from the leaderboard or search) and tap **Follow**. Their trades and contest results then show up on your **Activity** page, and they appear on the leaderboard's **Following** tab.
+      They get a notification when you follow them. You can unfollow the same way, and your own profile lists your followers and who you follow.
+    questions:
+      - how do i follow someone
+      - how to unfollow a trader
+      - who am i following
+      - how do i see my followers
+      - can i follow my friends
+      - why can't i follow myself
+      - what happens when i follow a player
+      - add a friend
+      - how to connect with other players
+    tags: [follow, friends, social]
+    links:
+      - { label: Open Leaderboard, href: /leaderboard }
+    related: [social.activity, social.public_profile]
+    hard_negatives: [social.activity]
+    sources:
+      - apps/backend/src/controllers/social.controller.ts
+      - apps/frontend/src/components/social/FollowButton.tsx
+
+  - id: social.activity
+    category: platform
+    title: The Activity feed
+    answer: |
+      **Activity** shows recent trades and contest results from the traders **you follow**. Filter to All, Trades or Contests.
+      It's empty until you follow someone. Find players on the leaderboard or with search.
+    questions:
+      - what is the activity page
+      - why is my activity feed empty
+      - how do i see what my friends are trading
+      - where can i see others' trades
+      - activity feed explained
+      - see trades of people i follow
+      - filter activity to contests
+      - what are my friends buying
+    tags: [activity, feed, social]
+    links:
+      - { label: Open Activity, href: /activity }
+    related: [social.follow, social.privacy]
+    hard_negatives: [wallet.transaction_history, social.follow]
+    sources:
+      - apps/backend/src/controllers/social.controller.ts
+      - apps/frontend/src/components/social/ActivityFeed.tsx
+
+  - id: social.public_profile
+    category: platform
+    title: Your public profile
+    answer: |
+      Every player has a public profile at **tradexcel.app/u/your-username**. It shows your name, photo, net worth, rank, title, streak, badges and weekly results. Use the **share** button to send the link to anyone.
+      Your individual trades appear in your followers' Activity feeds.
+    questions:
+      - what can other players see about me
+      - how do i share my profile
+      - what's my profile link
+      - is my portfolio public
+      - who can see my net worth
+      - can people see my trades
+      - what shows on my public page
+      - send my profile to a friend
+      - view my profile as others see it
+    tags: [profile, public, share, privacy]
+    related: [social.privacy, profile.edit]
+    hard_negatives: [profile.edit, social.privacy]
+    sources:
+      - apps/backend/src/controllers/social.controller.ts
+      - apps/frontend/src/components/social/PublicProfile.tsx
+      - apps/frontend/src/components/social/ShareButton.tsx
+
+  - id: profile.edit
+    category: platform
+    title: Editing your profile
+    answer: |
+      Go to **Your Profile** → **Personal details** to change your name, username, email or date of birth.
+      Usernames are 3–20 characters (letters, numbers and underscores) and must be unique.
+    questions:
+      - how do i change my username
+      - can i change my name
+      - update my email address
+      - edit my profile
+      - change date of birth
+      - what characters can a username have
+      - username already taken
+      - how long can my username be
+      - rename my account
+    tags: [profile, username, email, edit]
+    links:
+      - { label: Your profile, href: /your-profile }
+    related: [profile.avatar, account.change_password_pin]
+    hard_negatives: [account.change_password_pin, profile.avatar]
+    sources:
+      - apps/backend/src/controllers/user.controller.ts
+      - apps/frontend/src/components/dashboard/YourProfile.tsx
+
+  - id: profile.avatar
+    category: platform
+    title: Changing your profile photo
+    answer: |
+      On **Your Profile**, choose a new photo and tap **Save photo**. JPEG, PNG, WebP and GIF images up to **5 MB** work.
+      Until you upload one, you get a random avatar picked at sign-up.
+    questions:
+      - how do i change my profile picture
+      - upload an avatar
+      - my photo won't upload
+      - what image size is allowed for profile photo
+      - can i use a gif as my avatar
+      - change my dp
+      - where did my random avatar come from
+      - profile pic file too large
+    tags: [avatar, photo, profile]
+    links:
+      - { label: Your profile, href: /your-profile }
+    related: [profile.edit]
+    hard_negatives: [profile.edit]
+    sources:
+      - apps/backend/src/middlewares/multer.middleware.ts
+      - apps/backend/src/controllers/user.controller.ts
+
+  - id: leaderboard.hall_of_fame
+    category: platform
+    title: Hall of Fame and weekly champions
+    answer: |
+      The Leaderboard's **Contest champions** and **Weekly champions** tabs are the Hall of Fame. They list every contest winner, and the player with the **best return** each week.
+      Winning a week (tied players all win) earns {{BADGE:weekly_champion}}.
+    questions:
+      - how do i get into the hall of fame
+      - who won last week
+      - how is the weekly champion chosen
+      - list of contest winners
+      - past champions
+      - what does it take to be weekly champion
+      - is weekly champion based on net worth or return
+      - hall of fame explained
+    tags: [hall of fame, champion, weekly]
+    links:
+      - { label: Open Leaderboard, href: /leaderboard }
+    related: [leaderboard.ranking, contest.end]
+    hard_negatives: [leaderboard.ranking]
+    sources:
+      - apps/backend/src/controllers/hallOfFame.controller.ts
+      - apps/backend/src/services/achievements.ts
+
+  - id: season.history
+    category: platform
+    title: Past weeks' results
+    answer: |
+      At each weekly reset your final net worth and return % for the week are saved. See them under **Weekly results** on your Portfolio page and on your public profile, next to how this week is going.
+    questions:
+      - where can i see last week's performance
+      - how did i do in previous seasons
+      - my weekly history
+      - past season results
+      - how many weeks have i been in the green
+      - compare my weekly returns
+      - where did my old net worth go
+      - weekly results chart
+    tags: [season, history, weekly results]
+    links:
+      - { label: Open Portfolio, href: /portfolio }
+    related: [season.weekly_reset, leaderboard.hall_of_fame]
+    hard_negatives: [season.weekly_reset, wallet.transaction_history]
+    sources:
+      - apps/backend/src/services/weeklyReset.ts
+      - apps/frontend/src/components/portfolio/WeeklyResults.tsx
+
+  - id: contest.standings
+    category: platform
+    title: Contest standings
+    answer: |
+      Open a contest to see its **standings**. Everyone is ranked by net worth inside that contest (contest cash plus the value of contest holdings), and it updates as prices move.
+      Your contest portfolio and cash are on the same page.
+    questions:
+      - where is my rank in the contest
+      - how do i see contest standings
+      - who is winning the contest
+      - contest leaderboard
+      - where are my contest holdings
+      - how is contest rank calculated
+      - where do i see a contest's results
+      - does the contest ranking update live
+    tags: [contest, standings, rank]
+    links:
+      - { label: Open Contests, href: /contest }
+    related: [contest.end, contest.how_it_works]
+    hard_negatives: [leaderboard.ranking, contest.end]
+    sources:
+      - apps/backend/src/controllers/contest.controller.ts
+      - apps/backend/src/services/contestNetWorth.ts
+
+  - id: contest.end
+    category: platform
+    title: When a contest ends
+    answer: |
+      Within about a minute of the end time, the final standings are **frozen**: each player's final rank and net worth are saved. Trading in that contest stops.
+      The winner earns {{BADGE:contest_champion}}, the top 3 earn {{BADGE:podium_finish}}, and winners show up in the Hall of Fame. Contest cash and holdings stay in the contest and never move to your main wallet.
+    questions:
+      - what happens when a contest is over
+      - do i keep my contest winnings
+      - when are contest results final
+      - does contest money go to my wallet
+      - contest finished what now
+      - how do i get the contest champion badge
+      - are final contest ranks saved
+      - does my contest portfolio carry over
+    tags: [contest, end, results]
+    links:
+      - { label: Open Contests, href: /contest }
+    related: [contest.standings, contest.prize, leaderboard.hall_of_fame]
+    hard_negatives: [contest.standings, season.weekly_reset]
+    sources:
+      - apps/backend/src/jobs/contestSettlement.ts
+      - apps/backend/src/services/achievements.ts
+
+  - id: contest.prize
+    category: platform
+    title: Contest prizes
+    answer: |
+      A contest's **prize** is just a label set by whoever created it, like "Bragging rights" or a treat promised between friends. TradeXcel doesn't pay out money or rewards itself.
+      Every contest winner does get the Contest Champion badge and a spot in the Hall of Fame.
+    questions:
+      - what's the prize for winning
+      - do contests have real prizes
+      - how do i claim my contest prize
+      - will i get paid for winning a contest
+      - who gives the prize
+      - is there cash reward for contests
+      - where is my prize
+      - can i set a prize for my league
+    tags: [prize, reward, contest]
+    related: [contest.end, unsupported.real_money]
+    hard_negatives: [unsupported.real_money]
+    sources:
+      - apps/backend/src/controllers/contest.controller.ts
+
+  - id: contest.join_timing
+    category: platform
+    title: When you can join and trade in a contest
+    answer: |
+      You can join a contest any time **before it ends**, even after it's started. You'll still get the full starting cash, just less time to use it.
+      Trading opens only while the contest is **live**. Before it starts you'll see *"This contest hasn't started yet"*, and after it ends trading is closed.
+    questions:
+      - can i join a contest after it has started
+      - why can't i trade in an upcoming contest
+      - it says this contest hasn't started yet
+      - when does trading open in a contest
+      - is it too late to join
+      - can i join a contest that already ended
+      - do late joiners get less money
+      - join before the contest starts
+    tags: [contest, join, timing]
+    links:
+      - { label: Open Contests, href: /contest }
+    related: [contest.how_it_works, contest.private_league]
+    hard_negatives: [contest.how_it_works]
+    sources:
+      - apps/backend/src/controllers/contest.controller.ts
+      - apps/backend/src/controllers/contestTrade.controller.ts
+
+  - id: contest.private_manage
+    category: platform
+    title: Changing a private league after creating it
+    answer: |
+      Once a private league is created, its name, dates, stocks and starting cash **can't be changed**, so double-check before you create it. If you need different settings, create a new league and share its new invite code.
+      Your league's invite code is on its contest page, where you can copy it anytime.
+    questions:
+      - how do i edit my league
+      - can i change the dates of my private league
+      - add more stocks to my league
+      - delete my private league
+      - i made a mistake creating my league
+      - change league starting balance
+      - can the host remove someone
+      - rename my contest
+    tags: [private league, edit, host]
+    links:
+      - { label: Open Contests, href: /contest }
+    related: [contest.private_league]
+    hard_negatives: [contest.private_league]
+    sources:
+      - apps/backend/src/routes/contest.routes.ts
+      - apps/backend/src/routes/admin.routes.ts

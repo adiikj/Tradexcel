@@ -1,0 +1,417 @@
+# What each page is for and where things live. Kept to what the UI actually
+# shows - see the listed components before changing an answer.
+cards:
+  - id: about.what_is_tradexcel
+    category: platform
+    title: What TradeXcel is
+    answer: |
+      TradeXcel is a **stock-trading game**. You trade real NSE stocks at real market prices, but with virtual money, so you can learn and practise without risking anything.
+      Every week is a fresh season with {{STARTING_BALANCE}}, and you can compete on the leaderboard, in contests, and in private leagues with friends.
+    questions:
+      - what is tradexcel
+      - what is this app
+      - how does this game work
+      - explain tradexcel to me
+      - is this a real trading platform
+      - what's the point of this site
+      - is tradexcel a stock market simulator
+      - what can i do on tradexcel
+      - how do i get started
+      - i'm new here, where do i begin
+    tags: [about, intro, getting started]
+    links:
+      - { label: How it works, href: /how-it-works }
+    related: [wallet.starting_balance, season.weekly_reset, trade.how_to_buy]
+    hard_negatives: [smalltalk.capabilities]
+    sources:
+      - apps/frontend/src/components/faq/Faq.tsx
+      - apps/backend/src/services/weeklyReset.ts
+
+  - id: dashboard.overview
+    category: platform
+    title: What the Dashboard shows
+    answer: |
+      Your **Dashboard** is the home screen after you sign in. It shows:
+      - your **net worth**, holdings and open P&L
+      - **Today's market**: the day's biggest gainers and losers
+      - a leaderboard snapshot
+      - a search box for trading any stock without leaving the page
+
+      Tap **Take the tour** in the header anytime for a walkthrough.
+    questions:
+      - what's on the dashboard
+      - what does the home page show
+      - where do i see my net worth quickly
+      - what is today's market on the dashboard
+      - where are top gainers and losers
+      - what are the market movers
+      - how do i use the dashboard
+      - main screen explained
+    tags: [dashboard, home, overview]
+    links:
+      - { label: Open Dashboard, href: /dashboard }
+    related: [ui.tour, portfolio.page]
+    hard_negatives: [portfolio.page]
+    sources:
+      - apps/frontend/src/components/dashboard/MainContent.tsx
+      - apps/frontend/src/components/dashboard/MarketMovers.tsx
+
+  - id: portfolio.page
+    category: platform
+    title: What the Portfolio page shows
+    answer: |
+      **Portfolio** is your full picture:
+      - net worth and this season's return
+      - today's change, total return and cash
+      - a **holdings** table with each stock's quantity, average price, current price and P&L
+      - an **allocation** chart of where your money sits
+      - your **weekly results** and recent trades
+
+      Any orders queued while the market is closed also show here.
+    questions:
+      - what does the portfolio page show
+      - where can i see all my holdings
+      - where is my allocation chart
+      - how do i see my returns
+      - where can i view my stocks
+      - what is the allocation donut
+      - where are my open positions
+      - what does total return mean on portfolio
+    tags: [portfolio, holdings, allocation]
+    links:
+      - { label: Open Portfolio, href: /portfolio }
+    related: [edu.pnl, trade.queued_orders, season.history]
+    hard_negatives: [dashboard.overview, wallet.page]
+    sources:
+      - apps/frontend/src/components/portfolio/Portfolio.tsx
+      - apps/frontend/src/components/portfolio/HoldingsTable.tsx
+
+  - id: wallet.page
+    category: platform
+    title: What the Wallet page shows
+    answer: |
+      **Wallet** is about your cash:
+      - **cash available** out of your starting balance
+      - how this season is going and a **cash flow** chart
+      - your full **transaction history**, which you can search by symbol and filter to buys or sells
+    questions:
+      - what does the wallet page show
+      - where can i see my cash
+      - what is the cash flow chart
+      - where is my buying power
+      - what does cash available mean
+      - wallet page explained
+      - why is my cash lower than my net worth
+      - where do i check my remaining balance
+    tags: [wallet, cash, balance]
+    links:
+      - { label: Open Wallet, href: /wallet }
+    related: [wallet.transaction_history, wallet.starting_balance, edu.net_worth]
+    hard_negatives: [portfolio.page, wallet.starting_balance]
+    sources:
+      - apps/frontend/src/components/wallet/Wallet.tsx
+
+  - id: wallet.transaction_history
+    category: platform
+    title: Finding past trades
+    answer: |
+      Every buy and sell is listed under **Transactions** on the **Wallet** page, newest first. You can search by symbol, filter to buys or sells, and load older ones.
+      Your Portfolio page also shows your few most recent trades.
+    questions:
+      - where can i see my past trades
+      - how do i see my transaction history
+      - list of all my orders
+      - where are my old transactions
+      - where is the list of every trade
+      - how do i find a trade i made last week
+      - where is my order history
+      - can i see every stock i bought
+      - how to filter my trades by buy or sell
+    tags: [transactions, history, trades]
+    links:
+      - { label: Open Wallet, href: /wallet }
+    related: [wallet.page, trade.queued_orders]
+    hard_negatives: [trade.queued_orders, social.activity]
+    sources:
+      - apps/frontend/src/components/wallet/Wallet.tsx
+      - apps/frontend/src/components/wallet/TransactionList.tsx
+      - apps/backend/src/controllers/portfolio.controller.ts
+
+  - id: market.page
+    category: platform
+    title: Using the Market page
+    answer: |
+      The **Market** page lists every stock you can trade. Search by name or symbol, open a stock to see its chart (1D, 5D, 1M, 6M, 1Y or 5Y), and buy or sell from there.
+      The **heatmap** colours each stock by today's % change, from red to green, so you can see what's moving at a glance.
+    questions:
+      - how do i use the market page
+      - how do i find a stock
+      - how do i see a stock's chart
+      - what chart ranges are there
+      - what is the heatmap
+      - what do the heatmap colours mean
+      - can i see a 5 year chart
+      - how to search stocks by name
+      - where do i browse stocks
+    tags: [market, chart, heatmap, search]
+    links:
+      - { label: Open Market, href: /market }
+    related: [market.which_stocks, trade.how_to_buy]
+    hard_negatives: [market.which_stocks]
+    sources:
+      - apps/frontend/src/components/market/Market.tsx
+      - apps/frontend/src/components/market/StockPanel.tsx
+      - apps/frontend/src/components/market/Heatmap.tsx
+
+  - id: market.which_stocks
+    category: platform
+    title: Which stocks you can trade
+    answer: |
+      You can trade the **250+ NSE-listed stocks** on the Market page. They cover banks, IT, pharma, autos, energy, FMCG, metals and more.
+      If a stock isn't there, it can't be traded yet. Indices like the Nifty 50 or Sensex aren't stocks, so they can't be bought either.
+    questions:
+      - which stocks can i trade
+      - how many stocks are available
+      - why can't i find this stock
+      - can i buy nifty 50
+      - can i trade the sensex
+      - is my favourite company listed
+      - are small companies available
+      - can you add a new stock
+      - are bse only stocks available
+    tags: [stocks, universe, listing]
+    links:
+      - { label: Open Market, href: /market }
+    related: [market.page, unsupported.other_markets]
+    hard_negatives: [market.page, unsupported.other_markets]
+    sources:
+      - apps/frontend/src/components/market/StockData.json
+
+  - id: market.live_prices
+    category: platform
+    title: Where prices come from
+    answer: |
+      Prices are **real NSE market prices** and update live while the market is open. Look for the **live** badge.
+      They come from a public market-data feed, so they can occasionally lag the exchange by a few seconds. When the market is closed you'll see the last closing price.
+    questions:
+      - are the prices real
+      - where do prices come from
+      - are prices live or delayed
+      - why is the price different from my broker app
+      - how often do prices update
+      - is the stock data accurate
+      - what does the live badge mean
+      - real time prices?
+    tags: [prices, live, data]
+    links:
+      - { label: Open Market, href: /market }
+    related: [trade.market_closed, trade.fill_price]
+    hard_negatives: [trade.market_closed, contest.replay]
+    sources:
+      - apps/backend/src/services/pricing.ts
+      - apps/backend/src/realtime/priceSocket.ts
+      - apps/frontend/src/components/layout/LiveStatusBadge.tsx
+
+  - id: trade.fill_price
+    category: platform
+    title: What price your order gets
+    answer: |
+      A market-hours order fills at the **live price when the server processes it**. The price in the trade window refreshes every few seconds, so the final price can differ slightly from what you saw.
+      Queued orders fill at the first live price after the market opens. Check the exact price of any trade in your Wallet's transaction list.
+    questions:
+      - why did i get a different price than shown
+      - what price will my order fill at
+      - my buy price doesn't match the chart
+      - is there slippage
+      - at what price is my trade executed
+      - why is my average price higher than what i clicked
+      - price changed while i was buying
+      - execution price explained
+    tags: [price, execution, fill]
+    links:
+      - { label: Open Wallet, href: /wallet }
+    related: [market.live_prices, trade.queued_orders]
+    hard_negatives: [edu.avg_buy_price, market.live_prices]
+    sources:
+      - apps/backend/src/controllers/trade.controller.ts
+      - apps/frontend/src/components/trade/TradeModal.tsx
+
+  - id: trade.quantity_rules
+    category: platform
+    title: How many shares you can buy
+    answer: |
+      Orders are in **whole shares**, at least 1. There's no upper limit other than your cash: you can buy as many as price × quantity lets you afford.
+      Fractional shares aren't supported, so some expensive stocks need a big chunk of your balance for even one share.
+    questions:
+      - can i buy fractional shares
+      - what's the minimum quantity
+      - is there a maximum number of shares
+      - can i buy half a share
+      - can i invest a fixed rupee amount
+      - buy 0.5 shares
+      - why must quantity be a whole number
+      - is there an order size limit
+    tags: [quantity, fractional, shares]
+    related: [trade.how_to_buy, trade.insufficient_funds]
+    hard_negatives: [trade.how_to_buy]
+    sources:
+      - apps/backend/src/services/tradeMath.ts
+
+  - id: news.page
+    category: platform
+    title: The News page
+    answer: |
+      **News** shows the latest Indian market headlines, plus stories about the stocks **you hold**, so your feed is personal. You can filter by stock.
+      Headlines refresh every few minutes and link out to the original article.
+    questions:
+      - where can i read market news
+      - what news does tradexcel show
+      - is the news about my stocks
+      - how do i filter news by stock
+      - why is there no news
+      - how often is news updated
+      - news feed explained
+      - latest stock market headlines
+    tags: [news, headlines]
+    links:
+      - { label: Open News, href: /news }
+    related: [market.page]
+    sources:
+      - apps/backend/src/services/news.ts
+      - apps/frontend/src/components/news/News.tsx
+
+  - id: notifications.bell
+    category: platform
+    title: Notifications
+    answer: |
+      The **bell** in the header collects your notifications: new followers, badges earned, price alerts that triggered, and queued orders that were placed or couldn't be. You can mark them all as read in one go.
+      Price alerts are also emailed to you.
+    questions:
+      - where are my notifications
+      - what does the bell icon show
+      - how do i clear notifications
+      - why did i get a notification
+      - mark all notifications as read
+      - do i get notified when someone follows me
+      - notification sound
+      - how do i know my order was placed
+    tags: [notifications, bell]
+    related: [alerts.create, trade.queued_orders]
+    hard_negatives: [alerts.create]
+    sources:
+      - apps/frontend/src/components/alerts/Alerts.tsx
+      - apps/backend/src/controllers/notification.controller.ts
+
+  - id: alerts.manage
+    category: platform
+    title: Managing your price alerts
+    answer: |
+      On the **Alerts** page you can see your **active** alerts and the ones that have already **triggered**, and delete any you don't need.
+      A triggered alert doesn't fire again. To keep watching the same price, create a new one.
+    questions:
+      - how do i delete an alert
+      - where can i see my triggered alerts
+      - how do i edit a price alert
+      - remove an alert
+      - how many alerts can i set
+      - see all my active alerts
+      - re-enable an alert that already fired
+      - cancel my price alert
+    tags: [alerts, manage, delete]
+    links:
+      - { label: Open Alerts, href: /alerts }
+    related: [alerts.create]
+    hard_negatives: [alerts.create, trade.queued_orders]
+    sources:
+      - apps/backend/src/controllers/alert.controller.ts
+      - apps/frontend/src/components/alerts/PriceAlerts.tsx
+
+  - id: ui.search
+    category: platform
+    title: Searching for stocks and players
+    answer: |
+      Use the **search** in the header to find any stock or player by name. Pick a stock to open its chart, or a player to open their public profile.
+    questions:
+      - how do i search for a player
+      - how to find my friend on tradexcel
+      - search a user by username
+      - where is the search bar
+      - find a stock quickly
+      - look up someone's profile
+      - search for traders
+      - global search
+    tags: [search, find]
+    related: [social.follow, market.page]
+    hard_negatives: [social.follow]
+    sources:
+      - apps/frontend/src/components/layout/GlobalSearch.tsx
+      - apps/backend/src/controllers/social.controller.ts
+
+  - id: ui.dark_mode
+    category: platform
+    title: Dark and light mode
+    answer: |
+      TradeXcel starts in **dark mode**. Use the sun/moon button in the header to switch between dark and light. Your choice is remembered on this device.
+    questions:
+      - how do i switch to light mode
+      - enable dark mode
+      - change the theme
+      - the screen is too dark
+      - how to turn off dark theme
+      - does tradexcel have a light theme
+      - toggle night mode
+      - my theme keeps resetting
+    tags: [theme, dark mode]
+    related: [ui.tour]
+    sources:
+      - apps/frontend/src/components/dashboard/Header.tsx
+      - apps/frontend/src/app/layout.tsx
+
+  - id: ui.tour
+    category: platform
+    title: The product tour
+    answer: |
+      New players get a short guided **tour** of the Dashboard. To see it again anytime, click **Take the tour** in the header.
+    questions:
+      - how do i restart the tour
+      - is there a tutorial
+      - show me around the app
+      - where is the walkthrough
+      - i skipped the intro, how do i see it again
+      - guided tour
+      - help me learn the interface
+      - onboarding guide
+    tags: [tour, tutorial, onboarding]
+    links:
+      - { label: Open Dashboard, href: /dashboard }
+    related: [dashboard.overview, about.what_is_tradexcel]
+    hard_negatives: [smalltalk.capabilities]
+    sources:
+      - apps/frontend/src/components/tour/ProductTour.tsx
+      - apps/frontend/src/components/dashboard/Header.tsx
+
+  - id: support.contact
+    category: platform
+    title: Contacting support
+    answer: |
+      Found a bug or stuck on something? Open the **Support** page, pick a topic (account, trading, contest, or something else), describe what happened, and send. For a trade problem, include the stock and roughly when it happened.
+      Locked out of your account? Use the public **Contact us** page instead.
+    questions:
+      - how do i contact support
+      - i found a bug
+      - report a problem
+      - how to talk to a human
+      - who do i email for help
+      - my trade looks wrong, who can help
+      - customer care number
+      - send feedback to the team
+      - contact tradexcel
+    tags: [support, help, contact, bug]
+    links:
+      - { label: Open Support, href: /support }
+      - { label: Contact us, href: /contactus }
+    related: [account.forgot_password]
+    hard_negatives: [smalltalk.capabilities]
+    sources:
+      - apps/frontend/src/components/support/Support.tsx
+      - apps/backend/src/controllers/contact.controller.ts

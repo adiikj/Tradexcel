@@ -1,0 +1,285 @@
+# Intents answered from live data rather than a KB card. Card-backed intents
+# (faq_platform, faq_education, guardrail, smalltalk) get their examples from
+# cards/*.yaml. `{stock}` / `{stock2}` are filled with real names and symbols
+# from the stock list (plus entities/stocks.yaml aliases) when the training
+# set is built, so one template becomes many examples.
+intents:
+  - id: price_quote
+    description: Current price or today's move of one or more stocks.
+    handler: getQuote via the symbol linker
+    templates:
+      - "{stock} price"
+      - "{stock} share price"
+      - what's the price of {stock}
+      - what is {stock} trading at
+      - how much is {stock} right now
+      - current price of {stock}
+      - "{stock} stock price today"
+      - how is {stock} doing today
+      - is {stock} up or down today
+      - how much has {stock} moved today
+      - what did {stock} close at
+      - "{stock} ltp"
+      - price check {stock}
+      - tell me the price of {stock}
+      - what's {stock} at
+      - "{stock} quote"
+      - how much does one share of {stock} cost
+      - "{stock} today's change"
+      - did {stock} go up today
+      - why is {stock} falling today
+      - show me {stock}
+      - latest price for {stock}
+      - "{stock}?"
+      - compare {stock} and {stock2}
+      - "{stock} vs {stock2} today"
+      - prices of {stock} and {stock2}
+      - how are {stock} and {stock2} doing
+      - which is up more today {stock} or {stock2}
+      - give me quotes for {stock}, {stock2}
+    examples:
+      - what's the price
+      - check a stock price for me
+      - share price please
+      - how much is that stock now
+      - get me a live quote
+
+  - id: holding_detail
+    description: How the user's own position in a specific stock is doing.
+    handler: user's Holding + live quote
+    templates:
+      - how is my {stock} doing
+      - how many {stock} shares do i have
+      - what's my profit on {stock}
+      - am i in profit on {stock}
+      - my {stock} position
+      - what's my average price for {stock}
+      - how much did i pay for {stock}
+      - how much is my {stock} worth now
+      - do i own {stock}
+      - my p&l on {stock}
+      - how much am i down on {stock}
+      - "{stock} in my portfolio"
+      - is my {stock} holding in the green
+      - how much of my money is in {stock}
+      - what's my return on {stock} so far
+      - did my {stock} go up
+      - my {stock} and {stock2} positions
+      - compare my {stock} and {stock2} holdings
+    examples:
+      - how is my stock doing
+      - check one of my holdings
+      - details of my position
+
+  - id: portfolio_summary
+    description: The user's overall wallet, holdings and returns.
+    handler: wallet + holdings + computeNetWorths
+    examples:
+      - what's my balance
+      - how much cash do i have
+      - what's my net worth
+      - how am i doing this week
+      - am i in profit
+      - show my portfolio
+      - what stocks do i own
+      - list my holdings
+      - how much have i made this season
+      - what's my total p&l
+      - how much money do i have left
+      - how much have i invested
+      - what's my buying power
+      - which of my stocks is doing best
+      - which of my holdings is losing the most
+      - my portfolio summary
+      - am i up or down today
+      - how much did i gain today
+      - what's my return this week
+      - how much is my portfolio worth
+      - give me a quick summary of my account
+      - how diversified am i
+      - what percentage of my money is invested
+      - how many stocks do i hold
+      - how much cash is sitting idle
+      - what's my biggest holding
+      - my overall performance
+      - am i beating the starting balance
+      - how much have i lost
+      - show my positions
+      - did i make money this week
+      - what's my unrealized profit
+      - total value of my holdings
+      - how are my investments doing
+      - quick update on my portfolio
+
+  - id: my_rank
+    description: The user's leaderboard rank and title.
+    handler: getRankings + getTitle
+    examples:
+      - what's my rank
+      - where am i on the leaderboard
+      - what position am i in
+      - my leaderboard rank
+      - how many players are ahead of me
+      - am i in the top 10
+      - what's my title
+      - why is my title rookie trader
+      - how far am i from first place
+      - rank among people i follow
+      - where do i stand among my friends
+      - what rank am i this season
+      - how many people are playing
+      - am i beating my friends
+      - my standing
+      - how close am i to the top 100
+      - what percentile am i in
+      - who is just above me
+      - did my rank go up
+
+  - id: my_achievements
+    description: The user's badges, missing badges, and login streak.
+    handler: achievements service + streak fields
+    examples:
+      - which badges do i have
+      - which badges am i missing
+      - how many achievements have i unlocked
+      - what's my login streak
+      - how long is my streak
+      - what's my longest streak
+      - how close am i to the diversified badge
+      - what badge should i go for next
+      - my achievements
+      - have i earned century club
+      - show my trophies
+      - what was my latest badge
+      - which achievements are left
+      - how many days until weekly warrior
+      - did i get a badge today
+      - my progress on achievements
+      - list my earned badges
+
+  - id: my_contests
+    description: The user's contests and leagues, their rank and cash in them.
+    handler: contest entries + standings
+    examples:
+      - how am i doing in my contest
+      - which contests have i joined
+      - my league rank
+      - when does my contest end
+      - how much cash do i have in the contest
+      - what's my rank in the private league
+      - am i winning my league
+      - show my contests
+      - my contest holdings
+      - how many contests am i in
+      - did i win the last contest
+      - what's my contest net worth
+      - who's leading my league
+      - my upcoming contests
+      - results of my finished contests
+      - check my league position
+      - how far behind am i in the contest
+
+  - id: my_alerts
+    description: The user's price alerts.
+    handler: PriceAlert rows
+    templates:
+      - do i have an alert on {stock}
+      - did my {stock} alert trigger
+      - what's my alert price for {stock}
+    examples:
+      - what alerts do i have
+      - list my price alerts
+      - did any of my alerts trigger
+      - show my active alerts
+      - which alerts have fired
+      - how many alerts have i set
+      - my alerts
+      - are any alerts close to triggering
+      - my triggered alerts this week
+
+  - id: my_orders
+    description: The user's queued (after-hours) orders and recent trades.
+    handler: QueuedOrder rows + recent transactions
+    templates:
+      - did my {stock} order go through
+      - when will my {stock} order be placed
+      - is my {stock} buy still queued
+      - at what price did my {stock} order fill
+    examples:
+      - do i have any queued orders
+      - did my overnight order fill
+      - show my pending orders
+      - what orders are waiting for the open
+      - which of my orders are still pending
+      - what was my last trade
+      - show my recent trades
+      - what did i buy today
+      - my last 5 transactions
+      - list my orders
+      - was my weekend buy placed
+      - what did i sell recently
+
+  - id: out_of_scope
+    description: Anything unrelated to TradeXcel, trading or the user's account.
+    handler: polite fallback with what the assistant can do
+    examples:
+      - what's the weather today
+      - will it rain tomorrow in mumbai
+      - write me a python function to sort a list
+      - fix my javascript error
+      - what's a good recipe for paneer butter masala
+      - who won the ipl final
+      - what's the cricket score
+      - tell me the news about elections
+      - who is the prime minister of india
+      - recommend a good movie
+      - what song is trending
+      - translate hello to french
+      - solve 2x + 5 = 15
+      - help me with my physics homework
+      - write an essay on climate change
+      - what's the capital of australia
+      - how tall is mount everest
+      - book a train ticket
+      - order food from swiggy
+      - what time is it in new york
+      - how do i lose weight
+      - suggest a gift for my mom
+      - plan a trip to goa
+      - how do i fix my wifi
+      - what is the meaning of life
+      - write a poem about the sea
+      - who is elon musk
+      - how to make my instagram grow
+      - what's the best laptop under 60000
+      - help me write a cover letter
+      - how does photosynthesis work
+      - what's the population of india
+      - teach me guitar chords
+      - what's on netflix
+      - best phone to buy
+      - how to cook rice
+      - summarize this article for me
+      - what's 15 percent of 240
+      - tell me about the roman empire
+      - how to learn spanish
+      - who invented the telephone
+      - how to get a passport
+      - what is my ip address
+      - generate an image of a cat
+      - what's the latest iphone
+      - convert 10 km to miles
+      - how do vaccines work
+      - is chatgpt better than you
+      - how do i start a youtube channel
+      - what should i name my dog
+      - explain quantum physics
+      - how to apply for a job at google
+      - which college is best for engineering
+      - how to reset my gmail password
+      - book a doctor appointment
+      - how many calories in a banana
+      - who wrote harry potter
+      - what's the score of the football match
+      - best places to eat nearby
+      - how to meditate

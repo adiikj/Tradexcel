@@ -1,0 +1,147 @@
+cards:
+  - id: smalltalk.greeting
+    category: smalltalk
+    title: Hello
+    answer: |
+      Hi! I'm the TradeXcel assistant. Ask me how something works, look up a live stock price, or check how your portfolio is doing.
+    questions:
+      - hi
+      - hello
+      - hey there
+      - good morning
+      - yo
+      - hii
+      - hello assistant
+      - namaste
+      - hey bot
+    tags: [greeting]
+
+  - id: smalltalk.capabilities
+    category: smalltalk
+    title: What I can help with
+    answer: |
+      I can help with:
+      - **How TradeXcel works**: trading, the weekly reset, contests, alerts, badges
+      - **Live prices**: "What's TCS trading at?"
+      - **Your account**: balance, holdings, rank, badges, contests
+      - **Trading basics**: P&L, P/E, diversification and more
+
+      I can't place trades or give investment advice.
+    questions:
+      - what can you do
+      - help
+      - what can i ask you
+      - who are you
+      - are you a real person
+      - what are you
+      - how can you help me
+      - are you an ai
+      - what questions do you answer
+    tags: [help, about]
+    related: [smalltalk.greeting]
+
+  - id: smalltalk.thanks
+    category: smalltalk
+    title: Thanks
+    answer: |
+      You're welcome! Anything else you'd like to know?
+    questions:
+      - thanks
+      - thank you
+      - thx
+      - great, thanks a lot
+      - that helped
+      - perfect thank you
+      - cool thanks
+      - awesome, got it
+      - ty
+    tags: [thanks]
+    related: [smalltalk.capabilities]
+
+  - id: smalltalk.goodbye
+    category: smalltalk
+    title: Goodbye
+    answer: |
+      Bye! Good luck this season.
+    questions:
+      - bye
+      - goodbye
+      - see you
+      - that's all
+      - nothing else
+      - ok bye
+      - talk later
+      - i'm done
+    tags: [goodbye]
+
+  - id: smalltalk.how_are_you
+    category: smalltalk
+    title: How are you
+    answer: |
+      Doing well, thanks for asking! Ready to help with anything on TradeXcel. What's on your mind?
+    questions:
+      - how are you
+      - how's it going
+      - what's up
+      - how are you doing today
+      - are you doing okay
+      - sup
+      - you good?
+      - how's your day
+    tags: [chitchat]
+    related: [smalltalk.capabilities]
+
+  - id: smalltalk.frustration
+    category: smalltalk
+    title: Frustrated or something's broken
+    answer: |
+      Sorry it's not going well. Tell me what you were trying to do and I'll try to help.
+      If something looks broken, please report it on the **Support** page with a few details so the team can fix it.
+    questions:
+      - this app sucks
+      - nothing is working
+      - you are useless
+      - i'm so frustrated
+      - this is broken
+      - worst app ever
+      - i lost everything and i'm angry
+      - why is this so confusing
+    tags: [complaint, frustration]
+    links:
+      - { label: Open Support, href: /support }
+    related: [support.contact]
+    hard_negatives: [support.contact]
+
+  - id: smalltalk.compliment
+    category: smalltalk
+    title: Compliments
+    answer: |
+      Thank you, that's great to hear! Anything else I can help you with?
+    questions:
+      - you're awesome
+      - great bot
+      - love this app
+      - nice job
+      - this is really helpful
+      - you are smart
+      - good assistant
+      - tradexcel is amazing
+    tags: [compliment]
+
+  - id: smalltalk.name
+    category: smalltalk
+    title: My name
+    answer: |
+      I'm the **TradeXcel assistant**, a helper built into TradeXcel. I run on the platform itself and answer from TradeXcel's own guides and your account data.
+    questions:
+      - what's your name
+      - do you have a name
+      - who made you
+      - are you chatgpt
+      - which model are you
+      - who built this bot
+      - are you made by tradexcel
+      - what should i call you
+    tags: [identity]
+    related: [smalltalk.capabilities]
+    hard_negatives: [smalltalk.capabilities]

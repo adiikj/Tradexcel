@@ -1,0 +1,123 @@
+# General trading concepts, each tied back to where it shows up in TradeXcel.
+# Explain, never recommend.
+cards:
+  - id: edu.net_worth
+    category: education
+    title: What net worth means
+    answer: |
+      **Net worth = cash + the current market value of everything you hold.**
+      Buying a stock doesn't change your net worth by itself, because you swap cash for shares worth the same amount. It goes up or down as those shares' prices move. It's the number the leaderboard ranks on.
+    questions:
+      - what is net worth
+      - how is my net worth calculated
+      - why did my net worth drop when i didn't trade
+      - is net worth the same as balance
+      - what's the difference between cash and net worth
+      - net worth meaning
+      - why does buying not change my net worth
+      - how is total value computed
+    tags: [net worth, portfolio value]
+    links:
+      - { label: Open Portfolio, href: /portfolio }
+    related: [edu.pnl, leaderboard.ranking]
+    hard_negatives: [wallet.starting_balance]
+
+  - id: edu.pnl
+    category: education
+    title: Profit and loss (P&L)
+    answer: |
+      **P&L** is how much you've gained or lost.
+      - **Unrealized P&L** is on shares you still hold: (current price − average buy price) × quantity. It changes as the price moves.
+      - **Realized P&L** is locked in when you sell.
+
+      P&L % compares that gain or loss with what you paid.
+    questions:
+      - what is p&l
+      - what does unrealized profit mean
+      - realized vs unrealized pnl
+      - how is my profit calculated
+      - why is my p&l red
+      - what does p and l percent mean
+      - how do i lock in profits
+      - explain profit and loss
+      - is my gain real if i haven't sold
+    tags: [pnl, profit, loss]
+    links:
+      - { label: Open Portfolio, href: /portfolio }
+    related: [edu.avg_buy_price, edu.net_worth]
+    hard_negatives: [edu.net_worth]
+
+  - id: edu.avg_buy_price
+    category: education
+    title: Average buy price
+    answer: |
+      If you buy the same stock more than once, TradeXcel tracks a **weighted average buy price**:
+      (old qty × old avg + new qty × new price) ÷ total qty.
+      Example: 10 shares at ₹100, then 10 more at ₹120, gives an average of ₹110. Selling doesn't change your average, only the quantity.
+    questions:
+      - what is average buy price
+      - how is avg price calculated
+      - why did my average price change after buying more
+      - what is averaging down
+      - does selling change my average price
+      - what does avg mean in my portfolio
+      - weighted average cost explained
+      - how is my cost basis computed
+    tags: [average price, cost basis]
+    related: [edu.pnl]
+    sources:
+      - apps/backend/src/services/tradeMath.ts
+
+  - id: edu.diversification
+    category: education
+    title: Diversification
+    answer: |
+      **Diversification** means spreading your money across several stocks, ideally in different sectors, so one bad stock can't sink your whole portfolio.
+      It lowers risk but also caps how much one great pick can lift you. Holding 5+ different stocks at once earns {{BADGE:diversified}}.
+    questions:
+      - what is diversification
+      - why should i hold many stocks
+      - is it bad to put everything in one stock
+      - how many stocks should a portfolio have
+      - what does diversified portfolio mean
+      - spreading risk across stocks
+      - sector concentration meaning
+      - how to reduce portfolio risk
+    tags: [diversification, risk]
+    related: [achievements.badges]
+
+  - id: edu.pe_ratio
+    category: education
+    title: P/E ratio
+    answer: |
+      **P/E (price-to-earnings) = share price ÷ earnings per share.** It tells you how many rupees investors pay for each rupee of yearly profit.
+      A high P/E can mean the market expects fast growth, or that the stock is expensive. A low P/E can mean it's cheap, or that the business is struggling. Compare it only with similar companies in the same sector.
+    questions:
+      - what is p/e ratio
+      - what does pe mean
+      - is a high pe good or bad
+      - price to earnings explained
+      - how do i read the pe ratio
+      - what's a good pe ratio
+      - what is eps
+      - why do tech stocks have high pe
+    tags: [pe, valuation, eps, fundamentals]
+    related: [edu.market_cap]
+
+  - id: edu.market_cap
+    category: education
+    title: Market capitalisation
+    answer: |
+      **Market cap = share price × total shares outstanding.** It's the stock market's valuation of the whole company.
+      In India, companies are loosely grouped as **large-cap** (the biggest 100), **mid-cap** (the next 150) and **small-cap** (the rest). Smaller companies usually move more, both up and down.
+    questions:
+      - what is market cap
+      - large cap vs small cap
+      - what does mid cap mean
+      - how is market capitalization calculated
+      - is a bigger market cap safer
+      - meaning of market capitalisation
+      - what are blue chip stocks
+      - why do small caps move so much
+    tags: [market cap, large cap, small cap]
+    related: [edu.pe_ratio]

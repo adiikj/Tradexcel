@@ -1,0 +1,261 @@
+# Reading a company's numbers and the economy around it.
+cards:
+  - id: edu.fundamental_analysis
+    category: education
+    title: Fundamental analysis
+    answer: |
+      **Fundamental analysis** judges a company by its business: revenue and profit growth, debt, management, competition, and valuation ratios like P/E and P/B.
+      The idea is to estimate what the business is worth and compare it with the share price.
+    questions:
+      - what is fundamental analysis
+      - how do i analyse a company
+      - how to know if a stock is undervalued
+      - what makes a company good
+      - how to research a stock
+      - fundamental vs technical analysis
+      - what is intrinsic value
+      - where to start analysing companies
+    tags: [fundamental analysis, research]
+    related: [edu.pe_ratio, edu.technical_analysis]
+    hard_negatives: [edu.technical_analysis]
+
+  - id: edu.revenue_profit
+    category: education
+    title: Revenue, profit and margins
+    answer: |
+      - **Revenue** (sales) is the money a company brings in.
+      - **Net profit** is what's left after all costs, interest and tax.
+      - **Profit margin** is profit ÷ revenue.
+
+      Growing revenue with steady or rising margins is usually a healthy sign. Growing sales with shrinking profit deserves a closer look.
+    questions:
+      - what is revenue
+      - revenue vs profit
+      - what is net profit
+      - what is operating margin
+      - what is ebitda
+      - what does profit margin mean
+      - top line vs bottom line
+      - why does profit matter more than sales
+    tags: [revenue, profit, margin]
+    related: [edu.earnings_results]
+
+  - id: edu.earnings_results
+    category: education
+    title: Quarterly results
+    answer: |
+      Listed companies report **results every quarter**. Prices often jump or drop on results day, depending on whether the numbers beat or missed what the market expected. The expectation matters as much as the result itself.
+    questions:
+      - what are quarterly results
+      - why did the stock fall after good results
+      - what is earnings season
+      - what does beat estimates mean
+      - when do companies announce results
+      - what is q1 q2 q3 q4
+      - results day volatility
+      - what is guidance
+    tags: [results, earnings]
+    related: [edu.revenue_profit, edu.news_impact]
+
+  - id: edu.pb_ratio
+    category: education
+    title: Book value and P/B ratio
+    answer: |
+      **Book value** is roughly what a company would be worth if it sold its assets and paid its debts. **P/B = share price ÷ book value per share.**
+      P/B is widely used for banks and financial companies. A P/B below 1 means the market values the company below its book value.
+    questions:
+      - what is book value
+      - what is p/b ratio
+      - price to book explained
+      - is low price to book good
+      - why is p/b used for banks
+      - book value per share meaning
+      - p/b below 1 meaning
+      - what is net worth of a company
+    tags: [book value, pb, valuation]
+    related: [edu.pe_ratio, edu.roe]
+
+  - id: edu.roe
+    category: education
+    title: ROE and ROCE
+    answer: |
+      **ROE** (return on equity) = net profit ÷ shareholders' equity. It measures how well a company turns shareholders' money into profit.
+      **ROCE** does the same using all capital, including debt. Consistently high ROE/ROCE is often a sign of a strong business, as long as it isn't driven by heavy debt.
+    questions:
+      - what is roe
+      - what is roce
+      - return on equity meaning
+      - is high roe good
+      - roe vs roce
+      - how efficient is a company
+      - what is return on capital
+      - good roe percentage
+    tags: [roe, roce, efficiency]
+    related: [edu.debt_equity, edu.pb_ratio]
+
+  - id: edu.debt_equity
+    category: education
+    title: Debt-to-equity
+    answer: |
+      **Debt-to-equity = total debt ÷ shareholders' equity.** It shows how much a company relies on borrowing.
+      Some debt is normal, but high debt makes a company riskier when interest rates rise or business slows. Compare it with others in the same sector, since banks and utilities naturally carry more.
+    questions:
+      - what is debt to equity
+      - is debt bad for a company
+      - what is a debt free company
+      - high debt stock risk
+      - what is leverage of a company
+      - how to check company debt
+      - d/e ratio meaning
+      - what is interest coverage
+    tags: [debt, leverage]
+    related: [edu.roe]
+
+  - id: edu.dividend_yield
+    category: education
+    title: Dividend yield
+    answer: |
+      **Dividend yield = yearly dividend per share ÷ share price.** A ₹500 stock paying ₹15 a year yields 3%.
+      A very high yield can be a warning sign: sometimes it's high because the price has fallen sharply.
+    questions:
+      - how is dividend yield calculated
+      - what is dividend yield
+      - what is a good dividend yield
+      - high dividend yield stocks meaning
+      - why is dividend yield so high
+      - dividend yield vs growth
+      - income stocks meaning
+      - dividend payout ratio
+      - yield on cost
+    tags: [dividend yield, income]
+    related: [edu.dividend]
+    hard_negatives: [edu.dividend]
+
+  - id: edu.growth_value
+    category: education
+    title: Growth vs value investing
+    answer: |
+      **Growth investing** looks for companies growing fast, and often pays a high P/E for that growth. **Value investing** looks for companies trading below what they seem to be worth, often at a low P/E or P/B.
+      Both are styles, not guarantees. Each goes through long periods in and out of favour.
+    questions:
+      - what is value investing
+      - what is growth investing
+      - growth vs value stocks
+      - who is warren buffett
+      - what is a value trap
+      - what is margin of safety
+      - quality stocks meaning
+      - investing styles explained
+    tags: [growth, value, investing style]
+    related: [edu.pe_ratio, edu.pb_ratio]
+
+  - id: edu.interest_rates
+    category: education
+    title: How interest rates affect stocks
+    answer: |
+      When the **RBI** raises interest rates, borrowing gets costlier and safe options like FDs pay more, which tends to weigh on stocks, especially high-debt and high-growth ones. Rate cuts usually do the opposite.
+      Banks, real estate and autos are especially sensitive to rates.
+    questions:
+      - how do interest rates affect the stock market
+      - what is repo rate
+      - why did the market fall after rbi policy
+      - what does rbi rate hike mean for stocks
+      - rate cut effect on shares
+      - which sectors are rate sensitive
+      - what is monetary policy
+      - bond yields and stocks
+    tags: [interest rates, rbi, macro]
+    related: [edu.inflation]
+
+  - id: edu.inflation
+    category: education
+    title: Inflation and the market
+    answer: |
+      **Inflation** is the general rise in prices over time. Moderate inflation is normal, but high inflation squeezes company profits and pushes the central bank to raise interest rates, both of which can pull stock prices down.
+      Over long periods, stocks have historically been one way people try to beat inflation.
+    questions:
+      - what is inflation
+      - how does inflation affect stocks
+      - what is cpi
+      - why does high inflation hurt markets
+      - is inflation good or bad
+      - real return meaning
+      - what is wpi
+      - stocks as inflation hedge
+    tags: [inflation, macro]
+    related: [edu.interest_rates, edu.compounding]
+
+  - id: edu.news_impact
+    category: education
+    title: Why news moves prices
+    answer: |
+      Prices react to anything that changes what a company might earn: results, orders, management changes, regulation, global markets, oil prices, government policy.
+      Often the news is already "priced in" before it's announced, which is why a stock can fall on good news.
+    questions:
+      - why did the stock go down on good news
+      - how does news affect share price
+      - what does priced in mean
+      - why did the whole market fall today
+      - buy the rumour sell the news meaning
+      - why do global markets affect india
+      - how do oil prices affect stocks
+      - what moves stock prices
+    tags: [news, sentiment]
+    links:
+      - { label: Open News, href: /news }
+    related: [news.page, edu.earnings_results]
+    hard_negatives: [news.page]
+
+  - id: edu.beta
+    category: education
+    title: Beta
+    answer: |
+      **Beta** measures how much a stock tends to move compared with the overall market. A beta of 1 moves with the market. Above 1 swings more, for example 1.5 moves about 1.5% when the market moves 1%. Below 1 swings less.
+    questions:
+      - what is beta
+      - what does beta of 1.5 mean
+      - low beta stock meaning
+      - high beta stocks
+      - how to measure a stock's risk vs market
+      - beta vs volatility
+      - negative beta meaning
+      - defensive low beta
+    tags: [beta, risk]
+    related: [edu.volatility]
+    hard_negatives: [edu.volatility]
+
+  - id: edu.cagr
+    category: education
+    title: CAGR and annualised returns
+    answer: |
+      **CAGR** (compound annual growth rate) is the steady yearly rate that would turn a starting value into an ending value.
+      CAGR = (end ÷ start)^(1 ÷ years) − 1. Example: ₹1,00,000 growing to ₹2,00,000 in 5 years is about 14.9% a year.
+    questions:
+      - what is cagr
+      - how to calculate cagr
+      - annualised return meaning
+      - absolute return vs cagr
+      - what is xirr
+      - average annual return explained
+      - how much did it grow per year
+      - cagr formula
+    tags: [cagr, returns]
+    related: [edu.compounding]
+
+  - id: edu.compounding
+    category: education
+    title: Compounding
+    answer: |
+      **Compounding** is earning returns on your past returns, not just on the original amount. Over long periods it makes a huge difference: 12% a year roughly doubles money in 6 years and grows it about 10 times in 20.
+      Time in the market matters as much as the rate.
+    questions:
+      - what is compounding
+      - power of compounding explained
+      - rule of 72
+      - how long to double my money
+      - why start investing early
+      - compound interest in stocks
+      - what is compounding effect
+      - does compounding work in shares
+    tags: [compounding, long term]
+    related: [edu.cagr, edu.buy_and_hold]

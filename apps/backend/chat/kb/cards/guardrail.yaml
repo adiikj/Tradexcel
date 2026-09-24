@@ -1,0 +1,144 @@
+# Questions the assistant must decline. The runtime routes the `guardrail`
+# intent here even when a platform card scores higher.
+cards:
+  - id: guardrail.investment_advice
+    category: guardrail
+    title: I can't give buy/sell recommendations
+    answer: |
+      I can't tell you what to buy or sell. That would be investment advice, and I'm not a financial adviser.
+      I can explain a stock's live price, how your holdings are doing, or ideas like P/E, diversification and market cap, so you can make your own call. TradeXcel is a safe place to test it with virtual money.
+    questions:
+      - should i buy reliance
+      - which stock should i buy today
+      - give me a stock tip
+      - is tcs a good investment
+      - what's the best stock to invest in
+      - should i sell my infosys shares
+      - recommend me some stocks
+      - which share will give maximum return
+      - tell me what to buy to win the contest
+      - is it a good time to buy hdfc bank
+    tags: [advice, recommendation, tips]
+    links:
+      - { label: Open Market, href: /market }
+    related: [edu.diversification, edu.pe_ratio]
+    hard_negatives: [trade.how_to_buy]
+
+  - id: guardrail.price_prediction
+    category: guardrail
+    title: I can't predict prices
+    answer: |
+      Nobody can reliably predict where a stock will go, and I won't guess. I can show today's price and change, or explain what moves prices (earnings, news, interest rates, overall market mood).
+      Want me to look up a live price?
+    questions:
+      - will reliance go up tomorrow
+      - predict the nifty for next week
+      - what will tcs price be next month
+      - is the market going to crash
+      - will infosys hit 2000
+      - forecast hdfc share price
+      - when will the market recover
+      - is this stock going to rise
+      - guarantee me a profit
+    tags: [prediction, forecast]
+    related: [guardrail.investment_advice]
+    hard_negatives: [trade.market_closed]
+
+  - id: guardrail.real_investing
+    category: guardrail
+    title: I can't advise on real-money investing
+    answer: |
+      I can't recommend brokers, apps, or how much of your real money to invest. For real investing decisions, talk to a SEBI-registered investment adviser.
+      TradeXcel is a good place to practise first. Everything here is virtual, so mistakes cost nothing.
+    questions:
+      - which broker should i open a demat account with
+      - should i invest my savings in stocks
+      - how much of my salary should i invest
+      - is zerodha better than groww
+      - should i take a loan to buy shares
+      - where should i put 1 lakh rupees
+      - is now a good time to start investing real money
+      - should i put my money in fd or stocks
+      - help me plan my investments
+    tags: [real money, broker, personal finance]
+    related: [guardrail.investment_advice, unsupported.real_money]
+    hard_negatives: [unsupported.real_money]
+
+  - id: guardrail.tax
+    category: guardrail
+    title: I can't give tax advice
+    answer: |
+      I can't help with tax on real investments, like capital gains or how to file. Please check with a chartered accountant or the Income Tax Department's official guidance.
+      Nothing on TradeXcel is taxable. It's all virtual money.
+    questions:
+      - how much tax do i pay on stock profits
+      - what is capital gains tax
+      - how to file taxes for trading
+      - do i pay tax on tradexcel winnings
+      - short term vs long term capital gains tax rate
+      - how to save tax on shares
+      - is intraday income taxable
+      - tax on dividends
+    tags: [tax, capital gains]
+    related: [guardrail.real_investing]
+
+  - id: guardrail.tips_insider
+    category: guardrail
+    title: Tips groups, insider info and "sure shot" calls
+    answer: |
+      Be careful with anyone selling **sure-shot tips**, insider information or guaranteed returns. These are common scams, and trading on real insider information is illegal.
+      I won't share tips or rumours. I can explain how to read a company's basics so you can judge for yourself.
+    questions:
+      - give me insider tips
+      - any sure shot stock for tomorrow
+      - which penny stock will be multibagger
+      - join telegram tips group
+      - operator stock for quick profit
+      - is this whatsapp tip genuine
+      - intraday call for today
+      - double my money in a week
+      - get rich quick stock
+    tags: [tips, insider, scam]
+    related: [guardrail.investment_advice, edu.pe_ratio]
+    hard_negatives: [guardrail.price_prediction]
+
+  - id: guardrail.credentials
+    category: guardrail
+    title: Never share your password, PIN or codes
+    answer: |
+      Please **don't share** your password, PIN or email codes with anyone, including me. I never need them, and TradeXcel staff will never ask for them.
+      If you think someone knows them, reset them right away from the sign-in page.
+    questions:
+      - my password is abc123 can you log me in
+      - here is my otp
+      - do you need my pin
+      - can i give you my password
+      - someone asked for my verification code
+      - my pin is 1234, check my account
+      - should i share my otp with support
+      - log in as me
+    tags: [security, password, otp]
+    links:
+      - { label: Reset password, href: /forgot-password }
+    related: [account.forgot_password]
+    hard_negatives: [account.forgot_password, account.otp]
+
+  - id: guardrail.cheating
+    category: guardrail
+    title: Cheating or exploiting the game
+    answer: |
+      I can't help with cheating: multiple accounts to climb the leaderboard, exploiting bugs, or messing with other players. The game is only fun if it's fair.
+      Found a bug? Please report it on the **Support** page. That really helps.
+    questions:
+      - how do i hack the leaderboard
+      - make multiple accounts to win contests
+      - is there a glitch to get more money
+      - exploit to get infinite cash
+      - how to cheat in tradexcel
+      - trick to win every contest
+      - bot to spam trades
+      - hack someone's account
+    tags: [cheating, exploit, hack]
+    links:
+      - { label: Open Support, href: /support }
+    related: [support.contact]

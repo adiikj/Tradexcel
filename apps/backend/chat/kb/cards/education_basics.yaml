@@ -1,0 +1,470 @@
+# Market basics for beginners. General knowledge, explained in TradeXcel's
+# context where it helps - explain, never recommend.
+cards:
+  - id: edu.stock
+    category: education
+    title: What a stock (share) is
+    answer: |
+      A **share** is a small piece of ownership in a company. If a company has 1 crore shares and you own 100, you own a tiny slice of it.
+      Share prices move as buyers and sellers react to the company's results, news and the wider economy. On TradeXcel you buy and sell real companies' shares, with virtual money.
+    questions:
+      - what is a stock
+      - what is a share
+      - what does owning a share mean
+      - stock vs share difference
+      - why do share prices change
+      - what is equity
+      - explain stocks like i'm five
+      - what happens when i buy a share
+    tags: [stock, share, basics]
+    related: [edu.stock_exchange, edu.market_cap]
+
+  - id: edu.stock_exchange
+    category: education
+    title: NSE and BSE
+    answer: |
+      India has two main stock exchanges: the **NSE** (National Stock Exchange) and the **BSE** (Bombay Stock Exchange, Asia's oldest). Most big companies are listed on both.
+      Their flagship indices are the **Nifty 50** (NSE) and the **Sensex** (BSE). TradeXcel uses NSE prices.
+    questions:
+      - what is nse
+      - what is bse
+      - difference between nse and bse
+      - what is a stock exchange
+      - why are stocks listed on two exchanges
+      - what does .ns mean after a symbol
+      - which exchange does tradexcel use
+      - is bse older than nse
+    tags: [nse, bse, exchange]
+    related: [edu.index, edu.stock]
+
+  - id: edu.index
+    category: education
+    title: Nifty 50, Sensex and market indices
+    answer: |
+      An **index** tracks a basket of stocks to show how the market or a sector is doing.
+      - The **Nifty 50** follows 50 large companies on the NSE.
+      - The **Sensex** follows 30 large companies on the BSE.
+      - Sector indices, like Nifty Bank or Nifty IT, track a single industry.
+
+      When people say "the market is up 1%", they usually mean the Nifty or Sensex.
+    questions:
+      - what is nifty
+      - what is sensex
+      - what is a stock market index
+      - what does nifty 50 mean
+      - what is bank nifty
+      - how is the sensex calculated
+      - market is up today what does that mean
+      - what is a sector index
+    tags: [index, nifty, sensex]
+    related: [edu.stock_exchange, edu.index_fund_etf]
+    hard_negatives: [market.which_stocks]
+
+  - id: edu.bull_bear
+    category: education
+    title: Bull and bear markets
+    answer: |
+      A **bull market** is a long stretch of rising prices and optimism. A **bear market** is a long fall, often described as a 20%+ drop from a recent high.
+      "Bullish" on a stock means you expect it to rise, and "bearish" means you expect it to fall.
+    questions:
+      - what is a bull market
+      - what is a bear market
+      - what does bullish mean
+      - what does bearish mean
+      - are we in a bull or bear market
+      - bull vs bear explained
+      - what is a market correction
+      - why is it called bull and bear
+    tags: [bull, bear, market cycle]
+    related: [edu.volatility]
+
+  - id: edu.order_types
+    category: education
+    title: Market, limit and stop-loss orders
+    answer: |
+      - A **market order** buys or sells right away at the current price.
+      - A **limit order** only fills at your chosen price or better.
+      - A **stop-loss** automatically sells if the price falls to a set level, to cap a loss.
+
+      Real brokers offer all three. TradeXcel only has market orders.
+    questions:
+      - what is a market order
+      - what is a limit order
+      - what is a stop loss order
+      - market order vs limit order
+      - why use a stop loss
+      - what is a trailing stop loss
+      - explain order types
+      - what does gtt order mean
+    tags: [order types, limit, stop loss]
+    related: [unsupported.limit_orders]
+    hard_negatives: [unsupported.limit_orders]
+
+  - id: edu.bid_ask
+    category: education
+    title: Bid, ask and spread
+    answer: |
+      The **bid** is the highest price a buyer is willing to pay, and the **ask** is the lowest price a seller will accept. The gap between them is the **spread**.
+      Busy stocks have tiny spreads. Thinly traded stocks can have wide ones, which makes trading them costlier.
+    questions:
+      - what is bid and ask
+      - what is the spread
+      - bid ask spread meaning
+      - why is buy price higher than sell price
+      - what is the order book
+      - what does market depth mean
+      - wide spread meaning
+      - what is ask price
+    tags: [bid, ask, spread]
+    related: [edu.liquidity]
+
+  - id: edu.volume
+    category: education
+    title: Trading volume
+    answer: |
+      **Volume** is how many shares changed hands in a period, usually a day. High volume means lots of interest. A big price move on high volume is generally taken more seriously than one on low volume.
+    questions:
+      - what is volume in stocks
+      - what does trading volume mean
+      - why does volume matter
+      - high volume meaning
+      - what is average volume
+      - volume spike meaning
+      - low volume stock
+      - how to read volume bars
+    tags: [volume]
+    related: [edu.liquidity, edu.candlestick]
+
+  - id: edu.liquidity
+    category: education
+    title: Liquidity
+    answer: |
+      **Liquidity** is how easily you can buy or sell a stock without moving its price much. Large, popular stocks like Reliance or HDFC Bank are very liquid. Small, rarely traded stocks aren't.
+      In real markets, illiquid stocks can be hard to exit. On TradeXcel every order fills at the quoted price.
+    questions:
+      - what is liquidity
+      - what is a liquid stock
+      - why are some stocks illiquid
+      - liquidity meaning in share market
+      - can i get stuck in a stock
+      - what does thinly traded mean
+      - is high liquidity good
+      - liquidity risk
+    tags: [liquidity]
+    related: [edu.volume, edu.bid_ask]
+
+  - id: edu.volatility
+    category: education
+    title: Volatility
+    answer: |
+      **Volatility** is how much and how quickly a price swings. A volatile stock can jump or drop several percent in a day, while a stable one moves slowly.
+      Higher volatility means bigger possible gains and bigger possible losses.
+    questions:
+      - what is volatility
+      - why is this stock so volatile
+      - what does a volatile market mean
+      - what is india vix
+      - high volatility meaning
+      - are volatile stocks risky
+      - why do prices swing so much
+      - what is the fear index
+    tags: [volatility, risk, vix]
+    related: [edu.beta, edu.risk_return]
+
+  - id: edu.ipo
+    category: education
+    title: IPOs
+    answer: |
+      An **IPO** (initial public offering) is when a company first sells its shares to the public and lists on an exchange. After listing, its shares trade like any other stock.
+      New listings can be very volatile in their first days.
+    questions:
+      - what is an ipo
+      - how does an ipo work
+      - what does listing day mean
+      - can i apply for ipos here
+      - what is ipo allotment
+      - what is grey market premium
+      - why do companies go public
+      - listing gains meaning
+    tags: [ipo, listing]
+    related: [edu.stock]
+
+  - id: edu.dividend
+    category: education
+    title: Dividends
+    answer: |
+      A **dividend** is a share of profits a company pays to its shareholders, usually as cash per share. You must own the stock before the **ex-dividend date** to receive it, and the price typically drops by about the dividend amount that day.
+      TradeXcel doesn't credit dividends.
+    questions:
+      - what is a dividend
+      - how do dividends work
+      - what is ex dividend date
+      - what is record date
+      - why did price drop on ex date
+      - do i get the dividend if i sell before the ex date
+      - do all companies pay dividends
+      - interim vs final dividend
+    tags: [dividend, income]
+    related: [unsupported.corporate_actions]
+    hard_negatives: [unsupported.corporate_actions]
+
+  - id: edu.stock_split
+    category: education
+    title: Stock splits, bonus shares and buybacks
+    answer: |
+      - **Split:** each share is divided into more shares. For example, 1 share at ₹1,000 becomes 2 shares at ₹500. Your total value doesn't change.
+      - **Bonus shares:** free extra shares the company gives existing shareholders, with the price adjusting the same way.
+      - **Buyback:** the company buys its own shares back from investors, often at a premium.
+
+      TradeXcel doesn't apply these.
+    questions:
+      - what is a stock split
+      - what are bonus shares
+      - what is a share buyback
+      - does a split make me richer
+      - why do companies split shares
+      - 1:1 bonus meaning
+      - reverse split meaning
+      - what is face value of a share
+    tags: [split, bonus, buyback]
+    related: [unsupported.corporate_actions]
+    hard_negatives: [unsupported.corporate_actions]
+
+  - id: edu.sector
+    category: education
+    title: Sectors
+    answer: |
+      Companies are grouped into **sectors** by what they do: banking, IT, pharma, auto, FMCG, energy, metals and so on. Stocks in the same sector often move together because the same news affects them.
+      That's why spreading money across sectors is a common way to reduce risk.
+    questions:
+      - what is a sector
+      - what does fmcg mean
+      - which sector is a stock in
+      - why do bank stocks move together
+      - what are cyclical sectors
+      - defensive stocks meaning
+      - what is sector rotation
+      - it sector vs pharma sector
+    tags: [sector, industry]
+    related: [edu.diversification]
+
+  - id: edu.demat
+    category: education
+    title: Demat and trading accounts
+    answer: |
+      In real investing, a **demat account** holds your shares electronically, and a **trading account** with a broker lets you place orders. You need both to invest in Indian stocks.
+      You don't need either for TradeXcel, since everything here is virtual.
+    questions:
+      - what is a demat account
+      - do i need a demat account for tradexcel
+      - trading account vs demat account
+      - what are cdsl and nsdl
+      - how do real investors hold shares
+      - what is a depository
+      - do i need a broker to play
+      - what is kyc for investing
+    tags: [demat, broker, account]
+    related: [unsupported.real_money, guardrail.real_investing]
+    hard_negatives: [guardrail.real_investing]
+
+  - id: edu.sebi
+    category: education
+    title: SEBI, the market regulator
+    answer: |
+      **SEBI** (Securities and Exchange Board of India) regulates India's stock markets. It sets the rules for exchanges, brokers and listed companies, and acts against fraud like insider trading and price manipulation.
+    questions:
+      - what is sebi
+      - who regulates the stock market in india
+      - what does sebi do
+      - what is insider trading
+      - is stock manipulation illegal
+      - sebi registered adviser meaning
+      - who protects investors
+      - what is market regulation
+    tags: [sebi, regulation]
+    related: [guardrail.tips_insider]
+
+  - id: edu.circuit_limits
+    category: education
+    title: Upper and lower circuits
+    answer: |
+      To curb wild moves, exchanges set **price bands** on many stocks, often 2%, 5%, 10% or 20% a day. A stock at its limit is "locked" in the **upper circuit** or **lower circuit**.
+      The whole market also has circuit breakers that pause trading if the index falls 10%, 15% or 20%.
+    questions:
+      - what is an upper circuit
+      - what is lower circuit
+      - what are price bands
+      - why can't a stock move more than 20 percent
+      - what is a market circuit breaker
+      - stock hit upper circuit meaning
+      - what does locked in circuit mean
+      - trading halted why
+    tags: [circuit, price band]
+    related: [edu.volatility]
+
+  - id: edu.market_session
+    category: education
+    title: Pre-open session and settlement
+    answer: |
+      NSE equities have a **pre-open session** from 9:00 to 9:15 AM IST, where the opening price is set, then normal trading runs from {{MARKET_OPEN}} to {{MARKET_CLOSE}}.
+      Real trades settle **T+1**: shares and money actually change hands the next working day. On TradeXcel, trades settle instantly.
+    questions:
+      - what is the pre open session
+      - what is t+1 settlement
+      - when do i actually get shares after buying
+      - how is the opening price decided
+      - what happens between 9 and 9:15
+      - what is settlement in stock market
+      - what is a closing price
+      - after market orders meaning
+    tags: [session, settlement, pre-open]
+    related: [trade.market_closed]
+    hard_negatives: [trade.market_closed]
+
+  - id: edu.fii_dii
+    category: education
+    title: FIIs and DIIs
+    answer: |
+      **FIIs/FPIs** are foreign institutional investors, like overseas funds. **DIIs** are domestic institutions, like Indian mutual funds and insurers. Their daily buying and selling is big enough to move the market, which is why the news reports it.
+    questions:
+      - what is fii
+      - what are dii
+      - fii selling meaning
+      - who are institutional investors
+      - what is fpi
+      - why do foreign investors matter
+      - fii dii data explained
+      - retail vs institutional investors
+    tags: [fii, dii, institutions]
+    related: [edu.index]
+
+  - id: edu.52_week
+    category: education
+    title: 52-week high and low
+    answer: |
+      The **52-week high/low** is the highest and lowest price a stock has traded at over the past year. It shows where today's price sits in its recent range. Many traders watch for breaks above the high or below the low.
+    questions:
+      - what is 52 week high
+      - what does 52 week low mean
+      - stock at 52 week high good or bad
+      - what is an all time high
+      - how far is it from its yearly high
+      - 52w range meaning
+      - near 52 week low meaning
+      - what is a breakout
+    tags: [52 week, range]
+    related: [edu.support_resistance]
+
+  - id: edu.penny_stocks
+    category: education
+    title: Penny stocks
+    answer: |
+      **Penny stocks** trade at very low prices, often under ₹10–20, usually from small companies. They're cheap per share but tend to be **illiquid, volatile and easy to manipulate**, and many "tips" target them.
+      A low share price doesn't mean a stock is cheap in value.
+    questions:
+      - what are penny stocks
+      - are cheap stocks a good deal
+      - why are penny stocks risky
+      - is a ₹5 stock better than a ₹5000 stock
+      - what is a multibagger
+      - low price high potential stocks
+      - pump and dump meaning
+      - small cheap shares explained
+    tags: [penny stocks, risk]
+    related: [edu.liquidity, guardrail.tips_insider]
+    hard_negatives: [guardrail.tips_insider]
+
+  - id: edu.portfolio
+    category: education
+    title: What a portfolio is
+    answer: |
+      Your **portfolio** is everything you own: all your stock holdings plus your cash. Looking at it as a whole shows your real risk and return, rather than any one stock.
+    questions:
+      - what is a portfolio
+      - meaning of portfolio in stocks
+      - what does holdings mean
+      - what is a position in trading
+      - what counts as my portfolio
+      - how to think about my portfolio
+      - what is asset allocation
+      - portfolio vs holdings
+    tags: [portfolio, holdings]
+    links:
+      - { label: Open Portfolio, href: /portfolio }
+    related: [edu.diversification, portfolio.page]
+    hard_negatives: [portfolio.page]
+
+  - id: edu.index_fund_etf
+    category: education
+    title: Index funds and ETFs
+    answer: |
+      An **index fund** copies an index like the Nifty 50, so you own a slice of all its companies at once. An **ETF** does the same but trades on the exchange like a stock.
+      Both are popular low-cost ways to get broad diversification. TradeXcel only has individual stocks.
+    questions:
+      - what is an index fund
+      - what is an etf
+      - etf vs mutual fund
+      - how to invest in the whole nifty
+      - what is passive investing
+      - nifty bees meaning
+      - why are index funds cheap
+      - active vs passive funds
+    tags: [index fund, etf, passive]
+    related: [edu.mutual_fund, unsupported.other_markets]
+    hard_negatives: [unsupported.other_markets]
+
+  - id: edu.mutual_fund
+    category: education
+    title: Mutual funds and SIPs
+    answer: |
+      A **mutual fund** pools money from many investors, and a professional manager invests it in stocks, bonds or both. A **SIP** (systematic investment plan) invests a fixed amount in a fund every month.
+      Funds trade at a daily **NAV** (net asset value), not live like stocks.
+    questions:
+      - what is a mutual fund
+      - what is sip
+      - what is nav
+      - mutual fund vs stocks
+      - how do mutual funds work
+      - what is an expense ratio
+      - sip vs lump sum
+      - equity fund vs debt fund
+    tags: [mutual fund, sip, nav]
+    related: [edu.index_fund_etf]
+
+  - id: edu.short_selling_concept
+    category: education
+    title: What short selling is
+    answer: |
+      **Short selling** means selling shares you've borrowed, hoping to buy them back cheaper later and pocket the difference. It profits when prices fall, but losses can be large if the price rises instead.
+      In India, retail short selling is mostly intraday. TradeXcel doesn't support it.
+    questions:
+      - what is short selling
+      - how does shorting work
+      - what does going short mean
+      - long vs short position
+      - what is a short squeeze
+      - why is shorting risky
+      - how do people profit when stocks fall
+      - what does short mean in trading
+    tags: [short selling, concept]
+    related: [unsupported.short_selling]
+    hard_negatives: [unsupported.short_selling]
+
+  - id: edu.options_basics
+    category: education
+    title: Futures and options (F&O)
+    answer: |
+      **Options** give the right, but not the obligation, to buy (**call**) or sell (**put**) at a set price before a date. **Futures** are an obligation to buy or sell at a set price on a future date.
+      Both use leverage, so gains and losses are magnified. SEBI studies have found that most retail F&O traders lose money. TradeXcel doesn't offer F&O.
+    questions:
+      - what are options
+      - what is a call option
+      - what is a put option
+      - what are futures
+      - what is f&o
+      - what is expiry in options
+      - what is option premium
+      - what is leverage in trading
+    tags: [options, futures, derivatives]
+    related: [unsupported.short_selling]
+    hard_negatives: [unsupported.short_selling]

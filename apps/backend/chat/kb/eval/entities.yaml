@@ -1,0 +1,196 @@
+# Stock-name recognition test set. `stocks` is every listed symbol the text
+# refers to, in order of appearance (empty when none). `ambiguous` names the
+# ambiguous term the linker should flag; if that term has a default, the
+# default is also listed in `stocks`.
+cases:
+  # --- plain names and symbols ---
+  - { text: "infosys price", stocks: [INFY.NS] }
+  - { text: "INFY", stocks: [INFY.NS] }
+  - { text: "how is reliance doing", stocks: [RELIANCE.NS] }
+  - { text: "tcs share", stocks: [TCS.NS] }
+  - { text: "Wipro today", stocks: [WIPRO.NS] }
+  - { text: "state bank of india quote", stocks: [SBIN.NS] }
+  - { text: "sbin ltp", stocks: [SBIN.NS] }
+  - { text: "hdfc bank price", stocks: [HDFCBANK.NS] }
+  - { text: "icici bank shares", stocks: [ICICIBANK.NS] }
+  - { text: "axis bank", stocks: [AXISBANK.NS] }
+  - { text: "kotak mahindra bank today", stocks: [KOTAKBANK.NS] }
+  - { text: "bharti airtel", stocks: [BHARTIARTL.NS] }
+  - { text: "airtel price", stocks: [BHARTIARTL.NS] }
+  - { text: "itc", stocks: [ITC.NS] }
+  - { text: "hindustan unilever", stocks: [HINDUNILVR.NS] }
+  - { text: "HUL price", stocks: [HINDUNILVR.NS] }
+  - { text: "larsen and toubro", stocks: [LT.NS] }
+  - { text: "maruti suzuki", stocks: [MARUTI.NS] }
+  - { text: "asian paints", stocks: [ASIANPAINT.NS] }
+  - { text: "ultratech", stocks: [ULTRACEMCO.NS] }
+  - { text: "nestle india", stocks: [NESTLEIND.NS] }
+  - { text: "power grid corporation", stocks: [POWERGRID.NS] }
+  - { text: "ntpc", stocks: [NTPC.NS] }
+  - { text: "ongc price", stocks: [ONGC.NS] }
+  - { text: "coal india", stocks: [COALINDIA.NS] }
+  - { text: "tata steel", stocks: [TATASTEEL.NS] }
+  - { text: "tata power company", stocks: [TATAPOWER.NS] }
+  - { text: "jsw steel", stocks: [JSWSTEEL.NS] }
+  - { text: "hindalco", stocks: [HINDALCO.NS] }
+  - { text: "vedanta", stocks: [VEDL.NS] }
+  - { text: "sun pharma", stocks: [SUNPHARMA.NS] }
+  - { text: "dr reddy's", stocks: [DRREDDY.NS] }
+  - { text: "cipla price", stocks: [CIPLA.NS] }
+  - { text: "divis lab", stocks: [DIVISLAB.NS] }
+  - { text: "apollo hospitals", stocks: [APOLLOHOSP.NS] }
+  - { text: "bajaj finance", stocks: [BAJFINANCE.NS] }
+  - { text: "bajaj finserv", stocks: [BAJAJFINSV.NS] }
+  - { text: "hero motocorp", stocks: [HEROMOTOCO.NS] }
+  - { text: "eicher motors", stocks: [EICHERMOT.NS] }
+  - { text: "royal enfield maker", stocks: [EICHERMOT.NS] }
+  - { text: "tvs motor", stocks: [TVSMOTOR.NS] }
+  - { text: "m&m", stocks: [M&M.NS] }
+  - { text: "mahindra and mahindra", stocks: [M&M.NS] }
+  - { text: "tech mahindra", stocks: [TECHM.NS] }
+  - { text: "hcl tech", stocks: [HCLTECH.NS] }
+  - { text: "ltimindtree", stocks: [] }
+  - { text: "adani enterprises", stocks: [ADANIENT.NS] }
+  - { text: "adani ports", stocks: [ADANIPORTS.NS] }
+  - { text: "adani green energy", stocks: [ADANIGREEN.NS] }
+  - { text: "grasim", stocks: [GRASIM.NS] }
+  - { text: "titan company", stocks: [TITAN.NS] }
+  - { text: "britannia", stocks: [BRITANNIA.NS] }
+  - { text: "indusind bank", stocks: [INDUSINDBK.NS] }
+  - { text: "yes bank", stocks: [YESBANK.NS] }
+  - { text: "punjab national bank", stocks: [PNB.NS] }
+  - { text: "bank of baroda", stocks: [BANKBARODA.NS] }
+  - { text: "canara bank", stocks: [CANBK.NS] }
+  - { text: "irctc", stocks: [IRCTC.NS] }
+  - { text: "irfc", stocks: [IRFC.NS] }
+  - { text: "rvnl", stocks: [RVNL.NS] }
+  - { text: "hal share", stocks: [HAL.NS] }
+  - { text: "bharat electronics", stocks: [BEL.NS] }
+  - { text: "bhel", stocks: [BHEL.NS] }
+  - { text: "mazagon dock", stocks: [MAZDOCK.NS] }
+  - { text: "cochin shipyard", stocks: [COCHINSHIP.NS] }
+  - { text: "dmart", stocks: [DMART.NS] }
+  - { text: "avenue supermarts", stocks: [DMART.NS] }
+  - { text: "trent share price", stocks: [TRENT.NS] }
+  - { text: "nykaa", stocks: [NYKAA.NS] }
+  - { text: "paytm", stocks: [PAYTM.NS] }
+  - { text: "one97 communications", stocks: [PAYTM.NS] }
+  - { text: "policybazaar", stocks: [POLICYBZR.NS] }
+  - { text: "indigo airlines stock", stocks: [INDIGO.NS] }
+  - { text: "interglobe aviation", stocks: [INDIGO.NS] }
+  - { text: "dlf", stocks: [DLF.NS] }
+  - { text: "godrej properties", stocks: [GODREJPROP.NS] }
+  - { text: "lodha", stocks: [LODHA.NS] }
+  - { text: "pidilite", stocks: [PIDILITIND.NS] }
+  - { text: "mrf", stocks: [MRF.NS] }
+  - { text: "bosch", stocks: [BOSCHLTD.NS] }
+  - { text: "page industries", stocks: [PAGEIND.NS] }
+  - { text: "polycab", stocks: [POLYCAB.NS] }
+  - { text: "dixon technologies", stocks: [DIXON.NS] }
+  - { text: "zee entertainment", stocks: [ZEEL.NS] }
+  - { text: "pvr inox", stocks: [PVRINOX.NS] }
+  - { text: "suzlon", stocks: [SUZLON.NS] }
+  - { text: "vodafone idea", stocks: [IDEA.NS] }
+  - { text: "3m india", stocks: [3MINDIA.NS] }
+  - { text: "lic housing finance", stocks: [LICHSGFIN.NS] }
+  - { text: "angel one", stocks: [ANGELONE.NS] }
+  - { text: "cdsl", stocks: [CDSL.NS] }
+
+  # --- inside longer sentences ---
+  - { text: "what's the price of infosys right now", stocks: [INFY.NS] }
+  - { text: "i bought some reliance yesterday, how is it doing", stocks: [RELIANCE.NS] }
+  - { text: "should i look at tata steel's chart", stocks: [TATASTEEL.NS] }
+  - { text: "my hdfc bank position is down", stocks: [HDFCBANK.NS] }
+  - { text: "is there news about maruti today", stocks: [MARUTI.NS] }
+  - { text: "set an alert for wipro at 500", stocks: [WIPRO.NS] }
+  - { text: "did my order for coal india go through", stocks: [COALINDIA.NS] }
+  - { text: "why did yes bank fall 5 percent", stocks: [YESBANK.NS] }
+  - { text: "how many shares of mrf do i own", stocks: [MRF.NS] }
+  - { text: "Kindly share the latest quote for Bharat Electronics Limited.", stocks: [BEL.NS] }
+
+  # --- several stocks ---
+  - { text: "tcs vs infosys", stocks: [TCS.NS, INFY.NS] }
+  - { text: "compare hdfc bank, icici bank and axis bank", stocks: [HDFCBANK.NS, ICICIBANK.NS, AXISBANK.NS] }
+  - { text: "wipro and hcl tech prices", stocks: [WIPRO.NS, HCLTECH.NS] }
+  - { text: "reliance, ongc, bpcl today", stocks: [RELIANCE.NS, ONGC.NS, BPCL.NS] }
+  - { text: "tata steel or jsw steel which is up", stocks: [TATASTEEL.NS, JSWSTEEL.NS] }
+  - { text: "sun pharma cipla lupin", stocks: [SUNPHARMA.NS, CIPLA.NS, LUPIN.NS] }
+  - { text: "bajaj finance vs bajaj finserv", stocks: [BAJFINANCE.NS, BAJAJFINSV.NS] }
+  - { text: "m&m and maruti", stocks: [M&M.NS, MARUTI.NS] }
+  - { text: "my itc and hul holdings", stocks: [ITC.NS, HINDUNILVR.NS] }
+  - { text: "hal bel bdl defence stocks", stocks: [HAL.NS, BEL.NS, BDL.NS] }
+
+  # --- typos and odd spacing ---
+  - { text: "infosis price", stocks: [INFY.NS] }
+  - { text: "relaince share", stocks: [RELIANCE.NS] }
+  - { text: "hdfcbank", stocks: [HDFCBANK.NS] }
+  - { text: "icicibank today", stocks: [ICICIBANK.NS] }
+  - { text: "maruthi suzuki", stocks: [MARUTI.NS] }
+  - { text: "bharthi airtel", stocks: [BHARTIARTL.NS] }
+  - { text: "asianpaints", stocks: [ASIANPAINT.NS] }
+  - { text: "kotak bnk", stocks: [KOTAKBANK.NS] }
+  - { text: "tata stell", stocks: [TATASTEEL.NS] }
+  - { text: "wipr0", stocks: [WIPRO.NS] }
+  - { text: "INFOSYS", stocks: [INFY.NS] }
+  - { text: "Reliance Industries Ltd", stocks: [RELIANCE.NS] }
+  - { text: "sun pharmaceutical", stocks: [SUNPHARMA.NS] }
+  - { text: "l and t", stocks: [LT.NS] }
+
+  # --- ambiguous ---
+  - { text: "tata share price", stocks: [], ambiguous: tata }
+  - { text: "how is adani doing", stocks: [], ambiguous: adani }
+  - { text: "bajaj stock", stocks: [], ambiguous: bajaj }
+  - { text: "hdfc price", stocks: [HDFCBANK.NS], ambiguous: hdfc }
+  - { text: "icici today", stocks: [ICICIBANK.NS], ambiguous: icici }
+  - { text: "sbi share", stocks: [SBIN.NS], ambiguous: sbi }
+  - { text: "godrej stock", stocks: [], ambiguous: godrej }
+  - { text: "jsw price", stocks: [], ambiguous: jsw }
+  - { text: "mahindra share", stocks: [M&M.NS], ambiguous: mahindra }
+  - { text: "apollo stock price", stocks: [], ambiguous: apollo }
+  - { text: "torrent share", stocks: [], ambiguous: torrent }
+  - { text: "l&t price", stocks: [LT.NS], ambiguous: "l&t" }
+  - { text: "pnb today", stocks: [PNB.NS], ambiguous: pnb }
+  - { text: "sun share price", stocks: [], ambiguous: sun }
+
+  # --- unlisted companies (must not become a listed stock or an ambiguity) ---
+  - { text: "tata motors price", stocks: [] }
+  - { text: "zomato share", stocks: [] }
+  - { text: "adani wilmar", stocks: [] }
+  - { text: "bajaj auto", stocks: [] }
+  - { text: "hdfc ergo", stocks: [] }
+  - { text: "swiggy stock", stocks: [] }
+  - { text: "apple share price", stocks: [] }
+  - { text: "nifty 50 today", stocks: [] }
+  - { text: "sensex", stocks: [] }
+  - { text: "bitcoin price", stocks: [] }
+
+  # --- everyday words that are also stocks ---
+  - { text: "i have an idea for my portfolio", stocks: [] }
+  - { text: "IDEA share price", stocks: [IDEA.NS] }
+  - { text: "oil prices are rising globally, does that matter", stocks: [] }
+  - { text: "oil india share", stocks: [OIL.NS] }
+  - { text: "we should sail through this correction", stocks: [] }
+  - { text: "buy sail shares", stocks: [SAIL.NS] }
+  - { text: "clean interface, love it", stocks: [] }
+  - { text: "clean science stock", stocks: [CLEAN.NS] }
+  - { text: "the titan of indian banking", stocks: [] }
+  - { text: "titan price", stocks: [TITAN.NS] }
+  - { text: "the app looks great in amber color", stocks: [] }
+  - { text: "amber enterprises share", stocks: [AMBER.NS] }
+  - { text: "is it a matter of prestige to be #1", stocks: [] }
+  - { text: "prestige estates stock", stocks: [PRESTIGE.NS] }
+  - { text: "what is the bse", stocks: [] }
+  - { text: "BSE share price", stocks: [BSE.NS] }
+  - { text: "hal", stocks: [HAL.NS] }
+
+  # --- no stock at all ---
+  - { text: "what is a pe ratio", stocks: [] }
+  - { text: "how do i buy shares", stocks: [] }
+  - { text: "what's my balance", stocks: [] }
+  - { text: "when does the market open", stocks: [] }
+  - { text: "show my portfolio", stocks: [] }
+  - { text: "how do contests work", stocks: [] }
+  - { text: "hello", stocks: [] }
+  - { text: "which stock should i buy", stocks: [] }
+  - { text: "top gainers today", stocks: [] }
+  - { text: "bank stocks are falling", stocks: [] }

@@ -1,0 +1,332 @@
+# Charts, risk management and trading psychology. General principles only -
+# nothing here may name a stock to buy or sell.
+cards:
+  - id: edu.technical_analysis
+    category: education
+    title: Technical analysis
+    answer: |
+      **Technical analysis** studies price charts and volume, looking for trends and patterns such as support and resistance, moving averages and momentum indicators.
+      It focuses on *how* the price is moving rather than on the business. Nothing in it is certain, and signals often fail.
+    questions:
+      - what is technical analysis
+      - how do i read a stock chart
+      - do chart patterns work
+      - what are technical indicators
+      - how do traders use charts
+      - what is price action
+      - chart reading for beginners
+      - is technical analysis reliable
+    tags: [technical analysis, charts]
+    links:
+      - { label: Open Market, href: /market }
+    related: [edu.candlestick, edu.moving_average]
+    hard_negatives: [edu.fundamental_analysis]
+
+  - id: edu.candlestick
+    category: education
+    title: Candlestick charts
+    answer: |
+      Each **candle** shows one period's open, high, low and close. The thick body spans open to close, and the thin wicks reach the high and low.
+      A green (up) candle closed higher than it opened, and a red (down) candle closed lower.
+    questions:
+      - how to read candlestick charts
+      - what is a candlestick
+      - what does a red candle mean
+      - what is a wick
+      - what is a doji
+      - ohlc meaning
+      - green candle meaning
+      - what is a hammer candle
+    tags: [candlestick, chart]
+    related: [edu.technical_analysis]
+
+  - id: edu.moving_average
+    category: education
+    title: Moving averages
+    answer: |
+      A **moving average** is the average closing price over the last N days, like the 50-day or 200-day. It smooths out noise to show the trend.
+      A price above a rising moving average is often read as an uptrend. The 50-day crossing above the 200-day is called a **golden cross**, and crossing below is a **death cross**.
+    questions:
+      - what is a moving average
+      - what is 200 dma
+      - what is a golden cross
+      - what is a death cross
+      - sma vs ema
+      - 50 day moving average meaning
+      - how to use moving averages
+      - stock below 200 day average meaning
+    tags: [moving average, trend]
+    related: [edu.trend, edu.technical_analysis]
+
+  - id: edu.support_resistance
+    category: education
+    title: Support and resistance
+    answer: |
+      **Support** is a price level where a falling stock has repeatedly stopped falling, because buyers stepped in. **Resistance** is a level where a rising stock has repeatedly stalled.
+      A clear break through either level is often watched as a signal, though false breakouts are common.
+    questions:
+      - what is support in stocks
+      - what is resistance level
+      - support and resistance explained
+      - what is a false breakout
+      - how to find support levels
+      - breakdown below support meaning
+      - why does price bounce at a level
+      - what are key levels
+    tags: [support, resistance]
+    related: [edu.52_week, edu.technical_analysis]
+
+  - id: edu.rsi
+    category: education
+    title: RSI (Relative Strength Index)
+    answer: |
+      **RSI** is a momentum indicator from 0 to 100 that compares recent gains with recent losses. By convention, above 70 is called "overbought" and below 30 "oversold".
+      Strong trends can stay overbought or oversold for a long time, so RSI alone isn't a buy or sell signal.
+    questions:
+      - what is rsi
+      - rsi above 70 meaning
+      - what is overbought
+      - what does oversold mean
+      - how to use rsi
+      - what is macd
+      - momentum indicators explained
+      - rsi divergence meaning
+    tags: [rsi, momentum, indicator]
+    related: [edu.technical_analysis]
+
+  - id: edu.trend
+    category: education
+    title: Trends
+    answer: |
+      An **uptrend** is a series of higher highs and higher lows, and a **downtrend** is lower highs and lower lows. "The trend is your friend" is a common saying, but trends always end eventually.
+      Looking at a longer chart range (like 6M or 1Y on the Market page) makes trends easier to see.
+    questions:
+      - what is a trend in stocks
+      - what is an uptrend
+      - what is a downtrend
+      - how to identify a trend
+      - trend is your friend meaning
+      - what is a sideways market
+      - what is consolidation
+      - what is a trend reversal
+    tags: [trend]
+    related: [edu.moving_average]
+
+  - id: edu.risk_return
+    category: education
+    title: Risk and return
+    answer: |
+      Higher potential returns come with higher risk: bigger possible losses, bigger swings, or both. There's no reliably high return without risk, so be wary of anything promising one.
+      On TradeXcel, risk is free to explore. Notice how volatile picks change your weekly results compared with steady ones.
+    questions:
+      - what is risk vs return
+      - why is higher return riskier
+      - how much risk should i take
+      - safe investments with high returns
+      - what is risk tolerance
+      - is it possible to earn without risk
+      - what is risk in stock market
+      - measure my risk
+    tags: [risk, return]
+    related: [edu.volatility, edu.diversification]
+
+  - id: edu.position_sizing
+    category: education
+    title: Position sizing
+    answer: |
+      **Position sizing** is deciding how much money to put into one trade. A common rule of thumb is to never let a single position be big enough to wreck your portfolio if it goes badly.
+      On TradeXcel, try the same idea with different sizes and watch how much one stock can swing your net worth.
+    questions:
+      - what is position sizing
+      - how much money per trade
+      - should i put all my money in one stock
+      - how big should one trade be
+      - 1 percent risk rule
+      - concentration vs diversification
+      - how much to allocate to a stock
+      - bet sizing in trading
+    tags: [position sizing, risk management]
+    related: [edu.diversification, edu.risk_reward]
+    hard_negatives: [edu.diversification]
+
+  - id: edu.risk_reward
+    category: education
+    title: Risk-reward ratio and cutting losses
+    answer: |
+      The **risk-reward ratio** compares how much you could lose on a trade with how much you hope to gain. For example, risking ₹1 to potentially make ₹2 is 1:2.
+      Many traders set an exit point before they buy, so one losing trade stays small instead of turning into a big loss.
+    questions:
+      - what is risk reward ratio
+      - when should i cut my losses
+      - how to decide when to sell a losing stock
+      - what is an exit plan
+      - should i hold a losing stock
+      - how to manage losses
+      - 1:2 risk reward meaning
+      - book profit or hold
+    tags: [risk reward, exits]
+    related: [edu.position_sizing, edu.emotions]
+
+  - id: edu.intraday_delivery
+    category: education
+    title: Intraday vs delivery trading
+    answer: |
+      **Intraday** trading means buying and selling on the same day. **Delivery** means holding the shares overnight or longer. Brokers treat the two differently in margin and charges.
+      TradeXcel has no such distinction: you hold shares until you sell them or the weekly reset sells them.
+    questions:
+      - what is intraday trading
+      - intraday vs delivery
+      - what is day trading
+      - what is swing trading
+      - positional trading meaning
+      - can i do intraday on tradexcel
+      - btst meaning
+      - how long should i hold a stock
+    tags: [intraday, delivery, swing]
+    related: [edu.buy_and_hold, season.weekly_reset]
+
+  - id: edu.buy_and_hold
+    category: education
+    title: Buy-and-hold vs active trading
+    answer: |
+      **Buy-and-hold** investors own good businesses for years and ride out the ups and downs. **Active traders** try to profit from shorter moves, which takes more time and involves more trades.
+      TradeXcel's weekly seasons suit shorter-term play, so treat it as practice, not a model of long-term investing.
+    questions:
+      - what is buy and hold
+      - long term investing vs trading
+      - is it better to trade or invest
+      - should beginners invest for the long term
+      - should i hold stocks for years
+      - long term investor meaning
+      - does timing the market work
+      - time in market vs timing the market
+    tags: [long term, investing, trading]
+    related: [edu.compounding, edu.intraday_delivery]
+
+  - id: edu.emotions
+    category: education
+    title: Trading psychology
+    answer: |
+      Common emotional traps:
+      - **FOMO**: buying because something already shot up
+      - **panic selling** after a sharp drop
+      - **revenge trading** to win back a loss
+      - holding losers too long while selling winners too early
+
+      Having a plan before each trade helps. Practising here, where losses are virtual, is a good way to notice your own habits.
+    questions:
+      - what is fomo in trading
+      - how to control emotions while trading
+      - why do i panic sell
+      - what is revenge trading
+      - trading psychology tips
+      - greed and fear in the market
+      - why do i always buy the top
+      - how to stay calm when stocks fall
+    tags: [psychology, fomo, emotions]
+    related: [edu.risk_reward, edu.overtrading]
+
+  - id: edu.overtrading
+    category: education
+    title: Overtrading
+    answer: |
+      **Overtrading** is trading too often, usually out of boredom, excitement or chasing losses. In real markets every trade costs brokerage and taxes, and frequent in-and-out trading often underperforms simply holding.
+      TradeXcel has no fees, so overtrading doesn't cost money here, but it's still worth noticing the habit.
+    questions:
+      - what is overtrading
+      - am i trading too much
+      - how many trades per day is too many
+      - does trading more make more money
+      - churning my portfolio
+      - why frequent trading loses money
+      - should i trade every day
+      - addicted to trading
+    tags: [overtrading, discipline]
+    related: [edu.emotions, trade.fees]
+
+  - id: edu.rebalancing
+    category: education
+    title: Rebalancing
+    answer: |
+      **Rebalancing** means bringing your portfolio back to your intended mix. For example, if one stock grew to half your portfolio, you'd trim it and spread the money around again. It keeps risk from quietly concentrating.
+      The **Allocation** chart on your Portfolio page shows your current mix.
+    questions:
+      - what is rebalancing
+      - how often should i rebalance
+      - my portfolio is too concentrated
+      - one stock is most of my portfolio
+      - trim winners meaning
+      - how to rebalance a portfolio
+      - target allocation explained
+      - why rebalance
+    tags: [rebalancing, allocation]
+    links:
+      - { label: Open Portfolio, href: /portfolio }
+    related: [edu.diversification, portfolio.page]
+
+  - id: edu.drawdown
+    category: education
+    title: Drawdown
+    answer: |
+      A **drawdown** is how far your portfolio (or a stock) has fallen from its peak. A drop from ₹1,20,000 to ₹90,000 is a 25% drawdown.
+      Recovering takes a bigger gain than the loss: after a 25% fall, you need about +33% to get back to where you were.
+    questions:
+      - what is drawdown
+      - maximum drawdown meaning
+      - how much gain to recover a loss
+      - why is a 50 percent loss so bad
+      - peak to trough meaning
+      - recovering from losses
+      - portfolio fell from its high
+      - loss recovery math
+    tags: [drawdown, losses]
+    related: [edu.risk_return, edu.pnl]
+
+  - id: edu.game_strategy
+    category: education
+    title: Getting better at TradeXcel
+    answer: |
+      There's no guaranteed way to win, but principles that help:
+      - spread your cash across a few stocks and sectors
+      - size positions so one bad pick can't sink your week
+      - read the news for stocks you hold
+      - decide your exit before you buy
+      - review your weekly results to see what worked
+
+      Contests reward the same habits.
+    questions:
+      - how do i get better at tradexcel
+      - tips to climb the leaderboard
+      - how to win contests in general
+      - strategy for weekly seasons
+      - how do top players do it
+      - how can i improve my returns
+      - what's a good approach for beginners
+      - how to not lose money every week
+    tags: [strategy, improve, tips]
+    related: [edu.diversification, edu.position_sizing, season.history]
+    hard_negatives: [guardrail.investment_advice]
+
+  - id: edu.learning_path
+    category: education
+    title: How to start learning about the market
+    answer: |
+      A simple path:
+      1. Learn the basics: shares, indices, P&L and market cap.
+      2. Make small trades here and watch how prices react to news.
+      3. Try reading one company's quarterly results.
+      4. Learn about risk: diversification and position sizing.
+
+      Ask me about any term along the way.
+    questions:
+      - how do i learn stock trading
+      - where should a beginner start
+      - teach me the stock market
+      - what should i learn first about investing
+      - best way to learn trading
+      - i know nothing about stocks
+      - roadmap to learn investing
+      - how to become a better trader
+    tags: [learning, beginner]
+    related: [edu.stock, edu.index, edu.pnl]
+    hard_negatives: [about.what_is_tradexcel]

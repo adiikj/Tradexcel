@@ -1,0 +1,422 @@
+# Product how-to cards. Facts here must match the code listed in `sources`;
+# numbers that live in code are written as {{PLACEHOLDERS}} (see src/chat/kb/facts.ts).
+cards:
+  - id: wallet.starting_balance
+    category: platform
+    title: How much virtual money you start with
+    answer: |
+      Every player gets **{{STARTING_BALANCE}}** in virtual cash at the start of each weekly season.
+      It's play money, so you can't add more or withdraw it. Your **Wallet** page shows what's left and when the next reset happens.
+    questions:
+      - how much money do i start with
+      - what is my starting balance
+      - how much virtual cash do new players get
+      - starting capital?
+      - do i get free money when i sign up
+      - how many rupees are in a new wallet
+      - can i add more money to my wallet
+      - my cash ran out, can i get more
+      - is the starting amount {{STARTING_BALANCE}}
+      - how much do we get to trade with each week
+    tags: [wallet, balance, cash, starting]
+    links:
+      - { label: Open Wallet, href: /wallet }
+    related: [season.weekly_reset, unsupported.real_money]
+    hard_negatives: [contest.how_it_works]
+    sources:
+      - apps/backend/src/services/tradeMath.ts
+      - apps/backend/src/controllers/user.controller.ts
+
+  - id: season.weekly_reset
+    category: platform
+    title: What happens every Monday (weekly reset)
+    answer: |
+      TradeXcel runs in **weekly seasons**. Every Monday at 00:00 UTC (5:30 AM IST):
+      1. Your net worth for the week is recorded in your history.
+      2. All your holdings are sold at their latest price.
+      3. Your wallet resets to **{{STARTING_BALANCE}}** for the new season.
+
+      Contest wallets aren't touched, only your main one.
+    questions:
+      - what happens every monday
+      - when does my wallet reset
+      - why did all my stocks disappear on monday
+      - is there a weekly reset
+      - what time does the new season start
+      - do my holdings carry over to next week
+      - why is my balance back to the starting amount
+      - how long is a season
+      - will i lose my shares at the end of the week
+      - when does the week end on tradexcel
+    tags: [season, reset, weekly, monday]
+    links:
+      - { label: Open Wallet, href: /wallet }
+    related: [wallet.starting_balance, leaderboard.ranking]
+    hard_negatives: [contest.how_it_works, achievements.streaks]
+    sources:
+      - apps/backend/src/services/weeklyReset.ts
+      - apps/backend/src/jobs/weeklyReset.ts
+
+  - id: trade.how_to_buy
+    category: platform
+    title: How to buy a stock
+    answer: |
+      1. Search for the stock by name or symbol on the **Market** page (or with the search on your Dashboard).
+      2. Open it and choose **Buy**.
+      3. Enter how many shares you want.
+
+      During market hours the order fills straight away at the current price, and the cost comes out of your wallet. You need enough cash for price × quantity.
+      If the market is closed, the order is queued and placed at the opening price.
+    questions:
+      - how do i buy a stock
+      - how to purchase shares
+      - where do i place a buy order
+      - how can i invest in reliance on tradexcel
+      - steps to buy my first stock
+      - i want to buy some shares, how
+      - buying stocks tutorial
+      - how does buying work here
+      - where is the buy button
+      - how many shares can i buy
+    tags: [trade, buy, order]
+    links:
+      - { label: Open Market, href: /market }
+    related: [trade.how_to_sell, trade.insufficient_funds, trade.market_closed]
+    hard_negatives: [trade.how_to_sell]
+    sources:
+      - apps/backend/src/controllers/trade.controller.ts
+      - apps/frontend/src/components/trade/QuickTrade.tsx
+
+  - id: trade.how_to_sell
+    category: platform
+    title: How to sell a stock
+    answer: |
+      Open the stock from your **Portfolio** or the **Market** page, choose **Sell**, and enter how many shares to sell.
+      You can sell part of a holding or all of it. During market hours the sale fills at the current price and the money goes straight back into your wallet. Outside market hours it's queued for the open.
+    questions:
+      - how do i sell my shares
+      - how to sell a stock
+      - how can i exit a position
+      - i want to book profit, how do i sell
+      - can i sell only some of my shares
+      - where is the sell option
+      - how to get cash back from my stocks
+      - how do i close my holding in tcs
+      - selling stocks how
+      - can i do a partial sell
+    tags: [trade, sell, order]
+    links:
+      - { label: Open Portfolio, href: /portfolio }
+    related: [trade.how_to_buy, edu.pnl]
+    hard_negatives: [trade.how_to_buy, unsupported.short_selling]
+    sources:
+      - apps/backend/src/controllers/trade.controller.ts
+
+  - id: trade.insufficient_funds
+    category: platform
+    title: '"Insufficient funds" or "Insufficient holdings" errors'
+    answer: |
+      - **Insufficient funds**: the order costs more than your cash. Buy fewer shares or sell something first. The cost is price × quantity.
+      - **Insufficient holdings**: you're trying to sell more shares than you own. Your **Portfolio** shows the exact quantity you hold.
+    questions:
+      - why does it say insufficient funds
+      - i got an insufficient holdings error
+      - why can't i buy this stock
+      - my buy order keeps failing
+      - it says i don't have enough money
+      - why can't i sell my shares
+      - order rejected not enough balance
+      - error when selling more than i have
+      - trade failed insufficient funds what do i do
+    tags: [error, trade, funds]
+    links:
+      - { label: Open Portfolio, href: /portfolio }
+    related: [trade.how_to_buy, wallet.starting_balance]
+    hard_negatives: [trade.market_closed]
+    sources:
+      - apps/backend/src/controllers/trade.controller.ts
+      - apps/backend/src/services/tradeMath.ts
+
+  - id: trade.market_closed
+    category: platform
+    title: Trading hours and trading when the market is closed
+    answer: |
+      Prices follow NSE hours: **{{MARKET_HOURS}}**. Outside those hours prices stay at the last trading day's close, and a banner shows when the market opens next.
+      You can still place orders while the market is closed. They're **queued** and placed automatically at the opening price.
+      Orders queued between Friday's close and Monday's open run in the new season. Buys use your fresh {{STARTING_BALANCE}}, and sells can't be queued because the weekly reset sells every holding.
+    questions:
+      - what are the market hours
+      - when is the market open
+      - can i trade on weekends
+      - why aren't prices moving
+      - is the market closed right now
+      - can i buy stocks at night
+      - what time does trading start
+      - prices are stuck, is something broken
+      - does tradexcel follow nse timings
+      - what price do i get if i trade after 3:30
+      - can i place an order when the market is closed
+    tags: [market hours, closed, nse, timing, queued]
+    links:
+      - { label: Open Market, href: /market }
+    related: [trade.queued_orders, trade.how_to_buy]
+    hard_negatives: [season.weekly_reset, trade.queued_orders]
+    sources:
+      - apps/backend/src/services/marketHours.ts
+      - apps/backend/src/controllers/trade.controller.ts
+      - apps/backend/src/services/queuedOrders.ts
+      - apps/frontend/src/components/layout/MarketClosedBanner.tsx
+
+  - id: trade.queued_orders
+    category: platform
+    title: Checking or cancelling a queued order
+    answer: |
+      Orders you place while the market is closed show under **Queued orders** on your Portfolio page, and you can **cancel** any of them until the market opens.
+      At the open, each order is placed at the live price. If you no longer have enough cash or shares by then, it isn't placed. Either way you get a notification.
+      When you queue a buy, your other queued buys count against your cash at the last price you saw.
+    questions:
+      - how do i cancel a queued order
+      - where can i see my pending orders
+      - why wasn't my queued order placed
+      - my order says waiting for open
+      - can i cancel an order i placed after hours
+      - what are queued orders
+      - what happens to orders placed at night
+      - queued order failed with insufficient funds
+      - how do queued orders work
+      - what price will my queued order get
+    tags: [queued, pending, cancel, order]
+    links:
+      - { label: Open Portfolio, href: /portfolio }
+    related: [trade.market_closed, trade.insufficient_funds]
+    hard_negatives: [trade.market_closed]
+    sources:
+      - apps/backend/src/services/queuedOrders.ts
+      - apps/frontend/src/components/portfolio/QueuedOrders.tsx
+
+  - id: trade.fees
+    category: platform
+    title: Brokerage, fees and taxes
+    answer: |
+      There are **no brokerage fees, taxes or charges** on TradeXcel. A trade costs exactly price × quantity, and a sale pays you exactly price × quantity.
+      Real brokers charge fees, so real-world returns on the same trades would be a little lower.
+    questions:
+      - are there any brokerage charges
+      - do i pay fees on trades
+      - is there stt or gst on trades
+      - does tradexcel charge commission
+      - why is my sell amount exactly price times quantity
+      - hidden charges on buying?
+      - what does a trade cost apart from the price
+      - is trading here free of charges
+    tags: [fees, brokerage, tax]
+    related: [trade.how_to_buy]
+    sources:
+      - apps/backend/src/controllers/trade.controller.ts
+
+  - id: leaderboard.ranking
+    category: platform
+    title: How the leaderboard is ranked
+    answer: |
+      Players are ranked by **net worth**: your cash plus the current market value of everything you hold.
+      The Leaderboard has four tabs: **Global**, **Following** (only people you follow), **Contest champions** and **Weekly champions**.
+    questions:
+      - how is the leaderboard ranked
+      - how do i climb the leaderboard
+      - what decides my rank
+      - is ranking based on profit or net worth
+      - how can i see where my friends rank
+      - what is the following tab on the leaderboard
+      - how do rankings work
+      - where can i see the top traders
+      - what is the hall of fame
+      - who are the weekly champions
+    tags: [leaderboard, rank, hall of fame]
+    links:
+      - { label: Open Leaderboard, href: /leaderboard }
+    related: [edu.net_worth, achievements.titles]
+    hard_negatives: [contest.how_it_works]
+    sources:
+      - apps/backend/src/controllers/leaderboard.controller.ts
+      - apps/backend/src/controllers/hallOfFame.controller.ts
+      - apps/frontend/src/components/leaderboard/Leaderboard.tsx
+
+  - id: contest.how_it_works
+    category: platform
+    title: How contests work
+    answer: |
+      Contests are separate competitions with a fixed start and end time. When you join one, you get a **separate contest wallet** with its own starting cash, so it never touches your weekly wallet.
+      You can only trade the stocks listed for that contest, and live contests only trade while the market is open. Contest orders aren't queued. When it ends, players are ranked by net worth, and the winner shows up in the Hall of Fame.
+    questions:
+      - how do contests work
+      - what is a contest
+      - how do i join a contest
+      - does a contest use my main wallet
+      - why can't i trade this stock in the contest
+      - how is the contest winner decided
+      - what happens when a contest ends
+      - are contests different from the normal game
+      - can i enter a trading competition
+      - is there a prize for contests
+      - why can't i trade in my contest at night
+    tags: [contest, competition, league]
+    links:
+      - { label: Open Contests, href: /contest }
+    related: [contest.private_league, contest.replay]
+    hard_negatives: [season.weekly_reset, leaderboard.ranking]
+    sources:
+      - apps/backend/src/controllers/contest.controller.ts
+      - apps/backend/src/controllers/contestTrade.controller.ts
+      - apps/backend/src/services/contestPricing.ts
+      - apps/backend/prisma/schema.prisma
+
+  - id: contest.private_league
+    category: platform
+    title: Creating or joining a private league
+    answer: |
+      **Create:** on the Contests page choose **Create a private league**, then set a name, start and end time, and up to 50 stocks. Starting cash and a prize are optional. You join it automatically and get an **invite code** to share.
+      **Join:** choose **Join a private league** and enter the code a friend sent you. You can't join a league that has already ended.
+    questions:
+      - how do i create a private league
+      - how to play with my friends
+      - where do i enter an invite code
+      - how can i join my friend's league
+      - can i make my own contest
+      - where do i find my league's invite code
+      - my invite code isn't working
+      - can i set a custom starting balance for my league
+      - how to host a private contest
+      - can i join a league after it ended
+    tags: [private league, invite code, friends, contest]
+    links:
+      - { label: Open Contests, href: /contest }
+    related: [contest.how_it_works, contest.replay]
+    hard_negatives: [contest.how_it_works]
+    sources:
+      - apps/backend/src/controllers/contest.controller.ts
+      - apps/frontend/src/components/contest/PrivateLeagueTools.tsx
+
+  - id: contest.replay
+    category: platform
+    title: Replay contests that use past prices
+    answer: |
+      Some contests, marked **Replay**, re-run real past trading days instead of today's market. Each day of the contest matches one historical trading day, so everyone trades the same market at the same pace.
+      That's why prices in a replay contest don't match what you see on the Market page.
+    questions:
+      - why does this contest use old prices
+      - what is a replay contest
+      - contest prices don't match the market page
+      - what does the replay tag mean
+      - how do historical contests work
+      - are contest prices live
+      - can i trade a past market crash
+      - why is the price different inside the contest
+    tags: [replay, historical, contest]
+    links:
+      - { label: Open Contests, href: /contest }
+    related: [contest.how_it_works]
+    hard_negatives: [trade.market_closed]
+    sources:
+      - apps/backend/src/services/contestClock.ts
+      - apps/backend/src/services/contestPricing.ts
+      - apps/backend/prisma/schema.prisma
+
+  - id: alerts.create
+    category: platform
+    title: Setting a price alert
+    answer: |
+      On the **Alerts** page, enter the stock symbol, pick **Goes above** or **Goes below**, and set a target price.
+      Alerts are checked every couple of minutes while the market is open. When the stock crosses your target, you get an **email** and the alert moves to *triggered*. Each alert fires once.
+    questions:
+      - how do i set a price alert
+      - can i get notified when a stock hits a price
+      - how do alerts work
+      - notify me when tcs goes above 4000
+      - why didn't my alert trigger
+      - where do alert notifications go
+      - how often are alerts checked
+      - can an alert fire more than once
+      - set a target price alert
+      - do alerts work when the market is closed
+    tags: [alerts, notification, target price]
+    links:
+      - { label: Open Alerts, href: /alerts }
+    related: [trade.market_closed]
+    hard_negatives: [unsupported.limit_orders]
+    sources:
+      - apps/backend/src/controllers/alert.controller.ts
+      - apps/backend/src/jobs/alertChecker.ts
+      - apps/frontend/src/components/alerts/PriceAlerts.tsx
+
+  - id: achievements.badges
+    category: platform
+    title: Achievements and badges
+    answer: |
+      There are **{{BADGE_COUNT}} badges** for milestones like your first trade, holding 5+ stocks, login streaks, contest podiums and weekly wins.
+      Once you earn a badge it's yours for good. The **Achievements** page lists every badge, shows which ones you've unlocked, and explains how to get the rest.
+    questions:
+      - what are achievements
+      - list all badges
+      - how do i earn badges
+      - what badges can i unlock
+      - how many achievements are there
+      - what do i get for my first trade
+      - how to get the diversified badge
+      - which badge is for contests
+      - do badges ever go away
+      - where can i see my achievements
+    tags: [achievements, badges]
+    links:
+      - { label: Open Achievements, href: /achievements }
+    related: [achievements.streaks, achievements.titles]
+    hard_negatives: [achievements.titles]
+    sources:
+      - apps/backend/src/services/achievements.ts
+
+  - id: achievements.streaks
+    category: platform
+    title: Login streaks
+    answer: |
+      Your streak goes up by one for each day in a row you **sign in** (days are counted in UTC). If you miss a day, it starts again at 1.
+      Streaks earn {{BADGE:streak_3}}, {{BADGE:streak_7}} and {{BADGE:streak_30}}.
+      Staying signed in doesn't count. It has to be an actual sign-in.
+    questions:
+      - how do streaks work
+      - why did my streak reset
+      - how do i keep my login streak
+      - what counts as a streak day
+      - my streak didn't go up today
+      - what do i get for a 7 day streak
+      - is there a reward for logging in daily
+      - how long is my longest streak
+      - does opening the app count for the streak
+    tags: [streak, login, daily]
+    related: [achievements.badges]
+    hard_negatives: [season.weekly_reset]
+    sources:
+      - apps/backend/src/services/streak.ts
+      - apps/backend/src/services/achievements.ts
+
+  - id: achievements.titles
+    category: platform
+    title: Profile titles
+    answer: |
+      Your title is a label on your profile based on how you're doing **right now**, so it can change from day to day:
+      {{TITLE_LIST}}
+    questions:
+      - what are titles
+      - what does rookie trader mean
+      - how do i become a market wizard
+      - why does my profile say rekt
+      - how are profile titles decided
+      - what title do i get at 30 percent profit
+      - list all titles
+      - what's the highest title
+      - why did my title change
+    tags: [title, profile, rank]
+    links:
+      - { label: Open Profile, href: /your-profile }
+    related: [achievements.badges, leaderboard.ranking]
+    hard_negatives: [achievements.badges]
+    sources:
+      - apps/backend/src/services/titles.ts

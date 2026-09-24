@@ -1,0 +1,261 @@
+# Things people ask for that TradeXcel deliberately doesn't do. Saying "no"
+# clearly (and what to do instead) beats a vague near-match.
+cards:
+  - id: unsupported.limit_orders
+    category: unsupported
+    title: Limit and stop-loss orders
+    answer: |
+      TradeXcel only has **market orders**. During market hours they fill straight away at the current price. Outside market hours they're queued for the opening price. Limit orders and stop-losses aren't available.
+      The closest thing is a **price alert**. Set one for your target price and you'll get an email when the stock gets there, then trade yourself.
+    questions:
+      - can i place a limit order
+      - how do i set a stop loss
+      - is there a stop-loss option
+      - buy only if price drops to 1500
+      - can i schedule an order
+      - does tradexcel support gtt orders
+      - automatic sell when price falls
+      - what order types are there
+      - set target price to auto sell
+    tags: [limit order, stop loss, order types]
+    links:
+      - { label: Open Alerts, href: /alerts }
+    related: [alerts.create, trade.how_to_buy]
+    hard_negatives: [alerts.create]
+    sources:
+      - apps/backend/src/services/tradeMath.ts
+      - apps/backend/src/routes/trade.routes.ts
+
+  - id: unsupported.short_selling
+    category: unsupported
+    title: Short selling, options and F&O
+    answer: |
+      You can only **buy shares and then sell shares you own**. Short selling, intraday margin, futures and options aren't supported.
+      Trying to sell more than you hold gives an *Insufficient holdings* error.
+    questions:
+      - can i short sell
+      - how do i short a stock
+      - is futures and options trading available
+      - can i trade f&o
+      - does it support margin trading
+      - can i buy call options
+      - intraday leverage available?
+      - sell a stock i don't own
+      - bet against a stock
+    tags: [short, options, futures, margin]
+    related: [trade.how_to_sell]
+    hard_negatives: [trade.how_to_sell]
+    sources:
+      - apps/backend/src/controllers/trade.controller.ts
+
+  - id: unsupported.real_money
+    category: unsupported
+    title: Real money, deposits and withdrawals
+    answer: |
+      TradeXcel is a **simulator**. All money is virtual. You can't deposit, withdraw or cash out, and nothing you do here affects a real brokerage account.
+      It's completely free to play.
+    questions:
+      - can i withdraw my money
+      - is this real money
+      - how do i deposit money
+      - can i cash out my profits
+      - do i need to pay to play
+      - is tradexcel free
+      - can i link my demat account
+      - will my winnings be paid out
+      - convert virtual money to real
+    tags: [real money, withdraw, deposit, free]
+    links:
+      - { label: Open Wallet, href: /wallet }
+    related: [wallet.starting_balance]
+    hard_negatives: [wallet.starting_balance]
+    sources:
+      - apps/backend/src/services/tradeMath.ts
+      - apps/frontend/src/components/faq/Faq.tsx
+
+  - id: unsupported.other_markets
+    category: unsupported
+    title: US stocks, crypto, mutual funds and other markets
+    answer: |
+      TradeXcel only covers **Indian stocks listed on the NSE**. US stocks, crypto, forex, commodities, mutual funds and bonds can't be traded here.
+    questions:
+      - can i trade us stocks
+      - can i buy bitcoin
+      - is crypto available
+      - can i invest in mutual funds here
+      - do you have forex trading
+      - can i buy apple or tesla shares
+      - gold and silver trading
+      - are etfs available
+      - can i trade nasdaq stocks
+    tags: [us stocks, crypto, mutual funds, forex]
+    related: [market.which_stocks]
+    hard_negatives: [market.which_stocks]
+    sources:
+      - apps/frontend/src/components/market/StockData.json
+
+  - id: unsupported.corporate_actions
+    category: unsupported
+    title: Dividends, splits and bonus shares
+    answer: |
+      TradeXcel doesn't apply **dividends, stock splits or bonus shares**. You won't receive dividend cash, and share counts aren't adjusted.
+      Since every season lasts a week, this rarely matters, but a split during the week can make a holding look like a loss.
+    questions:
+      - do i get dividends
+      - will dividends be credited to my wallet
+      - what happens if a stock splits
+      - bonus shares not added
+      - my holding dropped 50 percent after a split
+      - are corporate actions supported
+      - dividend payout on tradexcel
+      - stock split adjustment
+    tags: [dividend, split, bonus]
+    related: [edu.dividend, edu.stock_split]
+    sources:
+      - apps/backend/src/controllers/trade.controller.ts
+      - apps/backend/prisma/schema.prisma
+
+  - id: unsupported.delete_account
+    category: unsupported
+    title: Deleting your account
+    answer: |
+      There's no delete button in the app yet. To have your account removed, send a request through the **Support** page and we'll take care of it.
+    questions:
+      - how do i delete my account
+      - close my tradexcel account
+      - remove my data
+      - deactivate my profile
+      - i want to quit tradexcel
+      - erase my account permanently
+      - unsubscribe and delete everything
+      - how to cancel my account
+    tags: [delete, account, privacy]
+    links:
+      - { label: Open Support, href: /support }
+    related: [support.contact]
+    sources:
+      - apps/backend/src/routes/user.routes.ts
+
+  - id: social.privacy
+    category: unsupported
+    title: Hiding your profile or trades
+    answer: |
+      Profiles are always public, and your trades show up in your followers' Activity feeds. There's no private mode yet.
+      Your email, password and PIN are never shown to other players.
+    questions:
+      - can i make my profile private
+      - hide my trades from followers
+      - stop people from following me
+      - how do i hide my net worth
+      - private account option
+      - can i block a user
+      - remove a follower
+      - is my email visible to others
+    tags: [privacy, private, hide]
+    related: [social.public_profile, social.activity]
+    hard_negatives: [social.public_profile]
+    sources:
+      - apps/backend/src/controllers/social.controller.ts
+
+  - id: unsupported.leave_contest
+    category: unsupported
+    title: Leaving a contest
+    answer: |
+      Once you join a contest, you can't leave it. If you don't want to take part, just don't trade. Your contest cash stays as it is, and you'll finish wherever that net worth ranks.
+    questions:
+      - how do i leave a contest
+      - quit a private league
+      - unjoin a contest
+      - i joined the wrong contest
+      - exit a league
+      - withdraw from the competition
+      - remove myself from a contest
+      - cancel my contest entry
+    tags: [contest, leave]
+    related: [contest.how_it_works, contest.private_manage]
+    hard_negatives: [contest.private_manage]
+    sources:
+      - apps/backend/src/routes/contest.routes.ts
+
+  - id: unsupported.manual_reset
+    category: unsupported
+    title: Resetting your wallet early
+    answer: |
+      You can't reset your wallet mid-week. Every player gets a fresh {{STARTING_BALANCE}} at the Monday reset.
+      Had a rough week? Joining a contest gives you a separate wallet to play with right away.
+    questions:
+      - can i reset my wallet now
+      - i lost all my money, can i start over
+      - restart my portfolio
+      - give me a fresh start
+      - reset my account balance
+      - can i get my money back after losses
+      - start the season again
+      - undo my trades
+    tags: [reset, restart, wallet]
+    links:
+      - { label: Open Contests, href: /contest }
+    related: [season.weekly_reset, contest.how_it_works]
+    hard_negatives: [season.weekly_reset, account.forgot_password]
+    sources:
+      - apps/backend/src/services/weeklyReset.ts
+
+  - id: unsupported.transfer_cash
+    category: unsupported
+    title: Sending money or shares to other players
+    answer: |
+      Virtual cash and shares can't be transferred between players. Everyone plays with their own wallet so the leaderboard stays fair.
+    questions:
+      - can i send money to my friend
+      - transfer my shares to another account
+      - gift virtual cash
+      - share my balance with a teammate
+      - move money between accounts
+      - can someone give me money
+      - donate my cash
+      - pool money with friends
+    tags: [transfer, gift]
+    related: [unsupported.real_money]
+    sources:
+      - apps/backend/src/services/tradeMath.ts
+
+  - id: unsupported.mobile_app
+    category: unsupported
+    title: Mobile app
+    answer: |
+      There's no app to install yet, but TradeXcel works in your phone's browser. Every page is built for small screens, and the main pages have a bottom navigation bar.
+    questions:
+      - is there a mobile app
+      - download tradexcel app
+      - android app?
+      - ios app available
+      - can i use tradexcel on my phone
+      - play store link
+      - does the site work on mobile
+      - app for iphone
+    tags: [mobile, app, android, ios]
+    related: [about.what_is_tradexcel]
+    sources:
+      - apps/frontend/src/components/dashboard/Vheader.tsx
+
+  - id: unsupported.assistant_trading
+    category: unsupported
+    title: The assistant can't place trades
+    answer: |
+      I can't place, change or cancel orders for you. I can only read information. To trade, open the stock on the **Market** page (or use the Dashboard search) and tap Buy or Sell yourself.
+    questions:
+      - buy 10 tcs for me
+      - sell all my shares
+      - place an order for reliance
+      - can you trade on my behalf
+      - execute a buy order now
+      - cancel my queued order for me
+      - auto trade for me
+      - make trades automatically
+    tags: [assistant, trade]
+    links:
+      - { label: Open Market, href: /market }
+    related: [trade.how_to_buy, trade.queued_orders]
+    hard_negatives: [trade.how_to_buy]
+    sources:
+      - apps/backend/src/routes/trade.routes.ts
