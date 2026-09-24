@@ -15,8 +15,22 @@ export interface NewsArticle {
 const CACHE_TTL_MS = 5 * 60_000;
 const cache = new Map<string, { articles: NewsArticle[]; expiresAt: number }>();
 
-// Fallback for users with no holdings yet.
-const DEFAULT_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA"];
+// Yahoo's search API returns no news for NSE/BSE tickers (RELIANCE.NS etc.),
+// but its Nifty 50 and Sensex feeds carry Indian market news tagged with the
+// .NS/.BO stocks each story mentions. Those feeds are the base of every
+// user's news; holdings are still queried in case Yahoo has stock-level news.
+const MARKET_FEEDS = ["^NSEI", "^BSESN"];
+// Caps Yahoo calls per request for users holding many stocks.
+const MAX_HOLDING_QUERIES = 10;
+
+// "RELIANCE.NS" and "RELIANCE.BO" are the same company.
+const baseTicker = (symbol: string) => symbol.toUpperCase().replace(/\.(NS|BO)$/, "");
+
+// True when an article mentions any of the given stocks, on either exchange.
+export function relatesTo(article: Pick<NewsArticle, "relatedTickers">, symbols: string[]): boolean {
+  const wanted = new Set(symbols.map(baseTicker));
+  return article.relatedTickers.some((t) => wanted.has(baseTicker(t)));
+}
 
 async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]> {
   const key = symbol.toUpperCase();
@@ -27,7 +41,7 @@ async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]> {
 
   const url = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(
     key
-  )}&newsCount=10&quotesCount=0&listsCount=0`;
+  )}&newsCount=20&quotesCount=0&listsCount=0`;
   const response = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
 
   if (!response.ok) {
@@ -51,11 +65,11 @@ async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]> {
   return articles;
 }
 
-// Merges news across symbols, deduped by article id.
+// Indian market news plus anything Yahoo has on the user's stocks, deduped
+// by article id. `personalized` means at least one story mentions a holding.
 export async function getNewsForSymbols(symbols: string[]): Promise<{ articles: NewsArticle[]; personalized: boolean }> {
   const uniqueSymbols = [...new Set(symbols.map((s) => s.toUpperCase()))];
-  const personalized = uniqueSymbols.length > 0;
-  const querySymbols = personalized ? uniqueSymbols : DEFAULT_SYMBOLS;
+  const querySymbols = [...MARKET_FEEDS, ...uniqueSymbols.slice(0, MAX_HOLDING_QUERIES)];
 
   const results = await Promise.all(
     querySymbols.map(async (symbol) => {
@@ -78,5 +92,6 @@ export async function getNewsForSymbols(symbols: string[]): Promise<{ articles: 
 
   merged.sort((a, b) => b.publishedAt - a.publishedAt);
 
+  const personalized = uniqueSymbols.length > 0 && merged.some((article) => relatesTo(article, uniqueSymbols));
   return { articles: merged, personalized };
 }
