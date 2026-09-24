@@ -18,7 +18,7 @@ export default function Sparkline({ values, width = 56, height = 24 }: { values:
         strokeWidth="1.5"
         strokeLinejoin="round"
         strokeLinecap="round"
-        className={up ? "stroke-teal-600" : "stroke-red-600 dark:stroke-red-500"}
+        className={up ? "stroke-green-600" : "stroke-red-600 dark:stroke-red-500"}
       />
     </svg>
   );

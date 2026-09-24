@@ -157,7 +157,7 @@ function ContestDetail({
               </button>
             ) : (
               hasJoined && (
-                <span className="flex items-center gap-1.5 text-sm font-medium text-teal-700 dark:text-teal-300">
+                <span className="flex items-center gap-1.5 text-sm font-medium text-green-700 dark:text-green-300">
                   <PiCheckCircleFill aria-hidden="true" className="h-5 w-5" /> You&apos;re in
                 </span>
               )
@@ -189,7 +189,7 @@ function ContestDetail({
 
           {isLive && (
             <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800" aria-hidden="true">
-              <div className="h-full rounded-full bg-teal-500" style={{ width: `${contestProgress(contest)}%` }} />
+              <div className="h-full rounded-full bg-green-500" style={{ width: `${contestProgress(contest)}%` }} />
             </div>
           )}
 

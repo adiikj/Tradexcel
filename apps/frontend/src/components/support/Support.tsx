@@ -58,7 +58,7 @@ function Support() {
               <section aria-label="Contact form" className={`p-5 md:p-6 lg:col-span-3 ${SURFACE}`}>
                 {sent ? (
                   <div role="status" className="flex h-full flex-col items-center justify-center py-10 text-center">
-                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-teal-600/10 text-teal-700 dark:text-teal-300">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-600/10 text-green-700 dark:text-green-300">
                       <PiCheckCircle aria-hidden="true" className="h-8 w-8" />
                     </span>
                     <h2 className="mt-4 text-lg font-semibold">Message sent</h2>

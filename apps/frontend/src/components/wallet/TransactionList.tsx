@@ -51,7 +51,7 @@ function TransactionList({ transactions }: { transactions: TransactionRecord[] }
                   <li key={t.id} className="flex items-center gap-3 px-3 py-3">
                     <span
                       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                        buy ? "bg-teal-600/10 text-teal-700 dark:text-teal-300" : "bg-red-600/10 text-red-600 dark:text-red-400"
+                        buy ? "bg-green-600/10 text-green-700 dark:text-green-300" : "bg-red-600/10 text-red-600 dark:text-red-400"
                       }`}
                     >
                       {buy ? <PiArrowUpRight aria-hidden="true" className="h-5 w-5" /> : <PiArrowDownLeft aria-hidden="true" className="h-5 w-5" />}
@@ -63,7 +63,7 @@ function TransactionList({ transactions }: { transactions: TransactionRecord[] }
                         </Link>
                         <span
                           className={`rounded px-1.5 py-px text-[10px] font-bold tracking-wide ${
-                            buy ? "bg-teal-600/10 text-teal-700 dark:text-teal-300" : "bg-red-600/10 text-red-600 dark:text-red-400"
+                            buy ? "bg-green-600/10 text-green-700 dark:text-green-300" : "bg-red-600/10 text-red-600 dark:text-red-400"
                           }`}
                         >
                           {t.side}

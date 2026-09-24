@@ -67,13 +67,13 @@ function MarketOverview({ stocks, isLoading, onSelect }: MarketOverviewProps) {
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <Tile label="Market breadth">
         <p className="text-lg font-semibold">
-          <span className="text-teal-700 dark:text-teal-400">{up} up</span>
+          <span className="text-green-700 dark:text-green-400">{up} up</span>
           <span className="text-gray-400"> · </span>
           <span className="text-red-600 dark:text-red-400">{down} down</span>
         </p>
         {/* Part-to-whole: one stacked bar, 2px gaps between segments. */}
         <div className="mt-2 flex h-2 gap-0.5" role="img" aria-label={`${up} advancing, ${flat} unchanged, ${down} declining`}>
-          {up > 0 && <span className="rounded-l-full bg-teal-600" style={{ width: `${(up / total) * 100}%` }} />}
+          {up > 0 && <span className="rounded-l-full bg-green-600" style={{ width: `${(up / total) * 100}%` }} />}
           {flat > 0 && <span className="bg-gray-300 dark:bg-gray-600" style={{ width: `${(flat / total) * 100}%` }} />}
           {down > 0 && <span className="rounded-r-full bg-red-600 dark:bg-red-500" style={{ width: `${(down / total) * 100}%` }} />}
         </div>

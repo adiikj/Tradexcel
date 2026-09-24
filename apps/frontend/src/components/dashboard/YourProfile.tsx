@@ -366,7 +366,7 @@ function YourProfile() {
                   </span>
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      flags.hasGoogleLogin ? "bg-teal-600/10 text-teal-700 dark:text-teal-300" : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                      flags.hasGoogleLogin ? "bg-green-600/10 text-green-700 dark:text-green-300" : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
                     }`}
                   >
                     {flags.hasGoogleLogin ? "Connected" : "Not connected"}

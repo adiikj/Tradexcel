@@ -83,7 +83,7 @@ function HoldingsTable({ rows, onBuy, onSell }: HoldingsTableProps) {
         onClick={() => onBuy(row)}
         disabled={row.price == null}
         aria-label={`Buy ${row.shortName}`}
-        className="rounded-lg bg-teal-600/10 px-3 py-1.5 text-xs font-semibold text-teal-700 hover:bg-teal-600 hover:text-white disabled:opacity-40 dark:text-teal-300"
+        className="rounded-lg bg-green-600/10 px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-600 hover:text-white disabled:opacity-40 dark:text-green-300"
       >
         Buy
       </button>

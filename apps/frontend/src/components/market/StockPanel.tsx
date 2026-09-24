@@ -142,7 +142,7 @@ function StockPanel({
             type="button"
             onClick={onBuy}
             disabled={stock.price == null}
-            className="px-5 py-2 rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-700 disabled:opacity-50 transition-colors"
+            className="px-5 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
           >
             Buy
           </button>

@@ -64,7 +64,7 @@ function MarketMovers({ limit = 5 }: { limit?: number }) {
             className={`flex-1 rounded-lg py-1.5 text-xs font-medium transition-colors ${
               direction === d
                 ? d === "gainers"
-                  ? "bg-white text-teal-700 shadow-sm dark:bg-teal-500/20 dark:text-teal-300"
+                  ? "bg-white text-green-700 shadow-sm dark:bg-green-500/20 dark:text-green-300"
                   : "bg-white text-rose-600 shadow-sm dark:bg-rose-500/20 dark:text-rose-300"
                 : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
             }`}

@@ -78,13 +78,13 @@ function ContestCard({ contest, canJoin, isJoining, onJoin, onSelect }: { contes
 
         {isLive && (
           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800" aria-hidden="true">
-            <div className="h-full rounded-full bg-teal-500" style={{ width: `${contestProgress(contest)}%` }} />
+            <div className="h-full rounded-full bg-green-500" style={{ width: `${contestProgress(contest)}%` }} />
           </div>
         )}
 
         <div className="mt-auto flex items-center gap-2 pt-4">
           {contest.isJoined && (
-            <span className="mr-auto flex items-center gap-1 text-xs font-medium text-teal-700 dark:text-teal-300">
+            <span className="mr-auto flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-300">
               <PiCheckCircleFill aria-hidden="true" className="h-4 w-4" /> Joined
             </span>
           )}

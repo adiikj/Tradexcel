@@ -76,7 +76,7 @@ function BellIcon({ item }: { item: BellItem }) {
     );
   }
   const styles: Record<BellKind, { icon: React.ReactNode; className: string }> = {
-    "alert-up": { icon: <PiTrendUp aria-hidden="true" className="h-5 w-5" />, className: "bg-teal-50 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300" },
+    "alert-up": { icon: <PiTrendUp aria-hidden="true" className="h-5 w-5" />, className: "bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-300" },
     "alert-down": { icon: <PiTrendDown aria-hidden="true" className="h-5 w-5" />, className: "bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-300" },
     follow: { icon: <PiUserPlus aria-hidden="true" className="h-5 w-5" />, className: "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300" },
     achievement: { icon: <PiTrophyFill aria-hidden="true" className="h-5 w-5" />, className: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" },

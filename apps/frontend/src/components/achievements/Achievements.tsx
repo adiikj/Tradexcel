@@ -63,7 +63,7 @@ function BadgeCard({ badge }: { badge: Badge }) {
         <p className={`font-semibold ${badge.earned ? "" : "text-gray-600 dark:text-gray-300"}`}>{badge.name}</p>
         <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{badge.description}</p>
         {badge.earned ? (
-          <p className="mt-2 inline-flex items-center gap-1 rounded-md bg-teal-600/10 px-1.5 py-0.5 text-[11px] font-medium text-teal-700 dark:text-teal-300">
+          <p className="mt-2 inline-flex items-center gap-1 rounded-md bg-green-600/10 px-1.5 py-0.5 text-[11px] font-medium text-green-700 dark:text-green-300">
             Unlocked{badge.earnedAt ? ` · ${formatDate(badge.earnedAt)}` : ""}
           </p>
         ) : (

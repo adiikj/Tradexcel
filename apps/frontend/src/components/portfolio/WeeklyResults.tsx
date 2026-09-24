@@ -40,7 +40,7 @@ function WeeklyResults({ weeks }: { weeks: WeekResult[] }) {
             >
               <div
                 className={`absolute inset-x-1 rounded-[4px] transition-opacity group-hover:opacity-80 ${
-                  up ? "bg-teal-600" : "bg-red-600 dark:bg-red-500"
+                  up ? "bg-green-600" : "bg-red-600 dark:bg-red-500"
                 } ${week.current ? "opacity-60" : ""}`}
                 style={up ? { bottom: ZERO, height: h } : { top: ZERO, height: h }}
               />

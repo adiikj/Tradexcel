@@ -80,7 +80,7 @@ function ActivityItem({ item }: { item: ActivityItemData }) {
         <div className="shrink-0 text-right">
           <span
             className={`rounded px-1.5 py-px text-[10px] font-bold tracking-wide ${
-              item.side === "BUY" ? "bg-teal-600/10 text-teal-700 dark:text-teal-300" : "bg-red-600/10 text-red-600 dark:text-red-400"
+              item.side === "BUY" ? "bg-green-600/10 text-green-700 dark:text-green-300" : "bg-red-600/10 text-red-600 dark:text-red-400"
             }`}
           >
             {item.side}

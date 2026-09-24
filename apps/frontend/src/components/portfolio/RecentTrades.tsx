@@ -15,7 +15,7 @@ function RecentTrades({ trades }: { trades: TransactionRecord[] }) {
           <li key={t.id} className="flex items-center gap-3 py-2.5">
             <span
               className={`w-11 shrink-0 rounded-md py-0.5 text-center text-[10px] font-bold tracking-wide ${
-                buy ? "bg-teal-600/10 text-teal-700 dark:text-teal-300" : "bg-red-600/10 text-red-600 dark:text-red-400"
+                buy ? "bg-green-600/10 text-green-700 dark:text-green-300" : "bg-red-600/10 text-red-600 dark:text-red-400"
               }`}
             >
               {t.side}

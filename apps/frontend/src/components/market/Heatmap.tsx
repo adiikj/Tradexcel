@@ -11,7 +11,7 @@ type HeatmapProps = {
 
 const MOVERS_SHOWN = 40;
 
-// Every stock as a tile, colored on a diverging red-gray-teal scale by today's
+// Every stock as a tile, colored on a diverging red-gray-green scale by today's
 // % change. Each tile also prints its symbol and signed change, so color is
 // never the only encoding; the watchlist is the table view of the same data.
 function Heatmap({ stocks, selectedSymbol, onSelect }: HeatmapProps) {

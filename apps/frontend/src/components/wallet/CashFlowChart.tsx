@@ -30,9 +30,9 @@ function CashFlowChart({ days }: { days: DayFlow[] }) {
             >
               {inH > 0 && (
                 <>
-                  <div className="absolute inset-x-1.5 rounded-t-[4px] bg-teal-600" style={{ bottom: ZERO + 1, height: inH }} />
+                  <div className="absolute inset-x-1.5 rounded-t-[4px] bg-green-600" style={{ bottom: ZERO + 1, height: inH }} />
                   <span
-                    className="absolute inset-x-0 text-center text-[10px] font-medium tabular-nums text-teal-700 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-teal-400"
+                    className="absolute inset-x-0 text-center text-[10px] font-medium tabular-nums text-green-700 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 dark:text-green-400"
                     style={{ bottom: ZERO + 4 + inH }}
                   >
                     +{compact.format(day.inflow)}
@@ -69,7 +69,7 @@ function CashFlowChart({ days }: { days: DayFlow[] }) {
       </div>
       <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
         <span className="flex items-center gap-1.5">
-          <span aria-hidden="true" className="h-2.5 w-2.5 rounded-sm bg-teal-600" /> Cash in (sells)
+          <span aria-hidden="true" className="h-2.5 w-2.5 rounded-sm bg-green-600" /> Cash in (sells)
         </span>
         <span className="flex items-center gap-1.5">
           <span aria-hidden="true" className="h-2.5 w-2.5 rounded-sm bg-red-600 dark:bg-red-500" /> Cash out (buys)
