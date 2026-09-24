@@ -295,4 +295,34 @@ export type ChartData = {
   candles: Candle[];
 };
 
+// ---- chat assistant (POST /api/v1/chat) ----
+export type ChatReplyKind =
+  | "answer" // a knowledge-base card
+  | "clarify" // not sure which card: "did you mean…?" with suggestions
+  | "data" // answered from live data (prices, your portfolio, ...)
+  | "fallback" // off-topic
+  | "guardrail"; // declined (advice, predictions, credentials, ...)
+
+export type ChatQuote = {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number | null;
+  changePercent: number | null;
+};
+
+export type ChatReply = {
+  kind: ChatReplyKind;
+  intent: string;
+  // Markdown subset: **bold**, lists and line breaks.
+  text: string;
+  links: { label: string; href: string }[];
+  // Follow-up questions the widget can offer as one-tap chips.
+  suggestions: string[];
+  cardId: string | null;
+  // Present for price and holding answers, so the widget can render quote cards.
+  quotes?: ChatQuote[];
+  confidence: number;
+};
+
 export * from "./stocks.js";
