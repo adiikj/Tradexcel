@@ -10,6 +10,8 @@ import {
   updateUser,
   getProfile,
   changeCurrentPasswordAndPin,
+  forgotPassword,
+  resetPassword,
   getAvatar,
   updateAvatar,
 } from "../controllers/user.controller.js";
@@ -25,6 +27,8 @@ router.post("/login", authLimiter, loginUser); // User login (password or pin)
 router.post("/google", authLimiter, googleLogin); // Google Sign-In
 router.post("/verify-otp", authLimiter, verifyOTP); // One-time email verification (signup only)
 router.post("/refresh-token", refreshLimiter, refreshAccessToken); // Refresh access token
+router.post("/forgot-password", authLimiter, forgotPassword); // Email a 6-digit reset code
+router.post("/reset-password", authLimiter, resetPassword); // Set a new password and/or PIN with that code
 
 // Protected Routes (Require Authentication)
 router.patch("/update", verifyJWT, mutationLimiter, updateUser); // Update user profile (JWT-protected)

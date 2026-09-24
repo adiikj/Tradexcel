@@ -1,6 +1,6 @@
 // Table-based layout + inline styles for consistent rendering across mail clients.
-export function otpEmailTemplate(otp: string): { html: string; text: string } {
-  const html = `<!DOCTYPE html>
+function codeEmailTemplate(heading: string, intro: string, code: string): string {
+  return `<!DOCTYPE html>
 <html lang="en">
   <body style="margin:0;padding:0;background-color:#F0F3F5;font-family:'Poppins',Arial,sans-serif;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F3F5;padding:40px 16px;">
@@ -14,13 +14,13 @@ export function otpEmailTemplate(otp: string): { html: string; text: string } {
             </tr>
             <tr>
               <td style="padding:0 32px 8px 32px;">
-                <p style="margin:0;font-size:16px;font-weight:600;color:#1e293b;text-align:center;">Verify your email</p>
+                <p style="margin:0;font-size:16px;font-weight:600;color:#1e293b;text-align:center;">${heading}</p>
               </td>
             </tr>
             <tr>
               <td style="padding:8px 32px 24px 32px;">
                 <p style="margin:0;font-size:14px;line-height:22px;color:#64748b;text-align:center;">
-                  Enter this code to finish signing in to your Tradexcel account.
+                  ${intro}
                 </p>
               </td>
             </tr>
@@ -29,7 +29,7 @@ export function otpEmailTemplate(otp: string): { html: string; text: string } {
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td align="center" style="background-color:#EEF5FF;border-radius:12px;padding:20px;">
-                      <span style="font-size:36px;font-weight:700;letter-spacing:10px;color:#2196F3;font-family:'Courier New',monospace;">${otp}</span>
+                      <span style="font-size:36px;font-weight:700;letter-spacing:10px;color:#2196F3;font-family:'Courier New',monospace;">${code}</span>
                     </td>
                   </tr>
                 </table>
@@ -55,8 +55,18 @@ export function otpEmailTemplate(otp: string): { html: string; text: string } {
     </table>
   </body>
 </html>`;
+}
 
+export function otpEmailTemplate(otp: string): { html: string; text: string } {
+  const html = codeEmailTemplate("Verify your email", "Enter this code to finish signing in to your Tradexcel account.", otp);
   const text = `Your Tradexcel verification code is ${otp}.\n\nThis code expires in 10 minutes. If you didn't request this, you can safely ignore this email.`;
+
+  return { html, text };
+}
+
+export function passwordResetEmailTemplate(code: string): { html: string; text: string } {
+  const html = codeEmailTemplate("Reset your password", "Enter this code on Tradexcel to choose a new password or PIN.", code);
+  const text = `Your Tradexcel password reset code is ${code}.\n\nThis code expires in 10 minutes. If you didn't request this, you can safely ignore this email - your password hasn't changed.`;
 
   return { html, text };
 }

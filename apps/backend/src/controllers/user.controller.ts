@@ -14,7 +14,8 @@ import { google } from "googleapis";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mailer.js";
-import { otpEmailTemplate } from "../services/emailTemplates.js";
+import { otpEmailTemplate, passwordResetEmailTemplate } from "../services/emailTemplates.js";
+import { randomInt } from "node:crypto";
 import { recordLogin } from "../services/streak.js";
 import { checkAndAwardAchievements } from "../services/achievements.js";
 import logger from "../utils/logger.js";
@@ -485,6 +486,106 @@ const changeCurrentPasswordAndPin = asyncHandler(async (req: any, res: any) => {
   return res.status(200).json(new ApiResponse(200, "Password and/or PIN changed successfully", null));
 });
 
+const RESET_CODE_TTL_MS = 10 * 60 * 1000;
+// A new code (and email) at most once a minute per account, however often the form is submitted.
+const RESET_RESEND_COOLDOWN_MS = 60 * 1000;
+const MAX_RESET_ATTEMPTS = 5;
+const RESET_SENT_MESSAGE = "If an account exists for that email, we've sent a reset code to it.";
+const RESET_CODE_INVALID = "This reset code is invalid or has expired. Please request a new one.";
+
+const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email("invalid email address"),
+});
+
+// Always answers the same way, so the form can't be used to find out which
+// emails have accounts.
+const forgotPassword = asyncHandler(async (req: any, res: any) => {
+  const parsed = forgotPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw validationError(parsed.error);
+  }
+  const { email } = parsed.data;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, otpVerified: true, resetRequestedAt: true },
+  });
+  const coolingDown = user?.resetRequestedAt && Date.now() - user.resetRequestedAt.getTime() < RESET_RESEND_COOLDOWN_MS;
+
+  if (user?.otpVerified && !coolingDown) {
+    const code = String(randomInt(100000, 1000000));
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetCodeHash: await hashPassword(code),
+        resetCodeExpiry: new Date(Date.now() + RESET_CODE_TTL_MS),
+        resetAttempts: 0,
+        resetRequestedAt: new Date(),
+      },
+    });
+    try {
+      const { html, text } = passwordResetEmailTemplate(code);
+      await sendEmail({ to: email, subject: "Your Tradexcel password reset code", html, text });
+    } catch (error: any) {
+      logger.error({ err: error }, "Error sending password reset email");
+    }
+  }
+
+  return res.status(200).json(new ApiResponse(200, RESET_SENT_MESSAGE, null));
+});
+
+const resetPasswordSchema = z
+  .object({
+    email: z.string().trim().toLowerCase().email("invalid email address"),
+    code: z.string().trim().regex(/^\d{6}$/, "code must be 6 digits"),
+    newPassword: z.string().min(8, "password must be at least 8 characters").optional(),
+    newPin: z.string().regex(/^\d{4}$/, "pin must be exactly 4 digits").optional(),
+  })
+  .refine((data) => Boolean(data.newPassword || data.newPin), { message: "Enter a new password or PIN to save." });
+
+const resetPassword = asyncHandler(async (req: any, res: any) => {
+  const parsed = resetPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw validationError(parsed.error);
+  }
+  const { email, code, newPassword, newPin } = parsed.data;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, resetCodeHash: true, resetCodeExpiry: true, resetAttempts: true },
+  });
+  if (!user?.resetCodeHash || !user.resetCodeExpiry || Date.now() > user.resetCodeExpiry.getTime()) {
+    throw new ApiError(400, RESET_CODE_INVALID);
+  }
+  if (user.resetAttempts >= MAX_RESET_ATTEMPTS) {
+    throw new ApiError(400, "Too many incorrect attempts. Please request a new code.");
+  }
+  if (!(await verifyPassword(code, user.resetCodeHash))) {
+    await prisma.user.update({ where: { id: user.id }, data: { resetAttempts: { increment: 1 } } });
+    throw new ApiError(400, "That code isn't right. Check the email and try again.");
+  }
+
+  const [password, pin] = await Promise.all([
+    newPassword ? hashPassword(newPassword) : undefined,
+    newPin ? hashPassword(newPin) : undefined,
+  ]);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      ...(password ? { password } : {}),
+      ...(pin ? { pin } : {}),
+      resetCodeHash: null,
+      resetCodeExpiry: null,
+      resetAttempts: 0,
+      // Signs out every existing session - whoever knew the old credential is out too.
+      refreshToken: null,
+    },
+  });
+
+  return res.status(200).json(new ApiResponse(200, "All set. You can sign in with your new details now.", null));
+});
+
 const updateUserSchema = z.object({
   name: z.string().trim().min(2).optional(),
   username: z
@@ -566,6 +667,8 @@ export {
   updateUser,
   getProfile,
   changeCurrentPasswordAndPin,
+  forgotPassword,
+  resetPassword,
   getAvatar,
   updateAvatar,
 };
