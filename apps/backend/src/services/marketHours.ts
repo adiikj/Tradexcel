@@ -2,8 +2,8 @@
 // Indian market holidays aren't accounted for (would need a maintained
 // calendar) - treating a holiday as "open" just costs a few harmless Yahoo
 // calls that return an unchanged price, not a correctness bug.
-const MARKET_OPEN_MINUTES = 9 * 60 + 15;
-const MARKET_CLOSE_MINUTES = 15 * 60 + 30;
+export const MARKET_OPEN_MINUTES = 9 * 60 + 15;
+export const MARKET_CLOSE_MINUTES = 15 * 60 + 30;
 
 const istFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: "Asia/Kolkata",
