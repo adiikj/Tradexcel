@@ -26,7 +26,8 @@ function Countdown({ target, label }: { target: string | Date; label: string }) 
 
   return (
     <span>
-      {label} {formatRemaining(remaining)}
+      {label && `${label} `}
+      {formatRemaining(remaining)}
     </span>
   );
 }

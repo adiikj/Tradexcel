@@ -1,210 +1,194 @@
 "use client";
 import React from "react";
-import { motion } from "framer-motion";
+import { PiCheckCircleFill, PiClockCountdown, PiTrophy, PiUsers } from "react-icons/pi";
 import Countdown from "./Countdown";
 import RemoteImage from "../ui/RemoteImage";
-import { STATUS_STYLES, contestProgress } from "./contestUtils";
+import { STATUS_META, SURFACE, contestProgress } from "./contestUtils";
 import type { Contest } from "@tradexcel/shared";
 
 export type ContestScope = "public" | "private";
-export type StatusFilter = "ALL" | "UPCOMING" | "LIVE" | "ENDED";
 
 type ContestListProps = {
-  filteredContests: Contest[];
+  contests: Contest[];
   isLoading: boolean;
   scope: ContestScope;
-  onScopeChange: (scope: ContestScope) => void;
-  statusFilter: StatusFilter;
-  onStatusFilterChange: (filter: StatusFilter) => void;
   isJoining: boolean;
   onJoin: (contestId: string) => void;
   onSelect: (contestId: string) => void;
-  onCopyInviteCode: (code: string) => void;
   onOpenJoin: () => void;
   onOpenCreate: () => void;
 };
 
-// The contest browser: public/private tabs, status filter and contest cards.
-function ContestList({
-  filteredContests,
-  isLoading,
-  scope,
-  onScopeChange,
-  statusFilter,
-  onStatusFilterChange,
-  isJoining,
-  onJoin,
-  onSelect,
-  onCopyInviteCode,
-  onOpenJoin,
-  onOpenCreate,
-}: ContestListProps) {
-  const cardBg = "bg-gray-50 dark:bg-gray-900";
+// Live first (that's where the action is), then upcoming, then results.
+const SECTIONS = [
+  { status: "LIVE", title: "Live now" },
+  { status: "UPCOMING", title: "Upcoming" },
+  { status: "ENDED", title: "Ended" },
+] as const;
+
+export function StatusChip({ status }: { status: string }) {
+  const meta = STATUS_META[status] ?? STATUS_META.ENDED;
+  return (
+    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${meta.chip}`}>
+      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+      {meta.label}
+    </span>
+  );
+}
+
+function ContestCard({ contest, canJoin, isJoining, onJoin, onSelect }: { contest: Contest; canJoin: boolean; isJoining: boolean; onJoin: () => void; onSelect: () => void }) {
+  const isLive = contest.status === "LIVE";
+  const participants = contest._count.entries;
 
   return (
-        <>
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
-            <div className="flex flex-wrap gap-2">
-              {([
-                { key: "public", label: "Public contests" },
-                { key: "private", label: "Private contests" },
-              ] as const).map((tab) => (
-                <button
-                  key={tab.key}
-                  className={`px-4 py-1.5 text-xs md:text-sm rounded-full transition-colors duration-200 active:scale-95 ${
-                    scope === tab.key
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-                  }`}
-                  onClick={() => onScopeChange(tab.key)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+    <li className={`flex flex-col overflow-hidden ${SURFACE}`}>
+      {contest.imageUrl && <RemoteImage src={contest.imageUrl} alt="" className="h-28 w-full object-cover" width={1200} height={112} />}
+      <div className="flex flex-1 flex-col p-4 md:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="min-w-0 font-semibold leading-snug">
+            {/* The title is the card's link; the whole card isn't, so the Join button stays a separate target. */}
+            <button type="button" onClick={onSelect} className="text-left hover:underline focus:outline-none focus-visible:underline">
+              {contest.name}
+            </button>
+          </h3>
+          <StatusChip status={contest.status} />
+        </div>
 
-            {scope === "private" && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => onOpenJoin()}
-                  className={`px-4 py-1.5 text-xs md:text-sm rounded-md transition-colors duration-150 active:scale-95 ${
-                    "bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
-                  }`}
-                >
-                  Join with code
-                </button>
-                <button
-                  onClick={() => onOpenCreate()}
-                  className="px-4 py-1.5 text-xs md:text-sm rounded-md bg-green-600 text-white hover:bg-green-500 transition-colors duration-150 active:scale-95"
-                >
-                  + Create
-                </button>
-              </div>
-            )}
-          </div>
+        {contest.prize && (
+          <p className="mt-1.5 flex items-center gap-1.5 truncate text-sm text-gray-600 dark:text-gray-300">
+            <PiTrophy aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-500" />
+            <span className="truncate">{contest.prize}</span>
+          </p>
+        )}
 
-          <div className="flex flex-wrap gap-2 mb-8">
-            {(["ALL", "UPCOMING", "LIVE", "ENDED"] as const).map((tab) => (
-              <button
-                key={tab}
-                className={`px-4 py-1.5 text-xs md:text-sm rounded-full transition-colors duration-200 active:scale-95 ${
-                  statusFilter === tab
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-                }`}
-                onClick={() => onStatusFilterChange(tab)}
-              >
-                {tab.charAt(0) + tab.slice(1).toLowerCase()}
-              </button>
-            ))}
-          </div>
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className={`h-48 rounded-2xl animate-pulse ${cardBg}`} />
-              ))}
-            </div>
-          ) : filteredContests.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-gray-400 mb-1">
-                {scope === "private" ? "No private leagues yet." : "No contests in this category yet."}
-              </p>
-              <p className="text-sm text-gray-500">
-                {scope === "private"
-                  ? "Create one above or join with an invite code."
-                  : "Check back soon, or try a different filter."}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredContests.map((contest) => {
-                const progress = contestProgress(contest);
-                const isLive = contest.status === "LIVE";
-                return (
-                  <motion.div
-                    key={contest.id}
-                    whileHover={{ scale: 1.02 }}
-                    className={`flex flex-col rounded-2xl shadow-lg transition-shadow duration-200 hover:shadow-xl overflow-hidden ${
-                      isLive
-                        ? "bg-gradient-to-b from-green-50 to-gray-50 border border-green-300 dark:from-green-900/30 dark:to-gray-900 dark:border-green-500/30"
-                        : `${cardBg} border border-gray-200 dark:border-gray-800`
-                    }`}
-                  >
-                    {contest.imageUrl && <RemoteImage src={contest.imageUrl} alt="" className="w-full h-28 object-cover" width={1200} height={112} />}
-                    <div className="flex flex-col flex-1 p-5">
-                      <div className="flex justify-between items-start mb-2 gap-2">
-                        <h2 className="text-base font-bold truncate">{contest.name}</h2>
-                        <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full text-white ${STATUS_STYLES[contest.status]}`}>
-                          {contest.status}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 mb-2 text-xs">
-                        <span className={`px-2 py-0.5 rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300`}>
-                          {contest.visibility === "PRIVATE" ? "Private league" : "Public contest"}
-                        </span>
-                        {contest.isOwner && <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white">Host</span>}
-                      </div>
-
-                      {contest.prize && <p className="text-sm text-blue-400 mb-2 truncate">🏆 {contest.prize}</p>}
-                      {contest.visibility === "PRIVATE" && contest.inviteCode && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <p className="text-xs text-gray-400">Invite code: {contest.inviteCode}</p>
-                          <button
-                            onClick={() => contest.inviteCode && onCopyInviteCode(contest.inviteCode)}
-                            className="text-xs text-blue-500 hover:underline"
-                          >
-                            Copy
-                          </button>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-1 text-sm text-gray-400 mb-3 tabular-nums">
-                        <span>👥</span>
-                        <span>{contest._count.entries} participant{contest._count.entries === 1 ? "" : "s"}</span>
-                      </div>
-
-                      <p className="text-xs text-gray-400 mb-3">
-                        {contest.status === "UPCOMING" && <Countdown target={contest.startAt} label="Starts in" />}
-                        {contest.status === "LIVE" && <Countdown target={contest.endAt} label="Ends in" />}
-                        {contest.status === "ENDED" && "Contest has ended"}
-                      </p>
-
-                      {contest.status !== "UPCOMING" && (
-                        <div className={`h-1.5 rounded-full mb-4 bg-gray-200 dark:bg-gray-700`}>
-                          <div
-                            className={`h-1.5 rounded-full ${isLive ? "bg-green-500" : "bg-gray-400"}`}
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                      )}
-
-                      <div className="flex gap-2 mt-auto">
-                        <button
-                          className={`flex-1 px-4 py-2 text-sm rounded-md transition-colors duration-150 active:scale-95 ${
-                            "bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
-                          }`}
-                          onClick={() => onSelect(contest.id)}
-                        >
-                          View
-                        </button>
-                        {scope === "public" && contest.status !== "ENDED" && !contest.isJoined && (
-                          <button
-                            className="flex-1 px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-500 transition-colors duration-150 active:scale-95 disabled:opacity-50"
-                            disabled={isJoining}
-                            onClick={() => onJoin(contest.id)}
-                          >
-                            Join
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+        <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+          <span className="flex items-center gap-1 tabular-nums">
+            <PiUsers aria-hidden="true" className="h-3.5 w-3.5" />
+            {participants} {participants === 1 ? "player" : "players"}
+          </span>
+          {contest.status !== "ENDED" && (
+            <span className="flex items-center gap-1 tabular-nums">
+              <PiClockCountdown aria-hidden="true" className="h-3.5 w-3.5" />
+              <Countdown target={contest.status === "UPCOMING" ? contest.startAt : contest.endAt} label={contest.status === "UPCOMING" ? "Starts in" : "Ends in"} />
+            </span>
           )}
-        </>
+          {contest.historicalStartDate && <span>Replay</span>}
+          {contest.isOwner && <span className="font-medium text-blue-600 dark:text-blue-400">You host</span>}
+        </p>
+
+        {isLive && (
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800" aria-hidden="true">
+            <div className="h-full rounded-full bg-teal-500" style={{ width: `${contestProgress(contest)}%` }} />
+          </div>
+        )}
+
+        <div className="mt-auto flex items-center gap-2 pt-4">
+          {contest.isJoined && (
+            <span className="mr-auto flex items-center gap-1 text-xs font-medium text-teal-700 dark:text-teal-300">
+              <PiCheckCircleFill aria-hidden="true" className="h-4 w-4" /> Joined
+            </span>
+          )}
+          {canJoin ? (
+            <>
+              <button
+                type="button"
+                onClick={onSelect}
+                className="flex-1 rounded-xl py-2 text-sm font-medium ring-1 ring-gray-200 hover:bg-gray-50 dark:ring-gray-700 dark:hover:bg-gray-800"
+              >
+                Details
+              </button>
+              <button
+                type="button"
+                onClick={onJoin}
+                disabled={isJoining}
+                className="flex-1 rounded-xl bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                Join
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={onSelect}
+              className={`rounded-xl px-4 py-2 text-sm font-medium ring-1 ring-gray-200 hover:bg-gray-50 dark:ring-gray-700 dark:hover:bg-gray-800 ${contest.isJoined ? "" : "flex-1"}`}
+            >
+              {contest.status === "ENDED" ? "View results" : contest.isJoined && isLive ? "Trade" : "Open"}
+            </button>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+// The contest browser: contests grouped by status, one clear action per card.
+function ContestList({ contests, isLoading, scope, isJoining, onJoin, onSelect, onOpenJoin, onOpenCreate }: ContestListProps) {
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className={`h-48 animate-pulse ${SURFACE}`} />
+        ))}
+      </div>
+    );
+  }
+
+  if (contests.length === 0) {
+    return (
+      <div className={`flex flex-col items-center px-6 py-12 text-center ${SURFACE}`}>
+        <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-gray-800">
+          <PiTrophy aria-hidden="true" className="h-6 w-6" />
+        </span>
+        {scope === "private" ? (
+          <>
+            <p className="font-medium">No private leagues yet</p>
+            <p className="mt-1 max-w-sm text-sm text-gray-500 dark:text-gray-400">Create a league and invite friends, or join one with a code.</p>
+            <div className="mt-4 flex gap-2">
+              <button type="button" onClick={onOpenJoin} className="rounded-xl px-4 py-2 text-sm font-medium ring-1 ring-gray-200 hover:bg-gray-50 dark:ring-gray-700 dark:hover:bg-gray-800">
+                Join with code
+              </button>
+              <button type="button" onClick={onOpenCreate} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                Create league
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="font-medium">No contests right now</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">New public contests show up here. Check back soon.</p>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {SECTIONS.map(({ status, title }) => {
+        const inSection = contests.filter((c) => c.status === status);
+        if (inSection.length === 0) return null;
+        return (
+          <section key={status} aria-label={title}>
+            <h2 className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              {title}
+              <span className="rounded-full bg-gray-200 px-1.5 text-[10px] tabular-nums text-gray-600 dark:bg-gray-700 dark:text-gray-300">{inSection.length}</span>
+            </h2>
+            <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {inSection.map((contest) => (
+                <ContestCard
+                  key={contest.id}
+                  contest={contest}
+                  canJoin={contest.visibility === "PUBLIC" && contest.status !== "ENDED" && !contest.isJoined}
+                  isJoining={isJoining}
+                  onJoin={() => onJoin(contest.id)}
+                  onSelect={() => onSelect(contest.id)}
+                />
+              ))}
+            </ul>
+          </section>
+        );
+      })}
+    </div>
   );
 }
 

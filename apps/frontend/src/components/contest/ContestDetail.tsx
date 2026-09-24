@@ -1,10 +1,14 @@
 "use client";
 import React from "react";
+import Link from "next/link";
+import { PiArrowLeft, PiCheckCircleFill, PiCopySimple, PiFilmStrip, PiTrophy } from "react-icons/pi";
 import Countdown from "./Countdown";
+import { StatusChip } from "./ContestList";
 import RemoteImage from "../ui/RemoteImage";
 import Avatar from "../ui/Avatar";
 import { formatInr, formatSignedInr } from "../../utils/format";
-import { MEDALS, STATUS_STYLES, contestProgress } from "./contestUtils";
+import { changeGlyph, changeTextClass } from "../market/marketColors";
+import { SURFACE, contestProgress, formatDateTime, stockName } from "./contestUtils";
 import type { Contest, ContestPortfolioData, ContestStanding } from "@tradexcel/shared";
 
 type ContestHolding = ContestPortfolioData["holdings"][number];
@@ -24,8 +28,63 @@ type ContestDetailProps = {
   onSell: (holding: ContestHolding) => void;
 };
 
-// One contest: header and countdown, standings, and (once joined) its
-// isolated portfolio with buy/sell actions.
+const MEDAL_CHIP = ["bg-amber-400 text-amber-950", "bg-gray-300 text-gray-800 dark:bg-gray-400 dark:text-gray-900", "bg-orange-300 text-orange-950 dark:bg-orange-400"];
+
+function Signed({ value, className = "" }: { value: number; className?: string }) {
+  return (
+    <span className={`tabular-nums ${changeTextClass(value)} ${className}`}>
+      {changeGlyph(value)} {formatSignedInr(value)}
+    </span>
+  );
+}
+
+function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className={`overflow-hidden ${SURFACE}`}>
+      <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800 md:px-5">
+        <h2 className="text-sm font-semibold">{title}</h2>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Standings({ standings, currentUserId }: { standings: ContestStanding[]; currentUserId: string | null }) {
+  if (standings.length === 0) {
+    return <p className="px-5 py-8 text-center text-sm text-gray-500 dark:text-gray-400">No one has joined yet. Be the first.</p>;
+  }
+  return (
+    <ol className="divide-y divide-gray-100 dark:divide-gray-800">
+      {standings.map((entry) => {
+        const isMe = entry.userId === currentUserId;
+        return (
+          <li key={entry.userId} className={`flex items-center gap-3 px-4 py-3 md:px-5 ${isMe ? "bg-blue-50 dark:bg-blue-500/10" : ""}`}>
+            {entry.rank <= 3 ? (
+              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${MEDAL_CHIP[entry.rank - 1]}`}>{entry.rank}</span>
+            ) : (
+              <span className="w-6 shrink-0 text-center text-sm font-semibold tabular-nums text-gray-500 dark:text-gray-400">{entry.rank}</span>
+            )}
+            <Link href={`/u/${entry.username}`} className="flex min-w-0 flex-1 items-center gap-2.5 hover:underline">
+              <Avatar src={entry.avatar} size={32} className="h-8 w-8 shrink-0 rounded-full" />
+              <span className="truncate text-sm font-medium">{entry.name}</span>
+              {isMe && (
+                <span className="shrink-0 rounded bg-blue-100 px-1.5 py-px text-[10px] font-semibold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">You</span>
+              )}
+            </Link>
+            <span className="shrink-0 text-right">
+              <span className="block text-sm font-semibold tabular-nums">{formatInr(entry.netWorth)}</span>
+              <Signed value={entry.delta} className="block text-xs" />
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+// One contest: a summary up top, then your contest portfolio and the stocks
+// you can trade on one side, standings on the other.
 function ContestDetail({
   contest,
   isLoading,
@@ -40,243 +99,232 @@ function ContestDetail({
   onBuy,
   onSell,
 }: ContestDetailProps) {
-  const cardBg = "bg-gray-50 dark:bg-gray-900";
-  const topStandingNetWorth = standings[0]?.netWorth || 1;
+  const back = (
+    <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+      <PiArrowLeft aria-hidden="true" className="h-4 w-4" /> All contests
+    </button>
+  );
+
+  if (isLoading || !contest) {
+    return (
+      <div className="space-y-4">
+        {back}
+        <div className={`h-40 animate-pulse ${SURFACE}`} />
+        <div className="grid gap-4 lg:grid-cols-5">
+          <div className={`h-72 animate-pulse lg:col-span-3 ${SURFACE}`} />
+          <div className={`h-72 animate-pulse lg:col-span-2 ${SURFACE}`} />
+        </div>
+      </div>
+    );
+  }
+
+  const isLive = contest.status === "LIVE";
+  const canJoin = contest.visibility === "PUBLIC" && contest.status !== "ENDED" && !hasJoined;
+  const me = standings.find((s) => s.userId === currentUserId);
+  const holdingsValue = portfolio?.holdings.reduce((sum, h) => sum + Number(h.currentValue ?? h.investedValue), 0) ?? 0;
+  const cash = Number(portfolio?.summary?.balance ?? 0);
 
   return (
-        <div className={`p-6 rounded-2xl shadow-lg ${cardBg}`}>
-          <button
-            onClick={onBack}
-            className="text-sm text-blue-500 hover:underline mb-4"
-          >
-            &larr; Back to Contests
-          </button>
+    <div className="space-y-4">
+      {back}
 
-          {isLoading || !contest ? (
-            <div className="space-y-4">
-              <div className={`h-8 w-2/3 rounded animate-pulse bg-gray-200 dark:bg-gray-800`} />
-              <div className={`h-4 w-1/3 rounded animate-pulse bg-gray-200 dark:bg-gray-800`} />
-              <div className={`h-48 rounded-xl animate-pulse bg-gray-200 dark:bg-gray-800`} />
+      {/* Summary */}
+      <div className={`overflow-hidden ${SURFACE}`}>
+        {contest.imageUrl && <RemoteImage src={contest.imageUrl} alt="" className="h-32 w-full object-cover md:h-44" width={1200} height={176} />}
+        <div className="p-4 md:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusChip status={contest.status} />
+                <span className="text-xs text-gray-500 dark:text-gray-400">{contest.visibility === "PRIVATE" ? "Private league" : "Public contest"}</span>
+                {contest.isOwner && <span className="text-xs font-medium text-blue-600 dark:text-blue-400">· You host</span>}
+              </div>
+              <h1 className="mt-2 text-xl font-bold md:text-2xl">{contest.name}</h1>
+              {contest.prize && (
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
+                  <PiTrophy aria-hidden="true" className="h-4 w-4 text-amber-500" /> {contest.prize}
+                </p>
+              )}
             </div>
-          ) : (
-            <>
-              {contest.imageUrl && (
-                <RemoteImage src={contest.imageUrl} alt="" className="w-full h-40 md:h-52 object-cover rounded-xl mb-4" width={1200} height={208} />
-              )}
-
-              <div className="flex justify-between items-start mb-2 gap-2">
-                <div className="min-w-0">
-                  <h2 className="text-lg font-bold truncate">{contest.name}</h2>
-                  {contest.prize && <p className="text-sm text-blue-400 mt-0.5">🏆 {contest.prize}</p>}
-                </div>
-                <span className={`shrink-0 text-xs px-2 py-1 rounded-full text-white ${STATUS_STYLES[contest.status]}`}>
-                  {contest.status}
+            {canJoin ? (
+              <button
+                type="button"
+                onClick={() => onJoin(contest.id)}
+                disabled={isJoining}
+                className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isJoining ? "Joining…" : "Join contest"}
+              </button>
+            ) : (
+              hasJoined && (
+                <span className="flex items-center gap-1.5 text-sm font-medium text-teal-700 dark:text-teal-300">
+                  <PiCheckCircleFill aria-hidden="true" className="h-5 w-5" /> You&apos;re in
                 </span>
+              )
+            )}
+          </div>
+
+          <dl className="mt-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+            <div>
+              <dt className="text-xs text-gray-500 dark:text-gray-400">{contest.status === "UPCOMING" ? "Starts in" : isLive ? "Ends in" : "Ended"}</dt>
+              <dd className="mt-0.5 font-semibold tabular-nums">
+                {contest.status === "ENDED" ? formatDateTime(contest.endAt) : <Countdown target={contest.status === "UPCOMING" ? contest.startAt : contest.endAt} label="" />}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-gray-500 dark:text-gray-400">Players</dt>
+              <dd className="mt-0.5 font-semibold tabular-nums">{contest._count.entries}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-gray-500 dark:text-gray-400">Starting cash</dt>
+              <dd className="mt-0.5 font-semibold tabular-nums">{formatInr(contest.startingBalance)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-gray-500 dark:text-gray-400">Schedule</dt>
+              <dd className="mt-0.5 text-xs font-medium leading-5">
+                {formatDateTime(contest.startAt)} – {formatDateTime(contest.endAt)}
+              </dd>
+            </div>
+          </dl>
+
+          {isLive && (
+            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800" aria-hidden="true">
+              <div className="h-full rounded-full bg-teal-500" style={{ width: `${contestProgress(contest)}%` }} />
+            </div>
+          )}
+
+          {contest.historicalStartDate && (
+            <p className="mt-4 flex items-start gap-2 rounded-xl bg-gray-50 px-3 py-2.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+              <PiFilmStrip aria-hidden="true" className="mt-px h-4 w-4 shrink-0" />
+              <span>
+                Replays the market from {new Date(contest.historicalStartDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                {contest.simulatedDate && (
+                  <>
+                    {" "}
+                    · now trading{" "}
+                    <span className="font-semibold">{new Date(contest.simulatedDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  </>
+                )}
+              </span>
+            </p>
+          )}
+
+          {contest.visibility === "PRIVATE" && contest.inviteCode && (
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 dark:bg-gray-800">
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Invite code, share it with friends</p>
+                <p className="font-mono text-lg font-semibold tracking-widest">{contest.inviteCode}</p>
               </div>
-
-              <div className="flex flex-wrap gap-2 mb-2 text-xs">
-                <span className={`px-2 py-0.5 rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300`}>
-                  {contest.visibility === "PRIVATE" ? "Private league" : "Public contest"}
-                </span>
-                {contest.isOwner && <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white">Host</span>}
-              </div>
-
-              {contest.visibility === "PRIVATE" && contest.inviteCode && (
-                <div className={`mb-4 rounded-xl px-4 py-3 border flex items-center justify-between gap-3 border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800`}>
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-gray-400">Invite code</p>
-                    <p className="font-semibold tracking-widest">{contest.inviteCode}</p>
-                  </div>
-                  <button
-                    onClick={() => contest.inviteCode && onCopyInviteCode(contest.inviteCode)}
-                    className={`shrink-0 px-3 py-1.5 text-xs rounded-md transition-colors duration-150 active:scale-95 ${
-                      "bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
-                    }`}
-                  >
-                    Copy
-                  </button>
-                </div>
-              )}
-
-              <p className="text-sm text-gray-400 mb-1">
-                {contest.status === "UPCOMING" && <Countdown target={contest.startAt} label="Starts in" />}
-                {contest.status === "LIVE" && <Countdown target={contest.endAt} label="Ends in" />}
-                {contest.status === "ENDED" && "This contest has ended - final results below."}
-              </p>
-
-              {contest.historicalStartDate && contest.simulatedDate && (
-                <p className="text-xs text-purple-400 mb-2">
-                  📼 Replaying {new Date(contest.historicalStartDate).toLocaleDateString()} -
-                  simulated date: {new Date(contest.simulatedDate).toLocaleDateString()}
-                </p>
-              )}
-
-              {contest.status !== "UPCOMING" && (
-                <div className={`h-1.5 rounded-full mb-4 max-w-xs bg-gray-200 dark:bg-gray-700`}>
-                  <div
-                    className={`h-1.5 rounded-full ${contest.status === "LIVE" ? "bg-green-500" : "bg-gray-400"}`}
-                    style={{ width: `${contestProgress(contest)}%` }}
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center justify-between mb-6 gap-3">
-                <p className="text-sm text-gray-400 tabular-nums">
-                  {contest._count.entries} participant{contest._count.entries === 1 ? "" : "s"}
-                </p>
-                {contest.visibility === "PUBLIC" && contest.status !== "ENDED" &&
-                  (hasJoined ? (
-                    <span className="text-sm text-green-500 font-semibold">You&apos;re in ✓</span>
-                  ) : (
-                    <button
-                      className="px-4 py-2 text-sm rounded-md bg-green-600 text-white hover:bg-green-500 transition-colors duration-150 active:scale-95 disabled:opacity-50"
-                      disabled={isJoining}
-                      onClick={() => onJoin(contest.id)}
-                    >
-                      Join Contest
-                    </button>
-                  ))}
-              </div>
-
-              <h3 className="text-sm font-semibold mb-3">League leaderboard</h3>
-              {standings.length === 0 ? (
-                <p className="text-gray-400 text-sm">No one has joined yet - be the first.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead className="bg-gray-200 dark:bg-gray-800">
-                      <tr>
-                        <th className="p-3 text-sm">Rank</th>
-                        <th className="p-3 text-sm">Player</th>
-                        <th className="p-3 text-sm">Net Worth</th>
-                        <th className="p-3 text-sm">Change since joining</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {standings.map((entry) => {
-                        const isMe = entry.userId === currentUserId;
-                        const relativeShare = Math.max(0, Math.min(100, (entry.netWorth / topStandingNetWorth) * 100));
-                        return (
-                          <tr
-                            key={entry.userId}
-                            className={`border-b transition-colors duration-150 ${
-                              isMe
-                                ? "bg-blue-50 dark:bg-blue-900"
-                                : "border-gray-200 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-800"
-                            }`}
-                          >
-                            <td className="p-3 text-sm tabular-nums">{entry.rank <= 3 ? MEDALS[entry.rank - 1] : entry.rank}</td>
-                            <td className="p-3">
-                              <div className="flex items-center gap-2">
-                                <Avatar src={entry.avatar} size={32} className="w-8 h-8 rounded-full shrink-0" />
-                                <div className="min-w-0">
-                                  <div className="text-sm truncate">
-                                    {entry.name}
-                                    {isMe && <span className="text-xs ml-1 text-blue-400">(You)</span>}
-                                  </div>
-                                  <div className={`h-1 rounded-full mt-1 w-20 bg-gray-200 dark:bg-gray-700`}>
-                                    <div className="h-1 rounded-full bg-blue-500" style={{ width: `${relativeShare}%` }} />
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-3 text-sm tabular-nums">{formatInr(entry.netWorth)}</td>
-                            <td className={`p-3 text-sm tabular-nums ${entry.delta >= 0 ? "text-green-500" : "text-red-500"}`}>
-                              {formatSignedInr(entry.delta)}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {hasJoined && portfolio && (
-                <div className="mt-8 pt-6 border-t border-gray-500/20">
-                  <div className="flex items-center justify-between mb-4 gap-3">
-                    <h3 className="text-sm font-semibold">My Contest Portfolio</h3>
-                    <div className="text-sm tabular-nums">
-                      <span className="text-gray-400">Cash: </span>
-                      <span className="font-semibold">{formatInr(portfolio.summary?.balance)}</span>
-                    </div>
-                  </div>
-
-                  {portfolio.holdings.length === 0 ? (
-                    <p className="text-gray-400 text-sm mb-4">No holdings yet - buy from the stock universe below.</p>
-                  ) : (
-                    <div className="overflow-x-auto mb-4">
-                      <table className="w-full text-left border-collapse text-sm">
-                        <thead>
-                          <tr className="border-b border-gray-200 dark:border-gray-700">
-                            <th className="py-2 px-3">Symbol</th>
-                            <th className="py-2 px-3">Qty</th>
-                            <th className="py-2 px-3">Avg Cost</th>
-                            <th className="py-2 px-3">Current</th>
-                            <th className="py-2 px-3">P&amp;L</th>
-                            <th className="py-2 px-3"></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {portfolio.holdings.map((holding) => {
-                            const pnl = holding.unrealizedPnl !== null ? Number(holding.unrealizedPnl) : null;
-                            const pnlPositive = pnl !== null && pnl >= 0;
-                            return (
-                              <tr key={holding.id} className="border-b border-gray-200 dark:border-gray-800">
-                                <td className="py-2 px-3 font-medium">{holding.symbol}</td>
-                                <td className="py-2 px-3 tabular-nums">{holding.quantity}</td>
-                                <td className="py-2 px-3 tabular-nums">{formatInr(holding.avgBuyPrice)}</td>
-                                <td className="py-2 px-3 tabular-nums">{holding.currentPrice !== null ? formatInr(holding.currentPrice) : "-"}</td>
-                                <td className={`py-2 px-3 tabular-nums font-semibold ${pnl === null ? "" : pnlPositive ? "text-green-500" : "text-red-500"}`}>
-                                  {pnl === null ? "-" : formatSignedInr(pnl)}
-                                </td>
-                                <td className="py-2 px-3">
-                                  {contest.status === "LIVE" && (
-                                    <button
-                                      onClick={() => onSell(holding)}
-                                      className={`px-3 py-1 rounded text-white text-xs transition-colors duration-150 active:scale-95 ${
-                                        "bg-red-500 hover:bg-red-400 dark:bg-red-600 dark:hover:bg-red-500"
-                                      }`}
-                                    >
-                                      Sell
-                                    </button>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {contest.status === "LIVE" && (
-                    <>
-                      <h4 className="text-xs uppercase tracking-wide text-gray-400 mb-2">Stock universe</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {(contest.symbols || []).map((symbol: string) => {
-                          const price = contest.todaysPrices?.[symbol];
-                          return (
-                            <button
-                              key={symbol}
-                              onClick={() => onBuy({ symbol, price: price ?? 0 })}
-                              className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors duration-150 active:scale-95 ${
-                                "border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                              }`}
-                            >
-                              {symbol}
-                              {price ? ` · ${formatInr(price)}` : ""}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </>
+              <button
+                type="button"
+                onClick={() => contest.inviteCode && onCopyInviteCode(contest.inviteCode)}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-medium ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-gray-900 dark:ring-gray-700 dark:hover:bg-gray-700"
+              >
+                <PiCopySimple aria-hidden="true" className="h-4 w-4" /> Copy
+              </button>
+            </div>
           )}
         </div>
+      </div>
+
+      <div className="grid items-start gap-4 lg:grid-cols-5">
+        <div className="space-y-4 lg:col-span-3">
+          {/* Your contest portfolio (separate from your weekly wallet) */}
+          {hasJoined && portfolio && (
+            <Section title="Your contest portfolio" action={me && <span className="text-xs text-gray-500 dark:text-gray-400">Rank #{me.rank}</span>}>
+              <dl className="grid grid-cols-3 gap-3 border-b border-gray-100 px-4 py-4 dark:border-gray-800 md:px-5">
+                <div>
+                  <dt className="text-xs text-gray-500 dark:text-gray-400">Net worth</dt>
+                  <dd className="mt-0.5 font-semibold tabular-nums">{formatInr(me?.netWorth ?? cash + holdingsValue)}</dd>
+                  {me && <Signed value={me.delta} className="text-xs" />}
+                </div>
+                <div>
+                  <dt className="text-xs text-gray-500 dark:text-gray-400">Cash</dt>
+                  <dd className="mt-0.5 font-semibold tabular-nums">{formatInr(cash)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-gray-500 dark:text-gray-400">Holdings</dt>
+                  <dd className="mt-0.5 font-semibold tabular-nums">{formatInr(holdingsValue)}</dd>
+                </div>
+              </dl>
+              {portfolio.holdings.length === 0 ? (
+                <p className="px-5 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                  {isLive ? "No holdings yet. Buy from the stocks below." : "No holdings."}
+                </p>
+              ) : (
+                <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {portfolio.holdings.map((holding) => {
+                    const pnl = holding.unrealizedPnl !== null ? Number(holding.unrealizedPnl) : null;
+                    return (
+                      <li key={holding.id} className="flex items-center gap-3 px-4 py-3 md:px-5">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold">{stockName(holding.symbol)}</p>
+                          <p className="text-xs tabular-nums text-gray-500 dark:text-gray-400">
+                            {holding.quantity} × {formatInr(holding.avgBuyPrice)}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold tabular-nums">{holding.currentPrice !== null ? formatInr(holding.currentValue) : "—"}</p>
+                          {pnl !== null && <Signed value={pnl} className="text-xs" />}
+                        </div>
+                        {isLive && (
+                          <button
+                            type="button"
+                            onClick={() => onSell(holding)}
+                            className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 ring-1 ring-red-200 hover:bg-red-50 dark:text-red-400 dark:ring-red-500/30 dark:hover:bg-red-500/10"
+                          >
+                            Sell
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </Section>
+          )}
+
+          <Section
+            title="Stocks in this contest"
+            action={<span className="text-xs text-gray-500 dark:text-gray-400">{contest.symbols?.length ?? 0} stocks</span>}
+          >
+            {!hasJoined && contest.status !== "ENDED" && (
+              <p className="border-b border-gray-100 px-4 py-2.5 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400 md:px-5">
+                {contest.visibility === "PUBLIC" ? "Join the contest to trade these." : "Only league members can trade here."}
+              </p>
+            )}
+            <ul className="grid max-h-96 overflow-y-auto sm:grid-cols-2">
+              {(contest.symbols || []).map((symbol) => {
+                const price = contest.todaysPrices?.[symbol];
+                const canBuy = hasJoined && isLive;
+                return (
+                  <li key={symbol} className="flex items-center gap-3 border-b border-gray-100 px-4 py-2.5 dark:border-gray-800 md:px-5 sm:odd:border-r">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{stockName(symbol)}</span>
+                    <span className="text-sm tabular-nums text-gray-600 dark:text-gray-300">{price ? formatInr(price) : "—"}</span>
+                    {canBuy && (
+                      <button
+                        type="button"
+                        onClick={() => onBuy({ symbol, price: price ?? 0 })}
+                        aria-label={`Buy ${stockName(symbol)}`}
+                        className="rounded-lg bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                      >
+                        Buy
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </Section>
+        </div>
+
+        <div className="lg:col-span-2">
+          <Section title={contest.status === "ENDED" ? "Final standings" : "Standings"}>
+            <Standings standings={standings} currentUserId={currentUserId} />
+          </Section>
+        </div>
+      </div>
+    </div>
   );
 }
 

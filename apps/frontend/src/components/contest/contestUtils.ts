@@ -1,11 +1,21 @@
+import stockList from "../market/StockData.json";
+import type { StockListing } from "../../types/market";
+
 // Shared by the contest list and detail views.
-export const STATUS_STYLES: Record<string, string> = {
-  UPCOMING: "bg-yellow-500",
-  LIVE: "bg-green-500",
-  ENDED: "bg-gray-500",
+export const SURFACE = "rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:shadow-none dark:ring-gray-800";
+
+export const STATUS_META: Record<string, { label: string; chip: string; dot: string }> = {
+  LIVE: { label: "Live", chip: "bg-teal-600/10 text-teal-700 dark:text-teal-300", dot: "bg-teal-500 animate-pulse" },
+  UPCOMING: { label: "Upcoming", chip: "bg-amber-500/15 text-amber-700 dark:text-amber-300", dot: "bg-amber-500" },
+  ENDED: { label: "Ended", chip: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400", dot: "bg-gray-400" },
 };
 
-export const MEDALS = ["🥇", "🥈", "🥉"];
+const NAMES = new Map((stockList as StockListing[]).map((s) => [s.symbol, s]));
+
+export const stockName = (symbol: string) => NAMES.get(symbol)?.shortName ?? symbol.replace(/\.(NS|BO)$/, "");
+
+export const formatDateTime = (iso: string) =>
+  new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 
 export function contestProgress(contest: { startAt: string; endAt: string; status: string }) {
   if (contest.status === "ENDED") return 100;
