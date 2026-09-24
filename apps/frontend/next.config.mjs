@@ -15,6 +15,12 @@ const nextConfig = {
   turbopack: {
     root: import.meta.dirname,
   },
+  webpack: (config) => {
+    // @tradexcel/shared is compiled from its TypeScript source (tsconfig paths),
+    // which uses Node ESM-style imports ending in ".js"; resolve those to .ts.
+    config.resolve.extensionAlias = { ...config.resolve.extensionAlias, ".js": [".ts", ".tsx", ".js"] };
+    return config;
+  },
 };
 
 export default nextConfig;
