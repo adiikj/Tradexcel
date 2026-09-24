@@ -1,0 +1,572 @@
+{
+  "kb_hash": "67f79e0101fd4658",
+  "seed": 13,
+  "sizes": {
+    "train": {
+      "total": 1217,
+      "card_targets": 880
+    },
+    "val": {
+      "total": 237,
+      "card_targets": 156
+    },
+    "test": {
+      "total": 237,
+      "card_targets": 156
+    },
+    "test_ood": {
+      "total": 310,
+      "card_targets": 233
+    }
+  },
+  "retrieval": {
+    "BM25": {
+      "val": {
+        "R@1": 0.3717948717948718,
+        "R@3": 0.5705128205128205,
+        "R@5": 0.6730769230769231,
+        "MRR": 0.504074289486496
+      },
+      "test": {
+        "R@1": 0.42948717948717946,
+        "R@3": 0.6217948717948718,
+        "R@5": 0.6666666666666666,
+        "MRR": 0.5479161108615819
+      },
+      "test_ood": {
+        "R@1": 0.6566523605150214,
+        "R@3": 0.7854077253218884,
+        "R@5": 0.8583690987124464,
+        "MRR": 0.7436033816700747
+      },
+      "ood_R@1_by_style": {
+        "adversarial": 0.3076923076923077,
+        "formal": 0.6,
+        "multi": 0.0,
+        "plain": 0.6049382716049383,
+        "rambling": 0.4,
+        "slang": 0.8823529411764706,
+        "terse": 0.7446808510638298,
+        "typo": 0.6666666666666666
+      }
+    },
+    "TF-IDF (char 3-5)": {
+      "val": {
+        "R@1": 0.3974358974358974,
+        "R@3": 0.6282051282051282,
+        "R@5": 0.6987179487179487,
+        "MRR": 0.5352994538736793
+      },
+      "test": {
+        "R@1": 0.42948717948717946,
+        "R@3": 0.6217948717948718,
+        "R@5": 0.7243589743589743,
+        "MRR": 0.5610103883385984
+      },
+      "test_ood": {
+        "R@1": 0.6094420600858369,
+        "R@3": 0.8111587982832618,
+        "R@5": 0.871244635193133,
+        "MRR": 0.7260352480627166
+      },
+      "ood_R@1_by_style": {
+        "adversarial": 0.23076923076923078,
+        "formal": 0.6,
+        "multi": 0.0,
+        "plain": 0.5308641975308642,
+        "rambling": 0.6,
+        "slang": 0.6470588235294118,
+        "terse": 0.7127659574468085,
+        "typo": 0.75
+      }
+    },
+    "MiniLM-L6 (pretrained)": {
+      "val": {
+        "R@1": 0.6217948717948718,
+        "R@3": 0.7948717948717948,
+        "R@5": 0.8653846153846154,
+        "MRR": 0.7270111383557413
+      },
+      "test": {
+        "R@1": 0.6346153846153846,
+        "R@3": 0.8269230769230769,
+        "R@5": 0.8653846153846154,
+        "MRR": 0.7392002114370326
+      },
+      "test_ood": {
+        "R@1": 0.7725321888412017,
+        "R@3": 0.9141630901287554,
+        "R@5": 0.9399141630901288,
+        "MRR": 0.8474609532030078
+      },
+      "ood_R@1_by_style": {
+        "adversarial": 0.6153846153846154,
+        "formal": 0.8,
+        "multi": 1.0,
+        "plain": 0.7530864197530864,
+        "rambling": 0.7,
+        "slang": 0.8235294117647058,
+        "terse": 0.8085106382978723,
+        "typo": 0.75
+      }
+    },
+    "Hybrid RRF (BM25 + MiniLM-L6 (pretrained))": {
+      "val": {
+        "R@1": 0.48717948717948717,
+        "R@3": 0.7307692307692307,
+        "R@5": 0.8269230769230769,
+        "MRR": 0.632025003735255
+      },
+      "test": {
+        "R@1": 0.5705128205128205,
+        "R@3": 0.7243589743589743,
+        "R@5": 0.782051282051282,
+        "MRR": 0.674659013974334
+      },
+      "test_ood": {
+        "R@1": 0.7424892703862661,
+        "R@3": 0.8927038626609443,
+        "R@5": 0.9141630901287554,
+        "MRR": 0.8185605627739884
+      },
+      "ood_R@1_by_style": {
+        "adversarial": 0.46153846153846156,
+        "formal": 0.6,
+        "multi": 1.0,
+        "plain": 0.7654320987654321,
+        "rambling": 0.5,
+        "slang": 0.7647058823529411,
+        "terse": 0.7872340425531915,
+        "typo": 0.75
+      }
+    },
+    "bge-small (pretrained)": {
+      "val": {
+        "R@1": 0.5576923076923077,
+        "R@3": 0.7756410256410257,
+        "R@5": 0.8397435897435898,
+        "MRR": 0.6849239887509193
+      },
+      "test": {
+        "R@1": 0.6858974358974359,
+        "R@3": 0.8397435897435898,
+        "R@5": 0.8782051282051282,
+        "MRR": 0.7725658421521098
+      },
+      "test_ood": {
+        "R@1": 0.7939914163090128,
+        "R@3": 0.9356223175965666,
+        "R@5": 0.9656652360515021,
+        "MRR": 0.8657757920149745
+      },
+      "ood_R@1_by_style": {
+        "adversarial": 0.6923076923076923,
+        "formal": 0.8,
+        "multi": 0.0,
+        "plain": 0.7777777777777778,
+        "rambling": 0.6,
+        "slang": 0.9411764705882353,
+        "terse": 0.8297872340425532,
+        "typo": 0.75
+      }
+    },
+    "Hybrid RRF (BM25 + bge-small (pretrained))": {
+      "val": {
+        "R@1": 0.5064102564102564,
+        "R@3": 0.7435897435897436,
+        "R@5": 0.8076923076923077,
+        "MRR": 0.6370742603114831
+      },
+      "test": {
+        "R@1": 0.5641025641025641,
+        "R@3": 0.75,
+        "R@5": 0.8141025641025641,
+        "MRR": 0.6733560079862891
+      },
+      "test_ood": {
+        "R@1": 0.7510729613733905,
+        "R@3": 0.8884120171673819,
+        "R@5": 0.9313304721030042,
+        "MRR": 0.8285668301655427
+      },
+      "ood_R@1_by_style": {
+        "adversarial": 0.46153846153846156,
+        "formal": 0.6,
+        "multi": 0.0,
+        "plain": 0.7407407407407407,
+        "rambling": 0.6,
+        "slang": 0.8823529411764706,
+        "terse": 0.8085106382978723,
+        "typo": 0.75
+      }
+    }
+  },
+  "intent": {
+    "TF-IDF (word+char) + LogReg": {
+      "val": {
+        "accuracy": 0.7172995780590717,
+        "macro_f1": 0.604928876791225,
+        "guardrail_recall": 0.25,
+        "out_of_scope_recall": 0.1111111111111111,
+        "per_class_f1": {
+          "faq_education": 0.8181818181818182,
+          "faq_platform": 0.7763157894736842,
+          "guardrail": 0.3076923076923077,
+          "holding_detail": 0.6666666666666667,
+          "my_achievements": 0.6666666666666666,
+          "my_alerts": 0.4,
+          "my_contests": 0.8,
+          "my_orders": 0.4615384615384615,
+          "my_rank": 0.6666666666666666,
+          "out_of_scope": 0.19999999999999998,
+          "portfolio_summary": 0.6153846153846154,
+          "price_quote": 0.6428571428571429,
+          "smalltalk": 0.8421052631578948
+        }
+      },
+      "test": {
+        "accuracy": 0.7130801687763713,
+        "macro_f1": 0.5631341409046328,
+        "guardrail_recall": 0.375,
+        "out_of_scope_recall": 0.4444444444444444,
+        "per_class_f1": {
+          "faq_education": 0.848,
+          "faq_platform": 0.7636363636363636,
+          "guardrail": 0.42857142857142855,
+          "holding_detail": 0.08333333333333333,
+          "my_achievements": 0.5,
+          "my_alerts": 1.0,
+          "my_contests": 0.5,
+          "my_orders": 0.75,
+          "my_rank": 0.2222222222222222,
+          "out_of_scope": 0.5714285714285714,
+          "portfolio_summary": 0.20000000000000004,
+          "price_quote": 0.7868852459016393,
+          "smalltalk": 0.6666666666666666
+        }
+      },
+      "test_ood": {
+        "accuracy": 0.7903225806451613,
+        "macro_f1": 0.7149860568899573,
+        "guardrail_recall": 0.65,
+        "out_of_scope_recall": 0.3,
+        "per_class_f1": {
+          "faq_education": 0.7971014492753623,
+          "faq_platform": 0.8532423208191127,
+          "guardrail": 0.6666666666666667,
+          "holding_detail": 0.7142857142857143,
+          "my_achievements": 0.5,
+          "my_alerts": 0.8,
+          "my_contests": 0.888888888888889,
+          "my_orders": 0.8571428571428571,
+          "my_rank": 0.5714285714285715,
+          "out_of_scope": 0.4615384615384615,
+          "portfolio_summary": 0.6250000000000001,
+          "price_quote": 0.8095238095238095,
+          "smalltalk": 0.75
+        }
+      }
+    },
+    "MiniLM-L6 (pretrained) + LogReg": {
+      "val": {
+        "accuracy": 0.7805907172995781,
+        "macro_f1": 0.7008893361106665,
+        "guardrail_recall": 0.625,
+        "out_of_scope_recall": 0.6666666666666666,
+        "per_class_f1": {
+          "faq_education": 0.9090909090909092,
+          "faq_platform": 0.7746478873239436,
+          "guardrail": 0.5,
+          "holding_detail": 0.7500000000000001,
+          "my_achievements": 0.6666666666666666,
+          "my_alerts": 0.6153846153846153,
+          "my_contests": 0.8571428571428571,
+          "my_orders": 0.5333333333333333,
+          "my_rank": 0.6666666666666666,
+          "out_of_scope": 0.631578947368421,
+          "portfolio_summary": 0.4444444444444445,
+          "price_quote": 0.8214285714285714,
+          "smalltalk": 0.9411764705882353
+        }
+      },
+      "test": {
+        "accuracy": 0.7848101265822784,
+        "macro_f1": 0.715698142718862,
+        "guardrail_recall": 0.625,
+        "out_of_scope_recall": 0.6666666666666666,
+        "per_class_f1": {
+          "faq_education": 0.88,
+          "faq_platform": 0.7777777777777778,
+          "guardrail": 0.5263157894736842,
+          "holding_detail": 0.6060606060606061,
+          "my_achievements": 0.5714285714285715,
+          "my_alerts": 0.923076923076923,
+          "my_contests": 0.7499999999999999,
+          "my_orders": 0.8421052631578948,
+          "my_rank": 0.4,
+          "out_of_scope": 0.7058823529411765,
+          "portfolio_summary": 0.5,
+          "price_quote": 0.8214285714285714,
+          "smalltalk": 1.0
+        }
+      },
+      "test_ood": {
+        "accuracy": 0.7677419354838709,
+        "macro_f1": 0.7380998365975456,
+        "guardrail_recall": 0.6,
+        "out_of_scope_recall": 0.6,
+        "per_class_f1": {
+          "faq_education": 0.7737226277372263,
+          "faq_platform": 0.8273092369477911,
+          "guardrail": 0.6153846153846154,
+          "holding_detail": 0.6666666666666667,
+          "my_achievements": 0.6,
+          "my_alerts": 0.6666666666666666,
+          "my_contests": 0.888888888888889,
+          "my_orders": 0.75,
+          "my_rank": 0.9090909090909091,
+          "out_of_scope": 0.6857142857142857,
+          "portfolio_summary": 0.75,
+          "price_quote": 0.679245283018868,
+          "smalltalk": 0.782608695652174
+        }
+      }
+    },
+    "MiniLM-L6 (pretrained) + kNN (k=5)": {
+      "val": {
+        "accuracy": 0.7088607594936709,
+        "macro_f1": 0.5260874446630975,
+        "guardrail_recall": 0.125,
+        "out_of_scope_recall": 0.2222222222222222,
+        "per_class_f1": {
+          "faq_education": 0.8571428571428572,
+          "faq_platform": 0.7514450867052023,
+          "guardrail": 0.18181818181818182,
+          "holding_detail": 0.5161290322580646,
+          "my_achievements": 0.4,
+          "my_alerts": 0.25,
+          "my_contests": 0.8,
+          "my_orders": 0.3333333333333333,
+          "my_rank": 0.5714285714285715,
+          "out_of_scope": 0.3636363636363636,
+          "portfolio_summary": 0.22222222222222224,
+          "price_quote": 0.7169811320754716,
+          "smalltalk": 0.875
+        }
+      },
+      "test": {
+        "accuracy": 0.70042194092827,
+        "macro_f1": 0.5367929882519432,
+        "guardrail_recall": 0.125,
+        "out_of_scope_recall": 0.2222222222222222,
+        "per_class_f1": {
+          "faq_education": 0.8461538461538463,
+          "faq_platform": 0.7664670658682635,
+          "guardrail": 0.14285714285714288,
+          "holding_detail": 0.17391304347826086,
+          "my_achievements": 0.3333333333333333,
+          "my_alerts": 0.9090909090909091,
+          "my_contests": 0.28571428571428575,
+          "my_orders": 0.9333333333333333,
+          "my_rank": 0.3333333333333333,
+          "out_of_scope": 0.3636363636363636,
+          "portfolio_summary": 0.4000000000000001,
+          "price_quote": 0.6333333333333332,
+          "smalltalk": 0.8571428571428571
+        }
+      },
+      "test_ood": {
+        "accuracy": 0.7516129032258064,
+        "macro_f1": 0.6335405202311677,
+        "guardrail_recall": 0.55,
+        "out_of_scope_recall": 0.25,
+        "per_class_f1": {
+          "faq_education": 0.7792207792207791,
+          "faq_platform": 0.841726618705036,
+          "guardrail": 0.6285714285714286,
+          "holding_detail": 0.5555555555555556,
+          "my_achievements": 0.28571428571428575,
+          "my_alerts": 0.7499999999999999,
+          "my_contests": 0.8571428571428571,
+          "my_orders": 0.6666666666666666,
+          "my_rank": 0.5,
+          "out_of_scope": 0.4,
+          "portfolio_summary": 0.5714285714285714,
+          "price_quote": 0.6,
+          "smalltalk": 0.7999999999999999
+        }
+      }
+    },
+    "bge-small (pretrained) + LogReg": {
+      "val": {
+        "accuracy": 0.8016877637130801,
+        "macro_f1": 0.723733050090516,
+        "guardrail_recall": 0.5,
+        "out_of_scope_recall": 0.5555555555555556,
+        "per_class_f1": {
+          "faq_education": 0.9047619047619047,
+          "faq_platform": 0.7857142857142857,
+          "guardrail": 0.4444444444444445,
+          "holding_detail": 0.8571428571428572,
+          "my_achievements": 0.6666666666666666,
+          "my_alerts": 0.6153846153846153,
+          "my_contests": 0.7499999999999999,
+          "my_orders": 0.823529411764706,
+          "my_rank": 0.5714285714285715,
+          "out_of_scope": 0.6250000000000001,
+          "portfolio_summary": 0.5714285714285714,
+          "price_quote": 0.8518518518518519,
+          "smalltalk": 0.9411764705882353
+        }
+      },
+      "test": {
+        "accuracy": 0.810126582278481,
+        "macro_f1": 0.7524563532046264,
+        "guardrail_recall": 0.625,
+        "out_of_scope_recall": 0.7777777777777778,
+        "per_class_f1": {
+          "faq_education": 0.8959999999999999,
+          "faq_platform": 0.7714285714285716,
+          "guardrail": 0.5555555555555556,
+          "holding_detail": 0.7333333333333334,
+          "my_achievements": 0.6666666666666666,
+          "my_alerts": 0.923076923076923,
+          "my_contests": 0.7499999999999999,
+          "my_orders": 0.8421052631578948,
+          "my_rank": 0.3333333333333333,
+          "out_of_scope": 0.7777777777777778,
+          "portfolio_summary": 0.7142857142857143,
+          "price_quote": 0.8771929824561403,
+          "smalltalk": 0.9411764705882353
+        }
+      },
+      "test_ood": {
+        "accuracy": 0.7870967741935484,
+        "macro_f1": 0.7419263853237997,
+        "guardrail_recall": 0.7,
+        "out_of_scope_recall": 0.6,
+        "per_class_f1": {
+          "faq_education": 0.8484848484848485,
+          "faq_platform": 0.8326848249027239,
+          "guardrail": 0.5957446808510639,
+          "holding_detail": 0.7000000000000001,
+          "my_achievements": 0.6666666666666665,
+          "my_alerts": 0.7499999999999999,
+          "my_contests": 0.8,
+          "my_orders": 0.888888888888889,
+          "my_rank": 0.6666666666666665,
+          "out_of_scope": 0.6666666666666665,
+          "portfolio_summary": 0.631578947368421,
+          "price_quote": 0.7555555555555556,
+          "smalltalk": 0.8421052631578948
+        }
+      }
+    },
+    "bge-small (pretrained) + kNN (k=5)": {
+      "val": {
+        "accuracy": 0.7510548523206751,
+        "macro_f1": 0.6041040199282537,
+        "guardrail_recall": 0.25,
+        "out_of_scope_recall": 0.1111111111111111,
+        "per_class_f1": {
+          "faq_education": 0.875,
+          "faq_platform": 0.8023952095808383,
+          "guardrail": 0.3333333333333333,
+          "holding_detail": 0.6470588235294117,
+          "my_achievements": 0.6666666666666666,
+          "my_alerts": 0.4444444444444445,
+          "my_contests": 0.8571428571428571,
+          "my_orders": 0.42857142857142855,
+          "my_rank": 0.5714285714285715,
+          "out_of_scope": 0.19999999999999998,
+          "portfolio_summary": 0.5714285714285715,
+          "price_quote": 0.75,
+          "smalltalk": 0.7058823529411765
+        }
+      },
+      "test": {
+        "accuracy": 0.7341772151898734,
+        "macro_f1": 0.5776505065327271,
+        "guardrail_recall": 0.0,
+        "out_of_scope_recall": 0.1111111111111111,
+        "per_class_f1": {
+          "faq_education": 0.8870967741935484,
+          "faq_platform": 0.7790697674418605,
+          "guardrail": 0.0,
+          "holding_detail": 0.42857142857142855,
+          "my_achievements": 0.5,
+          "my_alerts": 0.8,
+          "my_contests": 0.5,
+          "my_orders": 0.9333333333333333,
+          "my_rank": 0.28571428571428575,
+          "out_of_scope": 0.19999999999999998,
+          "portfolio_summary": 0.5714285714285714,
+          "price_quote": 0.6909090909090909,
+          "smalltalk": 0.9333333333333333
+        }
+      },
+      "test_ood": {
+        "accuracy": 0.8193548387096774,
+        "macro_f1": 0.7196469385829205,
+        "guardrail_recall": 0.5,
+        "out_of_scope_recall": 0.2,
+        "per_class_f1": {
+          "faq_education": 0.8759124087591241,
+          "faq_platform": 0.9034482758620689,
+          "guardrail": 0.6060606060606061,
+          "holding_detail": 0.47058823529411764,
+          "my_achievements": 0.8571428571428571,
+          "my_alerts": 1.0,
+          "my_contests": 0.8571428571428571,
+          "my_orders": 0.6666666666666666,
+          "my_rank": 0.6666666666666665,
+          "out_of_scope": 0.33333333333333337,
+          "portfolio_summary": 0.5263157894736842,
+          "price_quote": 0.8095238095238095,
+          "smalltalk": 0.782608695652174
+        }
+      }
+    }
+  },
+  "encode_latency_ms": {
+    "MiniLM-L6 (pretrained)": {
+      "p50": 14.052377500775037,
+      "p95": 19.090913399486453
+    },
+    "bge-small (pretrained)": {
+      "p50": 21.88016150103067,
+      "p95": 28.373554650534054
+    }
+  },
+  "selected": {
+    "retrieval": "MiniLM-L6 (pretrained)",
+    "intent": "bge-small (pretrained) + LogReg"
+  },
+  "linker": {
+    "exact_match": 0.9943181818181818,
+    "precision": 1.0,
+    "recall": 0.9934640522875817,
+    "f1": 0.9967213114754099,
+    "ambiguity_accuracy": 1.0,
+    "n": 176
+  },
+  "linker_failures": [
+    {
+      "text": "wipr0",
+      "expected": [
+        "WIPRO.NS"
+      ],
+      "expected_ambiguous": null,
+      "got": [],
+      "got_ambiguous": []
+    }
+  ],
+  "linker_on_heldout_slots": {
+    "exact_match": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "ambiguity_accuracy": 1.0,
+    "n": 35
+  }
+}

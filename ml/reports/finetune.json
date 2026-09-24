@@ -1,0 +1,5484 @@
+{
+  "kb_hash": "67f79e0101fd4658",
+  "selected": "MiniLM-L6 (fine-tuned)",
+  "rule_quality": {
+    "val": {
+      "recall": 1.0,
+      "false_positives": 0
+    },
+    "test": {
+      "recall": 0.875,
+      "false_positives": 1
+    },
+    "test_ood": {
+      "recall": 0.8,
+      "false_positives": 1
+    }
+  },
+  "results": {
+    "MiniLM-L6 (pretrained)": {
+      "variant": "pretrained",
+      "fusion_weight": 1.0,
+      "intent_C": 10,
+      "policy": {
+        "t_guard": 0.9,
+        "t_oos": 0.0,
+        "t_card": 0.7,
+        "restrict": true
+      },
+      "retrieval": {
+        "val": {
+          "dense": {
+            "R@1": 0.6217948717948718,
+            "R@3": 0.7948717948717948,
+            "R@5": 0.8653846153846154,
+            "MRR": 0.7270111383557413
+          },
+          "fused": {
+            "R@1": 0.6217948717948718,
+            "R@3": 0.7948717948717948,
+            "R@5": 0.8653846153846154,
+            "MRR": 0.7270111383557413
+          }
+        },
+        "test": {
+          "dense": {
+            "R@1": 0.6346153846153846,
+            "R@3": 0.8269230769230769,
+            "R@5": 0.8653846153846154,
+            "MRR": 0.7392002114370326
+          },
+          "fused": {
+            "R@1": 0.6346153846153846,
+            "R@3": 0.8269230769230769,
+            "R@5": 0.8653846153846154,
+            "MRR": 0.7392002114370326
+          }
+        },
+        "test_ood": {
+          "dense": {
+            "R@1": 0.7725321888412017,
+            "R@3": 0.9141630901287554,
+            "R@5": 0.9399141630901288,
+            "MRR": 0.8474609532030078
+          },
+          "fused": {
+            "R@1": 0.7725321888412017,
+            "R@3": 0.9141630901287554,
+            "R@5": 0.9399141630901288,
+            "MRR": 0.8474609532030078
+          }
+        }
+      },
+      "intent": {
+        "val": {
+          "macro_f1": 0.7008893361106665,
+          "accuracy": 0.7805907172995781,
+          "per_class_f1": {
+            "faq_education": 0.9090909090909092,
+            "faq_platform": 0.7746478873239436,
+            "guardrail": 0.5,
+            "holding_detail": 0.7500000000000001,
+            "my_achievements": 0.6666666666666666,
+            "my_alerts": 0.6153846153846153,
+            "my_contests": 0.8571428571428571,
+            "my_orders": 0.5333333333333333,
+            "my_rank": 0.6666666666666666,
+            "out_of_scope": 0.631578947368421,
+            "portfolio_summary": 0.4444444444444445,
+            "price_quote": 0.8214285714285714,
+            "smalltalk": 0.9411764705882353
+          }
+        },
+        "test": {
+          "macro_f1": 0.715698142718862,
+          "accuracy": 0.7848101265822784,
+          "per_class_f1": {
+            "faq_education": 0.88,
+            "faq_platform": 0.7777777777777778,
+            "guardrail": 0.5263157894736842,
+            "holding_detail": 0.6060606060606061,
+            "my_achievements": 0.5714285714285715,
+            "my_alerts": 0.923076923076923,
+            "my_contests": 0.7499999999999999,
+            "my_orders": 0.8421052631578948,
+            "my_rank": 0.4,
+            "out_of_scope": 0.7058823529411765,
+            "portfolio_summary": 0.5,
+            "price_quote": 0.8214285714285714,
+            "smalltalk": 1.0
+          }
+        },
+        "test_ood": {
+          "macro_f1": 0.7380998365975456,
+          "accuracy": 0.7677419354838709,
+          "per_class_f1": {
+            "faq_education": 0.7737226277372263,
+            "faq_platform": 0.8273092369477911,
+            "guardrail": 0.6153846153846154,
+            "holding_detail": 0.6666666666666667,
+            "my_achievements": 0.6,
+            "my_alerts": 0.6666666666666666,
+            "my_contests": 0.888888888888889,
+            "my_orders": 0.75,
+            "my_rank": 0.9090909090909091,
+            "out_of_scope": 0.6857142857142857,
+            "portfolio_summary": 0.75,
+            "price_quote": 0.679245283018868,
+            "smalltalk": 0.782608695652174
+          }
+        }
+      },
+      "router": {
+        "val": {
+          "n": 237,
+          "correct": 0.4810126582278481,
+          "helpful": 0.70042194092827,
+          "wrong": 0.2109704641350211,
+          "clarify_rate": 0.3206751054852321,
+          "utility": 0.379746835443038,
+          "guardrail_recall": 1.0,
+          "guardrail_false_positive_rate": 0.0,
+          "oos_recall": 0.6666666666666666,
+          "oos_false_positive_rate": 0.017543859649122806
+        },
+        "test": {
+          "n": 237,
+          "correct": 0.45569620253164556,
+          "helpful": 0.6919831223628692,
+          "wrong": 0.22362869198312235,
+          "clarify_rate": 0.3459915611814346,
+          "utility": 0.350210970464135,
+          "guardrail_recall": 0.875,
+          "guardrail_false_positive_rate": 0.004366812227074236,
+          "oos_recall": 0.6666666666666666,
+          "oos_false_positive_rate": 0.008771929824561403
+        },
+        "test_ood": {
+          "n": 310,
+          "correct": 0.532258064516129,
+          "helpful": 0.7290322580645161,
+          "wrong": 0.17419354838709677,
+          "clarify_rate": 0.3258064516129032,
+          "utility": 0.45645161290322583,
+          "guardrail_recall": 0.85,
+          "guardrail_false_positive_rate": 0.0034482758620689655,
+          "oos_recall": 0.6,
+          "oos_false_positive_rate": 0.006896551724137931
+        }
+      },
+      "ood_router_intents": [
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "price_quote",
+        "faq_platform",
+        "my_orders",
+        "faq_platform",
+        "faq_platform",
+        "holding_detail",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "price_quote",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "guardrail",
+        "price_quote",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "price_quote",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "my_alerts",
+        "guardrail",
+        "my_alerts",
+        "my_alerts",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "my_rank",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "my_achievements",
+        "my_achievements",
+        "faq_platform",
+        "my_achievements",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "holding_detail",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "my_contests",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "price_quote",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "out_of_scope",
+        "out_of_scope",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "portfolio_summary",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "smalltalk",
+        "faq_platform",
+        "faq_platform",
+        "price_quote",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "price_quote",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "guardrail",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "price_quote",
+        "price_quote",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "price_quote",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "smalltalk",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "smalltalk",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "smalltalk",
+        "guardrail",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "guardrail",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "holding_detail",
+        "faq_education",
+        "faq_platform",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "smalltalk",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "faq_education",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "price_quote",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "faq_education",
+        "portfolio_summary",
+        "portfolio_summary",
+        "portfolio_summary",
+        "portfolio_summary",
+        "portfolio_summary",
+        "guardrail",
+        "price_quote",
+        "portfolio_summary",
+        "my_rank",
+        "my_rank",
+        "my_rank",
+        "my_rank",
+        "my_rank",
+        "my_achievements",
+        "my_achievements",
+        "my_achievements",
+        "holding_detail",
+        "my_contests",
+        "my_contests",
+        "my_contests",
+        "my_contests",
+        "my_alerts",
+        "my_alerts",
+        "my_alerts",
+        "my_orders",
+        "price_quote",
+        "my_orders",
+        "my_orders",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "faq_platform",
+        "out_of_scope",
+        "out_of_scope",
+        "price_quote",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "out_of_scope",
+        "faq_platform",
+        "faq_education",
+        "out_of_scope",
+        "guardrail",
+        "out_of_scope",
+        "out_of_scope"
+      ],
+      "ood_failures": [
+        {
+          "text": "I ran out of cash on Wednesday, is there any way to top up my wallet before the week ends?",
+          "style": "rambling",
+          "expected": "wallet.starting_balance",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "woke up and my whole portfolio was gone, all my shares vanished overnight, did i get hacked or what",
+          "style": "rambling",
+          "expected": "season.weekly_reset",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "Could you kindly explain what occurs at the conclusion of each weekly season?",
+          "style": "formal",
+          "expected": "season.weekly_reset",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "do shares roll over into the next season",
+          "style": "plain",
+          "expected": "season.weekly_reset",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "tranaction history where",
+          "style": "typo",
+          "expected": "wallet.transaction_history",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "I bought something last Tuesday and want to check the exact price I paid, where would that be?",
+          "style": "rambling",
+          "expected": "wallet.transaction_history",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "past weeks results",
+          "style": "terse",
+          "expected": "season.history",
+          "got": "my_orders",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is there a record of how i did in earlier weeks",
+          "style": "plain",
+          "expected": "season.history",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how to buy",
+          "style": "terse",
+          "expected": "trade.how_to_buy",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "hw do i purchse stocks here",
+          "style": "typo",
+          "expected": "trade.how_to_buy",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "first time here, i want to put some money into infosys, what are the steps",
+          "style": "rambling",
+          "expected": "trade.how_to_buy",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "can i offload just half my position",
+          "style": "plain",
+          "expected": "trade.how_to_sell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "I Would Like To Liquidate My Holdings. Please Advise On The Procedure.",
+          "style": "formal",
+          "expected": "trade.how_to_sell",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "nse timings",
+          "style": "terse",
+          "expected": "trade.market_closed",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "markt open time",
+          "style": "typo",
+          "expected": "trade.market_closed",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is trading allowed after 3.30 pm",
+          "style": "plain",
+          "expected": "trade.market_closed",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "my order says waiting for the open, how do i stop it from going through",
+          "style": "plain",
+          "expected": "trade.queued_orders",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "what happens to a buy i placed at 10pm if i dont have the cash by morning",
+          "style": "rambling",
+          "expected": "trade.queued_orders",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "brokerage?",
+          "style": "terse",
+          "expected": "trade.fees",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "does it cost anything extra to sell, like charges or taxes",
+          "style": "plain",
+          "expected": "trade.fees",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "why is my fill price not what the screen showed",
+          "style": "plain",
+          "expected": "trade.fill_price",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "clicked buy at 500 but got 501.2",
+          "style": "terse",
+          "expected": "trade.fill_price",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "fractional shares",
+          "style": "terse",
+          "expected": "trade.quantity_rules",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can i buy like 0.25 of a share of mrf",
+          "style": "slang",
+          "expected": "trade.quantity_rules",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "what do the red and green boxes on the market page mean",
+          "style": "plain",
+          "expected": "market.page",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "stock list size",
+          "style": "terse",
+          "expected": "market.which_stocks",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "i cant find zomato anywhere",
+          "style": "plain",
+          "expected": "market.which_stocks",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "can i invest in the nifty index itself",
+          "style": "plain",
+          "expected": "market.which_stocks",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "r the prices legit or fake",
+          "style": "slang",
+          "expected": "market.live_prices",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is the data delayed compared to nse",
+          "style": "plain",
+          "expected": "market.live_prices",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "price alert setup",
+          "style": "terse",
+          "expected": "alerts.create",
+          "got": "my_alerts",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "i want an email when reliance crosses 3000",
+          "style": "plain",
+          "expected": "alerts.create",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "my alert never fired even though the price went past it on saturday",
+          "style": "rambling",
+          "expected": "alerts.create",
+          "got": "my_alerts",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "delete alert",
+          "style": "terse",
+          "expected": "alerts.manage",
+          "got": "my_alerts",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can an alert go off again after it has triggered",
+          "style": "plain",
+          "expected": "alerts.manage",
+          "got": "alerts.create",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "notifs where",
+          "style": "slang",
+          "expected": "notifications.bell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "how do i clear the red dot on the bell",
+          "style": "plain",
+          "expected": "notifications.bell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "leaderbord ranking how",
+          "style": "typo",
+          "expected": "leaderboard.ranking",
+          "got": "my_rank",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "hall of fame",
+          "style": "terse",
+          "expected": "leaderboard.hall_of_fame",
+          "got": "leaderboard.ranking",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "badges list",
+          "style": "terse",
+          "expected": "achievements.badges",
+          "got": "my_achievements",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "What achievements are available to earn on this platform?",
+          "style": "formal",
+          "expected": "achievements.badges",
+          "got": "my_achievements",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "streak broke why",
+          "style": "terse",
+          "expected": "achievements.streaks",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "i opened the app every day this week but my streak says 1",
+          "style": "rambling",
+          "expected": "achievements.streaks",
+          "got": "my_achievements",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what's the title after bull runner",
+          "style": "plain",
+          "expected": "achievements.titles",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "if i join a contest will it use my weekly money",
+          "style": "plain",
+          "expected": "contest.how_it_works",
+          "got": "contest.prize",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "why cant i buy tcs in this contest",
+          "style": "plain",
+          "expected": "contest.how_it_works",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "me and my college friends want our own competition, how do we set that up",
+          "style": "rambling",
+          "expected": "contest.private_league",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "creat private leage",
+          "style": "typo",
+          "expected": "contest.private_league",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "replay tag meaning",
+          "style": "terse",
+          "expected": "contest.replay",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "how is ranking decided inside a league",
+          "style": "plain",
+          "expected": "contest.standings",
+          "got": "leaderboard.ranking",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "contest over, do i get to keep the cash from it",
+          "style": "plain",
+          "expected": "contest.end",
+          "got": "unsupported.leave_contest",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "when do final ranks lock",
+          "style": "terse",
+          "expected": "contest.end",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "contest started yesterday can i still get in",
+          "style": "plain",
+          "expected": "contest.join_timing",
+          "got": "my_contests",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "I set up my league with the wrong stocks, can I fix it?",
+          "style": "plain",
+          "expected": "contest.private_manage",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "just signed up, what now",
+          "style": "terse",
+          "expected": "about.what_is_tradexcel",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "where are todays top movers",
+          "style": "plain",
+          "expected": "dashboard.overview",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "portfolio page sections",
+          "style": "terse",
+          "expected": "portfolio.page",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "what does the donut chart show",
+          "style": "plain",
+          "expected": "portfolio.page",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how do i look up my friend rahul",
+          "style": "plain",
+          "expected": "ui.search",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "light theme pls",
+          "style": "slang",
+          "expected": "ui.dark_mode",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "tour again",
+          "style": "terse",
+          "expected": "ui.tour",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "report bug",
+          "style": "terse",
+          "expected": "support.contact",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "something is wrong with my trade how do i reach the team",
+          "style": "plain",
+          "expected": "support.contact",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how do i stop following someone",
+          "style": "plain",
+          "expected": "social.follow",
+          "got": "social.privacy",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can i see what the people i follow are buying",
+          "style": "plain",
+          "expected": "social.activity",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "who can see my portfolio",
+          "style": "plain",
+          "expected": "social.public_profile",
+          "got": "portfolio_summary",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "profile link share",
+          "style": "terse",
+          "expected": "social.public_profile",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "private profile possible?",
+          "style": "terse",
+          "expected": "social.privacy",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "is my username allowed to have a dash",
+          "style": "plain",
+          "expected": "profile.edit",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "change display picture",
+          "style": "plain",
+          "expected": "profile.avatar",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "forgot passwrd",
+          "style": "typo",
+          "expected": "account.forgot_password",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "reset code not arriving",
+          "style": "terse",
+          "expected": "account.forgot_password",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "otp didnt come",
+          "style": "typo",
+          "expected": "account.otp",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "google login gave me a weird username",
+          "style": "plain",
+          "expected": "account.google",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "every time i log in on my phone my laptop gets signed out",
+          "style": "rambling",
+          "expected": "account.session_expired",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "limit order?",
+          "style": "terse",
+          "expected": "unsupported.limit_orders",
+          "got": "edu.order_types",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "shorting allowed?",
+          "style": "terse",
+          "expected": "unsupported.short_selling",
+          "got": "edu.short_selling_concept",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can i trade nifty options here",
+          "style": "plain",
+          "expected": "unsupported.short_selling",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "withdraw winnings",
+          "style": "terse",
+          "expected": "unsupported.real_money",
+          "got": "unsupported.leave_contest",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is any real rupee involved at all",
+          "style": "plain",
+          "expected": "unsupported.real_money",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "tesla stock available?",
+          "style": "terse",
+          "expected": "unsupported.other_markets",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "can i trade ethereum",
+          "style": "plain",
+          "expected": "unsupported.other_markets",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "dividend credited?",
+          "style": "terse",
+          "expected": "unsupported.corporate_actions",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "delete acc",
+          "style": "slang",
+          "expected": "unsupported.delete_account",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "i blew my account, fresh start?",
+          "style": "slang",
+          "expected": "unsupported.manual_reset",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "send cash to friend",
+          "style": "terse",
+          "expected": "unsupported.transfer_cash",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "is it on the play store",
+          "style": "plain",
+          "expected": "unsupported.mobile_app",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "buy 5 infosys shares right now",
+          "style": "plain",
+          "expected": "unsupported.assistant_trading",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "can you sell my wipro for me",
+          "style": "plain",
+          "expected": "unsupported.assistant_trading",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "networth = cash + stocks?",
+          "style": "terse",
+          "expected": "edu.net_worth",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "unrealised gains",
+          "style": "terse",
+          "expected": "edu.pnl",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "why is my profit shown even though i havent sold",
+          "style": "plain",
+          "expected": "edu.pnl",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "average cost after buying twice",
+          "style": "terse",
+          "expected": "edu.avg_buy_price",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "is a p/e of 80 expensive",
+          "style": "plain",
+          "expected": "edu.pe_ratio",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "mcap",
+          "style": "terse",
+          "expected": "edu.market_cap",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "sensex nifty difference",
+          "style": "terse",
+          "expected": "edu.index",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "spread in trading",
+          "style": "terse",
+          "expected": "edu.bid_ask",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "illiquid meaning",
+          "style": "terse",
+          "expected": "edu.liquidity",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "vix",
+          "style": "terse",
+          "expected": "edu.volatility",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "demat needed?",
+          "style": "terse",
+          "expected": "edu.demat",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "what is sebis role",
+          "style": "typo",
+          "expected": "edu.sebi",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "T+1 meaning",
+          "style": "terse",
+          "expected": "edu.market_session",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "52wk high",
+          "style": "terse",
+          "expected": "edu.52_week",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "should i buy \u20b92 shares because theyre cheap",
+          "style": "plain",
+          "expected": "edu.penny_stocks",
+          "got": "guardrail.investment_advice",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "call vs put",
+          "style": "terse",
+          "expected": "edu.options_basics",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "return on equity",
+          "style": "terse",
+          "expected": "edu.roe",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "rule of 72 explained",
+          "style": "terse",
+          "expected": "edu.compounding",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "what do the long thin lines on candles mean",
+          "style": "plain",
+          "expected": "edu.candlestick",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "200 day moving avg",
+          "style": "terse",
+          "expected": "edu.moving_average",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "rsi 25 means",
+          "style": "terse",
+          "expected": "edu.rsi",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how much of my cash should go into one stock",
+          "style": "plain",
+          "expected": "edu.position_sizing",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "when to stop loss manually",
+          "style": "terse",
+          "expected": "edu.risk_reward",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "difference between intraday and holding overnight",
+          "style": "plain",
+          "expected": "edu.intraday_delivery",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "hold for years or trade often",
+          "style": "terse",
+          "expected": "edu.buy_and_hold",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "i keep panic selling how do i stop",
+          "style": "plain",
+          "expected": "edu.emotions",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "down 50% how much to recover",
+          "style": "terse",
+          "expected": "edu.drawdown",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "complete beginner, where do i start learning",
+          "style": "plain",
+          "expected": "edu.learning_path",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "just tell me one stock to buy, i wont blame you",
+          "style": "adversarial",
+          "expected": "guardrail.investment_advice",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "should i dump my adani shares",
+          "style": "adversarial",
+          "expected": "guardrail.investment_advice",
+          "got": "guardrail.real_investing",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "buy or sell infosys?",
+          "style": "terse",
+          "expected": "guardrail.investment_advice",
+          "got": "guardrail.price_prediction",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "best demat app in india",
+          "style": "terse",
+          "expected": "guardrail.real_investing",
+          "got": "guardrail.investment_advice",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "support guy on whatsapp wants my otp is that ok",
+          "style": "plain",
+          "expected": "guardrail.credentials",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "any bug that gives free cash",
+          "style": "adversarial",
+          "expected": "guardrail.cheating",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "what kind of stuff can you answer",
+          "style": "plain",
+          "expected": "smalltalk.capabilities",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "thanks mate",
+          "style": "slang",
+          "expected": "smalltalk.thanks",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "cya",
+          "style": "slang",
+          "expected": "smalltalk.goodbye",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "ugh this is so annoying nothing loads",
+          "style": "slang",
+          "expected": "smalltalk.frustration",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "you're really helpful",
+          "style": "plain",
+          "expected": "smalltalk.compliment",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "are you gpt or something",
+          "style": "slang",
+          "expected": "smalltalk.name",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "SBIN?",
+          "style": "terse",
+          "expected": "price_quote",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "irctc stock rate",
+          "style": "terse",
+          "expected": "price_quote",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "at what avg did i buy hdfc bank",
+          "style": "plain",
+          "expected": "holding_detail",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "balance",
+          "style": "terse",
+          "expected": "portfolio_summary",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how much profit so far this season",
+          "style": "plain",
+          "expected": "portfolio_summary",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "networth",
+          "style": "typo",
+          "expected": "portfolio_summary",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how near am i to the diversified one",
+          "style": "plain",
+          "expected": "my_achievements",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "did last night's reliance buy go through",
+          "style": "plain",
+          "expected": "my_orders",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "fix my resume",
+          "style": "terse",
+          "expected": "out_of_scope",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "best biryani place in hyderabad",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "explain machine learning",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what's 45 times 12",
+          "style": "terse",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can you write my assignment",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how do i cancel my amazon order",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "trade.queued_orders",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "tips for a job interview",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "remind me to call mom at 6",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "wrong"
+        }
+      ],
+      "latency_ms": {
+        "p50": 11.525599496962968,
+        "p95": 13.101845253549982
+      }
+    },
+    "MiniLM-L6 (fine-tuned)": {
+      "variant": "fine-tuned",
+      "fusion_weight": 1.0,
+      "intent_C": 10,
+      "policy": {
+        "t_guard": 0.7,
+        "t_oos": 0.0,
+        "t_card": 0.75,
+        "restrict": false
+      },
+      "retrieval": {
+        "val": {
+          "dense": {
+            "R@1": 0.6666666666666666,
+            "R@3": 0.8846153846153846,
+            "R@5": 0.9102564102564102,
+            "MRR": 0.776070491066249
+          },
+          "fused": {
+            "R@1": 0.6666666666666666,
+            "R@3": 0.8846153846153846,
+            "R@5": 0.9102564102564102,
+            "MRR": 0.776070491066249
+          }
+        },
+        "test": {
+          "dense": {
+            "R@1": 0.6923076923076923,
+            "R@3": 0.8974358974358975,
+            "R@5": 0.9038461538461539,
+            "MRR": 0.7905841474183078
+          },
+          "fused": {
+            "R@1": 0.6923076923076923,
+            "R@3": 0.8974358974358975,
+            "R@5": 0.9038461538461539,
+            "MRR": 0.7905841474183078
+          }
+        },
+        "test_ood": {
+          "dense": {
+            "R@1": 0.7725321888412017,
+            "R@3": 0.9098712446351931,
+            "R@5": 0.9356223175965666,
+            "MRR": 0.8442697260129658
+          },
+          "fused": {
+            "R@1": 0.7725321888412017,
+            "R@3": 0.9098712446351931,
+            "R@5": 0.9356223175965666,
+            "MRR": 0.8442697260129658
+          }
+        }
+      },
+      "intent": {
+        "val": {
+          "macro_f1": 0.8253675774023137,
+          "accuracy": 0.8860759493670886,
+          "per_class_f1": {
+            "faq_education": 0.921875,
+            "faq_platform": 0.8551724137931035,
+            "guardrail": 0.7058823529411765,
+            "holding_detail": 0.9500000000000001,
+            "my_achievements": 0.8571428571428571,
+            "my_alerts": 0.9333333333333333,
+            "my_contests": 0.6666666666666666,
+            "my_orders": 0.875,
+            "my_rank": 0.4,
+            "out_of_scope": 0.823529411764706,
+            "portfolio_summary": 0.8000000000000002,
+            "price_quote": 1.0,
+            "smalltalk": 0.9411764705882353
+          }
+        },
+        "test": {
+          "macro_f1": 0.7851371376870919,
+          "accuracy": 0.8565400843881856,
+          "per_class_f1": {
+            "faq_education": 0.8870967741935484,
+            "faq_platform": 0.8441558441558442,
+            "guardrail": 0.6666666666666666,
+            "holding_detail": 0.8571428571428572,
+            "my_achievements": 0.5,
+            "my_alerts": 0.923076923076923,
+            "my_contests": 0.7499999999999999,
+            "my_orders": 0.8421052631578948,
+            "my_rank": 0.5,
+            "out_of_scope": 0.8750000000000001,
+            "portfolio_summary": 0.6,
+            "price_quote": 0.9615384615384615,
+            "smalltalk": 1.0
+          }
+        },
+        "test_ood": {
+          "macro_f1": 0.7648960131718566,
+          "accuracy": 0.8032258064516129,
+          "per_class_f1": {
+            "faq_education": 0.7941176470588235,
+            "faq_platform": 0.8669201520912547,
+            "guardrail": 0.6190476190476191,
+            "holding_detail": 0.7368421052631579,
+            "my_achievements": 0.6,
+            "my_alerts": 0.7499999999999999,
+            "my_contests": 1.0,
+            "my_orders": 0.8571428571428571,
+            "my_rank": 0.7499999999999999,
+            "out_of_scope": 0.7428571428571429,
+            "portfolio_summary": 0.6153846153846153,
+            "price_quote": 0.7692307692307693,
+            "smalltalk": 0.8421052631578948
+          }
+        }
+      },
+      "router": {
+        "val": {
+          "n": 237,
+          "correct": 0.620253164556962,
+          "helpful": 0.8312236286919831,
+          "wrong": 0.11814345991561181,
+          "clarify_rate": 0.270042194092827,
+          "utility": 0.6075949367088608,
+          "guardrail_recall": 1.0,
+          "guardrail_false_positive_rate": 0.0,
+          "oos_recall": 0.7777777777777778,
+          "oos_false_positive_rate": 0.0043859649122807015
+        },
+        "test": {
+          "n": 237,
+          "correct": 0.5738396624472574,
+          "helpful": 0.8059071729957806,
+          "wrong": 0.15611814345991562,
+          "clarify_rate": 0.28270042194092826,
+          "utility": 0.5337552742616034,
+          "guardrail_recall": 0.875,
+          "guardrail_false_positive_rate": 0.013100436681222707,
+          "oos_recall": 0.7777777777777778,
+          "oos_false_positive_rate": 0.0
+        },
+        "test_ood": {
+          "n": 310,
+          "correct": 0.6387096774193548,
+          "helpful": 0.8064516129032258,
+          "wrong": 0.16451612903225807,
+          "clarify_rate": 0.22258064516129034,
+          "utility": 0.5580645161290323,
+          "guardrail_recall": 0.95,
+          "guardrail_false_positive_rate": 0.006896551724137931,
+          "oos_recall": 0.65,
+          "oos_false_positive_rate": 0.0034482758620689655
+        }
+      },
+      "ood_router_intents": [
+        "faq_platform",
+        "guardrail",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "my_achievements",
+        "faq_platform",
+        "faq_platform",
+        "holding_detail",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "price_quote",
+        "faq_platform",
+        "price_quote",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "my_alerts",
+        "faq_platform",
+        "my_alerts",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "my_achievements",
+        "my_achievements",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "price_quote",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "smalltalk",
+        "faq_platform",
+        "price_quote",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "out_of_scope",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "guardrail",
+        "price_quote",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "guardrail",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "price_quote",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "smalltalk",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "guardrail",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "price_quote",
+        "guardrail",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "guardrail",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "guardrail",
+        "faq_platform",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "faq_platform",
+        "guardrail",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "faq_education",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "price_quote",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "faq_education",
+        "holding_detail",
+        "portfolio_summary",
+        "portfolio_summary",
+        "portfolio_summary",
+        "holding_detail",
+        "guardrail",
+        "price_quote",
+        "portfolio_summary",
+        "my_rank",
+        "faq_education",
+        "my_rank",
+        "faq_platform",
+        "my_rank",
+        "my_achievements",
+        "my_achievements",
+        "my_achievements",
+        "holding_detail",
+        "my_contests",
+        "my_contests",
+        "my_contests",
+        "my_contests",
+        "my_alerts",
+        "my_alerts",
+        "my_alerts",
+        "my_orders",
+        "price_quote",
+        "my_orders",
+        "my_orders",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "faq_platform",
+        "out_of_scope",
+        "out_of_scope",
+        "price_quote",
+        "faq_education",
+        "faq_education",
+        "out_of_scope",
+        "out_of_scope",
+        "faq_platform",
+        "faq_education",
+        "out_of_scope",
+        "guardrail",
+        "out_of_scope",
+        "out_of_scope"
+      ],
+      "ood_failures": [
+        {
+          "text": "I ran out of cash on Wednesday, is there any way to top up my wallet before the week ends?",
+          "style": "rambling",
+          "expected": "wallet.starting_balance",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "woke up and my whole portfolio was gone, all my shares vanished overnight, did i get hacked or what",
+          "style": "rambling",
+          "expected": "season.weekly_reset",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "Could you kindly explain what occurs at the conclusion of each weekly season?",
+          "style": "formal",
+          "expected": "season.weekly_reset",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "do shares roll over into the next season",
+          "style": "plain",
+          "expected": "season.weekly_reset",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "tranaction history where",
+          "style": "typo",
+          "expected": "wallet.transaction_history",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "I bought something last Tuesday and want to check the exact price I paid, where would that be?",
+          "style": "rambling",
+          "expected": "wallet.transaction_history",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "past weeks results",
+          "style": "terse",
+          "expected": "season.history",
+          "got": "my_achievements",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is there a record of how i did in earlier weeks",
+          "style": "plain",
+          "expected": "season.history",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "hw do i purchse stocks here",
+          "style": "typo",
+          "expected": "trade.how_to_buy",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "first time here, i want to put some money into infosys, what are the steps",
+          "style": "rambling",
+          "expected": "trade.how_to_buy",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how do i buy shares and what happens to my cash after",
+          "style": "multi",
+          "expected": "trade.how_to_buy",
+          "got": "edu.market_session",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can i offload just half my position",
+          "style": "plain",
+          "expected": "trade.how_to_sell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "I Would Like To Liquidate My Holdings. Please Advise On The Procedure.",
+          "style": "formal",
+          "expected": "trade.how_to_sell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "nse timings",
+          "style": "terse",
+          "expected": "trade.market_closed",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "markt open time",
+          "style": "typo",
+          "expected": "trade.market_closed",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "is trading allowed after 3.30 pm",
+          "style": "plain",
+          "expected": "trade.market_closed",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "my order says waiting for the open, how do i stop it from going through",
+          "style": "plain",
+          "expected": "trade.queued_orders",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "what happens to a buy i placed at 10pm if i dont have the cash by morning",
+          "style": "rambling",
+          "expected": "trade.queued_orders",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "brokerage?",
+          "style": "terse",
+          "expected": "trade.fees",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "why is my fill price not what the screen showed",
+          "style": "plain",
+          "expected": "trade.fill_price",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "clicked buy at 500 but got 501.2",
+          "style": "terse",
+          "expected": "trade.fill_price",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "what do the red and green boxes on the market page mean",
+          "style": "plain",
+          "expected": "market.page",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "stock list size",
+          "style": "terse",
+          "expected": "market.which_stocks",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "i cant find zomato anywhere",
+          "style": "plain",
+          "expected": "market.which_stocks",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can i invest in the nifty index itself",
+          "style": "plain",
+          "expected": "market.which_stocks",
+          "got": "edu.index_fund_etf",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "r the prices legit or fake",
+          "style": "slang",
+          "expected": "market.live_prices",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is the data delayed compared to nse",
+          "style": "plain",
+          "expected": "market.live_prices",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "price alert setup",
+          "style": "terse",
+          "expected": "alerts.create",
+          "got": "my_alerts",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "i want an email when reliance crosses 3000",
+          "style": "plain",
+          "expected": "alerts.create",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "my alert never fired even though the price went past it on saturday",
+          "style": "rambling",
+          "expected": "alerts.create",
+          "got": "my_alerts",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can an alert go off again after it has triggered",
+          "style": "plain",
+          "expected": "alerts.manage",
+          "got": "alerts.create",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "notifs where",
+          "style": "slang",
+          "expected": "notifications.bell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "how do i clear the red dot on the bell",
+          "style": "plain",
+          "expected": "notifications.bell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "hall of fame",
+          "style": "terse",
+          "expected": "leaderboard.hall_of_fame",
+          "got": "leaderboard.ranking",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "badges list",
+          "style": "terse",
+          "expected": "achievements.badges",
+          "got": "my_achievements",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "What achievements are available to earn on this platform?",
+          "style": "formal",
+          "expected": "achievements.badges",
+          "got": "my_achievements",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what's the title after bull runner",
+          "style": "plain",
+          "expected": "achievements.titles",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "creat private leage",
+          "style": "typo",
+          "expected": "contest.private_league",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how is ranking decided inside a league",
+          "style": "plain",
+          "expected": "contest.standings",
+          "got": "leaderboard.ranking",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "just signed up, what now",
+          "style": "terse",
+          "expected": "about.what_is_tradexcel",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "where are todays top movers",
+          "style": "plain",
+          "expected": "dashboard.overview",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what does the donut chart show",
+          "style": "plain",
+          "expected": "portfolio.page",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "light theme pls",
+          "style": "slang",
+          "expected": "ui.dark_mode",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "tour again",
+          "style": "terse",
+          "expected": "ui.tour",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "something is wrong with my trade how do i reach the team",
+          "style": "plain",
+          "expected": "support.contact",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how do i stop following someone",
+          "style": "plain",
+          "expected": "social.follow",
+          "got": "social.privacy",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can i see what the people i follow are buying",
+          "style": "plain",
+          "expected": "social.activity",
+          "got": "social.public_profile",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is my username allowed to have a dash",
+          "style": "plain",
+          "expected": "profile.edit",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "change display picture",
+          "style": "plain",
+          "expected": "profile.avatar",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "forgot passwrd",
+          "style": "typo",
+          "expected": "account.forgot_password",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "reset code not arriving",
+          "style": "terse",
+          "expected": "account.forgot_password",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "otp didnt come",
+          "style": "typo",
+          "expected": "account.otp",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "every time i log in on my phone my laptop gets signed out",
+          "style": "rambling",
+          "expected": "account.session_expired",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "shorting allowed?",
+          "style": "terse",
+          "expected": "unsupported.short_selling",
+          "got": "edu.short_selling_concept",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can i trade nifty options here",
+          "style": "plain",
+          "expected": "unsupported.short_selling",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "withdraw winnings",
+          "style": "terse",
+          "expected": "unsupported.real_money",
+          "got": "unsupported.leave_contest",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is any real rupee involved at all",
+          "style": "plain",
+          "expected": "unsupported.real_money",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "tesla stock available?",
+          "style": "terse",
+          "expected": "unsupported.other_markets",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "dividend credited?",
+          "style": "terse",
+          "expected": "unsupported.corporate_actions",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "stock split happened and now it looks like i lost half",
+          "style": "plain",
+          "expected": "unsupported.corporate_actions",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "i blew my account, fresh start?",
+          "style": "slang",
+          "expected": "unsupported.manual_reset",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "is it on the play store",
+          "style": "plain",
+          "expected": "unsupported.mobile_app",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "buy 5 infosys shares right now",
+          "style": "plain",
+          "expected": "unsupported.assistant_trading",
+          "got": "guardrail.tips_insider",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can you sell my wipro for me",
+          "style": "plain",
+          "expected": "unsupported.assistant_trading",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "networth = cash + stocks?",
+          "style": "terse",
+          "expected": "edu.net_worth",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "unrealised gains",
+          "style": "terse",
+          "expected": "edu.pnl",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "average cost after buying twice",
+          "style": "terse",
+          "expected": "edu.avg_buy_price",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "is a p/e of 80 expensive",
+          "style": "plain",
+          "expected": "edu.pe_ratio",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "mcap",
+          "style": "terse",
+          "expected": "edu.market_cap",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "sensex nifty difference",
+          "style": "terse",
+          "expected": "edu.index",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "vix",
+          "style": "terse",
+          "expected": "edu.volatility",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "2 for 1 split what happens to my shares",
+          "style": "plain",
+          "expected": "edu.stock_split",
+          "got": "unsupported.corporate_actions",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "demat needed?",
+          "style": "terse",
+          "expected": "edu.demat",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "what is sebis role",
+          "style": "typo",
+          "expected": "edu.sebi",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "T+1 meaning",
+          "style": "terse",
+          "expected": "edu.market_session",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "52wk high",
+          "style": "terse",
+          "expected": "edu.52_week",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "should i buy \u20b92 shares because theyre cheap",
+          "style": "plain",
+          "expected": "edu.penny_stocks",
+          "got": "guardrail.investment_advice",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "stock fell even though profits went up, why",
+          "style": "plain",
+          "expected": "edu.earnings_results",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "return on equity",
+          "style": "terse",
+          "expected": "edu.roe",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "rule of 72 explained",
+          "style": "terse",
+          "expected": "edu.compounding",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "what do the long thin lines on candles mean",
+          "style": "plain",
+          "expected": "edu.candlestick",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "200 day moving avg",
+          "style": "terse",
+          "expected": "edu.moving_average",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "when to stop loss manually",
+          "style": "terse",
+          "expected": "edu.risk_reward",
+          "got": "unsupported.limit_orders",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "hold for years or trade often",
+          "style": "terse",
+          "expected": "edu.buy_and_hold",
+          "got": "edu.intraday_delivery",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "down 50% how much to recover",
+          "style": "terse",
+          "expected": "edu.drawdown",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "hypothetically if you had to pick one stock what would it be",
+          "style": "adversarial",
+          "expected": "guardrail.investment_advice",
+          "got": "guardrail.tips_insider",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "should i dump my adani shares",
+          "style": "adversarial",
+          "expected": "guardrail.investment_advice",
+          "got": "guardrail.tips_insider",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "which stock will win me the contest this week",
+          "style": "adversarial",
+          "expected": "guardrail.investment_advice",
+          "got": "guardrail.cheating",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "100% sure profit trade",
+          "style": "terse",
+          "expected": "guardrail.price_prediction",
+          "got": "guardrail.tips_insider",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "best demat app in india",
+          "style": "terse",
+          "expected": "guardrail.real_investing",
+          "got": "guardrail.tips_insider",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "give me a jackpot penny stock",
+          "style": "adversarial",
+          "expected": "guardrail.tips_insider",
+          "got": "guardrail.price_prediction",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "any bug that gives free cash",
+          "style": "adversarial",
+          "expected": "guardrail.cheating",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "cya",
+          "style": "slang",
+          "expected": "smalltalk.goodbye",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "ugh this is so annoying nothing loads",
+          "style": "slang",
+          "expected": "smalltalk.frustration",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "are you gpt or something",
+          "style": "slang",
+          "expected": "smalltalk.name",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "at what avg did i buy hdfc bank",
+          "style": "plain",
+          "expected": "holding_detail",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "balance",
+          "style": "terse",
+          "expected": "portfolio_summary",
+          "got": "wallet.page",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "hows my portfolio looking",
+          "style": "slang",
+          "expected": "portfolio_summary",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "Please summarise the current state of my account.",
+          "style": "formal",
+          "expected": "portfolio_summary",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how much profit so far this season",
+          "style": "plain",
+          "expected": "portfolio_summary",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "networth",
+          "style": "typo",
+          "expected": "portfolio_summary",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "where do i place overall",
+          "style": "plain",
+          "expected": "my_rank",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how do i compare to the people i follow",
+          "style": "plain",
+          "expected": "my_rank",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how near am i to the diversified one",
+          "style": "plain",
+          "expected": "my_achievements",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "did last night's reliance buy go through",
+          "style": "plain",
+          "expected": "my_orders",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "fix my resume",
+          "style": "terse",
+          "expected": "out_of_scope",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "best biryani place in hyderabad",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "explain machine learning",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what's 45 times 12",
+          "style": "terse",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how do i cancel my amazon order",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "trade.queued_orders",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "tips for a job interview",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "remind me to call mom at 6",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "wrong"
+        }
+      ],
+      "latency_ms": {
+        "p50": 11.526977003086358,
+        "p95": 13.183838603799813
+      }
+    },
+    "bge-small (pretrained)": {
+      "variant": "pretrained",
+      "fusion_weight": 0.85,
+      "intent_C": 30,
+      "policy": {
+        "t_guard": 0.8,
+        "t_oos": 0.0,
+        "t_card": 0.75,
+        "restrict": false
+      },
+      "retrieval": {
+        "val": {
+          "dense": {
+            "R@1": 0.5576923076923077,
+            "R@3": 0.7756410256410257,
+            "R@5": 0.8397435897435898,
+            "MRR": 0.6849239887509193
+          },
+          "fused": {
+            "R@1": 0.5641025641025641,
+            "R@3": 0.7756410256410257,
+            "R@5": 0.8461538461538461,
+            "MRR": 0.6856923341984636
+          }
+        },
+        "test": {
+          "dense": {
+            "R@1": 0.6858974358974359,
+            "R@3": 0.8397435897435898,
+            "R@5": 0.8782051282051282,
+            "MRR": 0.7725658421521098
+          },
+          "fused": {
+            "R@1": 0.6153846153846154,
+            "R@3": 0.8269230769230769,
+            "R@5": 0.8782051282051282,
+            "MRR": 0.7314636525072046
+          }
+        },
+        "test_ood": {
+          "dense": {
+            "R@1": 0.7939914163090128,
+            "R@3": 0.9356223175965666,
+            "R@5": 0.9656652360515021,
+            "MRR": 0.8657757920149745
+          },
+          "fused": {
+            "R@1": 0.7553648068669528,
+            "R@3": 0.9313304721030042,
+            "R@5": 0.9656652360515021,
+            "MRR": 0.8470963894726833
+          }
+        }
+      },
+      "intent": {
+        "val": {
+          "macro_f1": 0.7475224435329321,
+          "accuracy": 0.8270042194092827,
+          "per_class_f1": {
+            "faq_education": 0.9193548387096774,
+            "faq_platform": 0.8435374149659864,
+            "guardrail": 0.47058823529411764,
+            "holding_detail": 0.8571428571428572,
+            "my_achievements": 0.8571428571428571,
+            "my_alerts": 0.5,
+            "my_contests": 0.8571428571428571,
+            "my_orders": 0.823529411764706,
+            "my_rank": 0.5714285714285715,
+            "out_of_scope": 0.6250000000000001,
+            "portfolio_summary": 0.6153846153846154,
+            "price_quote": 0.8363636363636364,
+            "smalltalk": 0.9411764705882353
+          }
+        },
+        "test": {
+          "macro_f1": 0.7662165992665979,
+          "accuracy": 0.8312236286919831,
+          "per_class_f1": {
+            "faq_education": 0.9193548387096774,
+            "faq_platform": 0.8079470198675496,
+            "guardrail": 0.625,
+            "holding_detail": 0.7333333333333334,
+            "my_achievements": 0.6666666666666666,
+            "my_alerts": 0.8,
+            "my_contests": 0.7499999999999999,
+            "my_orders": 0.8421052631578948,
+            "my_rank": 0.4,
+            "out_of_scope": 0.7058823529411765,
+            "portfolio_summary": 0.8333333333333333,
+            "price_quote": 0.8771929824561403,
+            "smalltalk": 1.0
+          }
+        },
+        "test_ood": {
+          "macro_f1": 0.7495654899874056,
+          "accuracy": 0.8064516129032258,
+          "per_class_f1": {
+            "faq_education": 0.8396946564885497,
+            "faq_platform": 0.8708487084870848,
+            "guardrail": 0.5714285714285713,
+            "holding_detail": 0.7000000000000001,
+            "my_achievements": 0.6666666666666665,
+            "my_alerts": 0.7499999999999999,
+            "my_contests": 0.888888888888889,
+            "my_orders": 0.8571428571428571,
+            "my_rank": 0.6666666666666665,
+            "out_of_scope": 0.6060606060606061,
+            "portfolio_summary": 0.6666666666666666,
+            "price_quote": 0.8181818181818182,
+            "smalltalk": 0.8421052631578948
+          }
+        }
+      },
+      "router": {
+        "val": {
+          "n": 237,
+          "correct": 0.6160337552742616,
+          "helpful": 0.6413502109704642,
+          "wrong": 0.3206751054852321,
+          "clarify_rate": 0.07172995780590717,
+          "utility": 0.3080168776371308,
+          "guardrail_recall": 1.0,
+          "guardrail_false_positive_rate": 0.0,
+          "oos_recall": 0.5555555555555556,
+          "oos_false_positive_rate": 0.008771929824561403
+        },
+        "test": {
+          "n": 237,
+          "correct": 0.6329113924050633,
+          "helpful": 0.6877637130801688,
+          "wrong": 0.2869198312236287,
+          "clarify_rate": 0.09282700421940929,
+          "utility": 0.37341772151898733,
+          "guardrail_recall": 0.875,
+          "guardrail_false_positive_rate": 0.004366812227074236,
+          "oos_recall": 0.6666666666666666,
+          "oos_false_positive_rate": 0.008771929824561403
+        },
+        "test_ood": {
+          "n": 310,
+          "correct": 0.6870967741935484,
+          "helpful": 0.7387096774193549,
+          "wrong": 0.24516129032258063,
+          "clarify_rate": 0.0935483870967742,
+          "utility": 0.46774193548387094,
+          "guardrail_recall": 0.9,
+          "guardrail_false_positive_rate": 0.006896551724137931,
+          "oos_recall": 0.5,
+          "oos_false_positive_rate": 0.006896551724137931
+        }
+      },
+      "ood_router_intents": [
+        "guardrail",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "portfolio_summary",
+        "faq_platform",
+        "faq_platform",
+        "portfolio_summary",
+        "my_achievements",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "guardrail",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "guardrail",
+        "my_alerts",
+        "my_alerts",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "my_achievements",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "price_quote",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "guardrail",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "my_contests",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "price_quote",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "guardrail",
+        "faq_platform",
+        "faq_platform",
+        "guardrail",
+        "holding_detail",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "smalltalk",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "out_of_scope",
+        "guardrail",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "guardrail",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "out_of_scope",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "faq_platform",
+        "guardrail",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "faq_platform",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "holding_detail",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "holding_detail",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "portfolio_summary",
+        "faq_education",
+        "portfolio_summary",
+        "my_rank",
+        "portfolio_summary",
+        "portfolio_summary",
+        "portfolio_summary",
+        "portfolio_summary",
+        "price_quote",
+        "portfolio_summary",
+        "my_rank",
+        "faq_platform",
+        "my_rank",
+        "faq_platform",
+        "my_rank",
+        "my_achievements",
+        "my_achievements",
+        "my_achievements",
+        "holding_detail",
+        "my_contests",
+        "my_contests",
+        "my_contests",
+        "my_contests",
+        "my_alerts",
+        "my_alerts",
+        "my_alerts",
+        "my_orders",
+        "my_orders",
+        "faq_platform",
+        "my_orders",
+        "out_of_scope",
+        "faq_platform",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "faq_platform",
+        "out_of_scope",
+        "out_of_scope",
+        "price_quote",
+        "faq_education",
+        "faq_education",
+        "smalltalk",
+        "out_of_scope",
+        "faq_platform",
+        "faq_education",
+        "out_of_scope",
+        "guardrail",
+        "guardrail",
+        "out_of_scope"
+      ],
+      "ood_failures": [
+        {
+          "text": "I ran out of cash on Wednesday, is there any way to top up my wallet before the week ends?",
+          "style": "rambling",
+          "expected": "wallet.starting_balance",
+          "got": "season.weekly_reset",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "Could you kindly explain what occurs at the conclusion of each weekly season?",
+          "style": "formal",
+          "expected": "season.weekly_reset",
+          "got": "season.history",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "where do i see how much cash i can still spend",
+          "style": "plain",
+          "expected": "wallet.page",
+          "got": "portfolio_summary",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "tranaction history where",
+          "style": "typo",
+          "expected": "wallet.transaction_history",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "I bought something last Tuesday and want to check the exact price I paid, where would that be?",
+          "style": "rambling",
+          "expected": "wallet.transaction_history",
+          "got": "trade.fill_price",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "past weeks results",
+          "style": "terse",
+          "expected": "season.history",
+          "got": "portfolio_summary",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is there a record of how i did in earlier weeks",
+          "style": "plain",
+          "expected": "season.history",
+          "got": "my_achievements",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "hw do i purchse stocks here",
+          "style": "typo",
+          "expected": "trade.how_to_buy",
+          "got": "market.page",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "first time here, i want to put some money into infosys, what are the steps",
+          "style": "rambling",
+          "expected": "trade.how_to_buy",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how do i buy shares and what happens to my cash after",
+          "style": "multi",
+          "expected": "trade.how_to_buy",
+          "got": "edu.stock",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "I Would Like To Liquidate My Holdings. Please Advise On The Procedure.",
+          "style": "formal",
+          "expected": "trade.how_to_sell",
+          "got": "season.weekly_reset",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "nse timings",
+          "style": "terse",
+          "expected": "trade.market_closed",
+          "got": "edu.stock_exchange",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "markt open time",
+          "style": "typo",
+          "expected": "trade.market_closed",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "my order says waiting for the open, how do i stop it from going through",
+          "style": "plain",
+          "expected": "trade.queued_orders",
+          "got": "unsupported.assistant_trading",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what happens to a buy i placed at 10pm if i dont have the cash by morning",
+          "style": "rambling",
+          "expected": "trade.queued_orders",
+          "got": "edu.stock",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "stock list size",
+          "style": "terse",
+          "expected": "market.which_stocks",
+          "got": "wallet.transaction_history",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "i cant find zomato anywhere",
+          "style": "plain",
+          "expected": "market.which_stocks",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "can i invest in the nifty index itself",
+          "style": "plain",
+          "expected": "market.which_stocks",
+          "got": "edu.index_fund_etf",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is the data delayed compared to nse",
+          "style": "plain",
+          "expected": "market.live_prices",
+          "got": "edu.stock_exchange",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "i want an email when reliance crosses 3000",
+          "style": "plain",
+          "expected": "alerts.create",
+          "got": "guardrail.price_prediction",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "my alert never fired even though the price went past it on saturday",
+          "style": "rambling",
+          "expected": "alerts.create",
+          "got": "my_alerts",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "delete alert",
+          "style": "terse",
+          "expected": "alerts.manage",
+          "got": "my_alerts",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can an alert go off again after it has triggered",
+          "style": "plain",
+          "expected": "alerts.manage",
+          "got": "alerts.create",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "notifs where",
+          "style": "slang",
+          "expected": "notifications.bell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how do i clear the red dot on the bell",
+          "style": "plain",
+          "expected": "notifications.bell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "hall of fame",
+          "style": "terse",
+          "expected": "leaderboard.hall_of_fame",
+          "got": "leaderboard.ranking",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "badges list",
+          "style": "terse",
+          "expected": "achievements.badges",
+          "got": "my_achievements",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what's the title after bull runner",
+          "style": "plain",
+          "expected": "achievements.titles",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "if i join a contest will it use my weekly money",
+          "style": "plain",
+          "expected": "contest.how_it_works",
+          "got": "contest.end",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "creat private leage",
+          "style": "typo",
+          "expected": "contest.private_league",
+          "got": "social.privacy",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how is ranking decided inside a league",
+          "style": "plain",
+          "expected": "contest.standings",
+          "got": "leaderboard.ranking",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "contest started yesterday can i still get in",
+          "style": "plain",
+          "expected": "contest.join_timing",
+          "got": "my_contests",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "just signed up, what now",
+          "style": "terse",
+          "expected": "about.what_is_tradexcel",
+          "got": "account.signup",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "where are todays top movers",
+          "style": "plain",
+          "expected": "dashboard.overview",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what does the donut chart show",
+          "style": "plain",
+          "expected": "portfolio.page",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how do i look up my friend rahul",
+          "style": "plain",
+          "expected": "ui.search",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how do i stop following someone",
+          "style": "plain",
+          "expected": "social.follow",
+          "got": "social.privacy",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "who can see my portfolio",
+          "style": "plain",
+          "expected": "social.public_profile",
+          "got": "portfolio.page",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "private profile possible?",
+          "style": "terse",
+          "expected": "social.privacy",
+          "got": "social.public_profile",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is my username allowed to have a dash",
+          "style": "plain",
+          "expected": "profile.edit",
+          "got": "account.sign_in_options",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "reset code not arriving",
+          "style": "terse",
+          "expected": "account.forgot_password",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "every time i log in on my phone my laptop gets signed out",
+          "style": "rambling",
+          "expected": "account.session_expired",
+          "got": "account.sign_out",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "shorting allowed?",
+          "style": "terse",
+          "expected": "unsupported.short_selling",
+          "got": "edu.short_selling_concept",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can i trade nifty options here",
+          "style": "plain",
+          "expected": "unsupported.short_selling",
+          "got": "market.which_stocks",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "withdraw winnings",
+          "style": "terse",
+          "expected": "unsupported.real_money",
+          "got": "unsupported.leave_contest",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is any real rupee involved at all",
+          "style": "plain",
+          "expected": "unsupported.real_money",
+          "got": "trade.quantity_rules",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can i trade ethereum",
+          "style": "plain",
+          "expected": "unsupported.other_markets",
+          "got": "market.which_stocks",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "send cash to friend",
+          "style": "terse",
+          "expected": "unsupported.transfer_cash",
+          "got": "social.public_profile",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "buy 5 infosys shares right now",
+          "style": "plain",
+          "expected": "unsupported.assistant_trading",
+          "got": "trade.quantity_rules",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can you sell my wipro for me",
+          "style": "plain",
+          "expected": "unsupported.assistant_trading",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "networth = cash + stocks?",
+          "style": "terse",
+          "expected": "edu.net_worth",
+          "got": "trade.how_to_sell",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "why diversify",
+          "style": "terse",
+          "expected": "edu.diversification",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "mcap",
+          "style": "terse",
+          "expected": "edu.market_cap",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "difference between largecap and smallcap",
+          "style": "typo",
+          "expected": "edu.market_cap",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "spread in trading",
+          "style": "terse",
+          "expected": "edu.bid_ask",
+          "got": "edu.volume",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "illiquid meaning",
+          "style": "terse",
+          "expected": "edu.liquidity",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "2 for 1 split what happens to my shares",
+          "style": "plain",
+          "expected": "edu.stock_split",
+          "got": "unsupported.corporate_actions",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "demat needed?",
+          "style": "terse",
+          "expected": "edu.demat",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "T+1 meaning",
+          "style": "terse",
+          "expected": "edu.market_session",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "fiis sold today what does that mean",
+          "style": "plain",
+          "expected": "edu.fii_dii",
+          "got": "edu.index",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "52wk high",
+          "style": "terse",
+          "expected": "edu.52_week",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "should i buy \u20b92 shares because theyre cheap",
+          "style": "plain",
+          "expected": "edu.penny_stocks",
+          "got": "guardrail.real_investing",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how does a sip work",
+          "style": "plain",
+          "expected": "edu.mutual_fund",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "return on equity",
+          "style": "terse",
+          "expected": "edu.roe",
+          "got": "edu.risk_return",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "compound annual growth rate",
+          "style": "terse",
+          "expected": "edu.cagr",
+          "got": "edu.compounding",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "rule of 72 explained",
+          "style": "terse",
+          "expected": "edu.compounding",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "what do the long thin lines on candles mean",
+          "style": "plain",
+          "expected": "edu.candlestick",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how do i know if a stock is trending up",
+          "style": "plain",
+          "expected": "edu.trend",
+          "got": "market.page",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "when to stop loss manually",
+          "style": "terse",
+          "expected": "edu.risk_reward",
+          "got": "unsupported.limit_orders",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "complete beginner, where do i start learning",
+          "style": "plain",
+          "expected": "edu.learning_path",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "should i dump my adani shares",
+          "style": "adversarial",
+          "expected": "guardrail.investment_advice",
+          "got": "guardrail.real_investing",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "buy or sell infosys?",
+          "style": "terse",
+          "expected": "guardrail.investment_advice",
+          "got": "guardrail.price_prediction",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "best demat app in india",
+          "style": "terse",
+          "expected": "guardrail.real_investing",
+          "got": "guardrail.investment_advice",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "support guy on whatsapp wants my otp is that ok",
+          "style": "plain",
+          "expected": "guardrail.credentials",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "any bug that gives free cash",
+          "style": "adversarial",
+          "expected": "guardrail.cheating",
+          "got": "contest.prize",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "cya",
+          "style": "slang",
+          "expected": "smalltalk.goodbye",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "ugh this is so annoying nothing loads",
+          "style": "slang",
+          "expected": "smalltalk.frustration",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "dr reddys share value",
+          "style": "plain",
+          "expected": "price_quote",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how much is 1 share of mrf",
+          "style": "plain",
+          "expected": "price_quote",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how much am i up on bel",
+          "style": "plain",
+          "expected": "holding_detail",
+          "got": "portfolio_summary",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "balance",
+          "style": "terse",
+          "expected": "portfolio_summary",
+          "got": "unsupported.transfer_cash",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "am i green or red this week",
+          "style": "slang",
+          "expected": "portfolio_summary",
+          "got": "my_rank",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "networth",
+          "style": "typo",
+          "expected": "portfolio_summary",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "where do i place overall",
+          "style": "plain",
+          "expected": "my_rank",
+          "got": "trade.how_to_buy",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how do i compare to the people i follow",
+          "style": "plain",
+          "expected": "my_rank",
+          "got": "social.follow",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how near am i to the diversified one",
+          "style": "plain",
+          "expected": "my_achievements",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what was the last thing i sold",
+          "style": "plain",
+          "expected": "my_orders",
+          "got": "wallet.transaction_history",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "write a sql query to join two tables",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "fix my resume",
+          "style": "terse",
+          "expected": "out_of_scope",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "best biryani place in hyderabad",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "explain machine learning",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what's 45 times 12",
+          "style": "terse",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can you write my assignment",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how do i cancel my amazon order",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "unsupported.assistant_trading",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "tips for a job interview",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "remind me to call mom at 6",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "horoscope for leo today",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "wrong"
+        }
+      ],
+      "latency_ms": {
+        "p50": 21.317987000657013,
+        "p95": 24.201265700685326
+      }
+    },
+    "bge-small (fine-tuned)": {
+      "variant": "fine-tuned",
+      "fusion_weight": 1.0,
+      "intent_C": 30,
+      "policy": {
+        "t_guard": 0.9,
+        "t_oos": 0.4,
+        "t_card": 0.75,
+        "restrict": true
+      },
+      "retrieval": {
+        "val": {
+          "dense": {
+            "R@1": 0.6730769230769231,
+            "R@3": 0.8525641025641025,
+            "R@5": 0.8846153846153846,
+            "MRR": 0.7722080153923306
+          },
+          "fused": {
+            "R@1": 0.6730769230769231,
+            "R@3": 0.8525641025641025,
+            "R@5": 0.8846153846153846,
+            "MRR": 0.7722080153923306
+          }
+        },
+        "test": {
+          "dense": {
+            "R@1": 0.7371794871794872,
+            "R@3": 0.8974358974358975,
+            "R@5": 0.9166666666666666,
+            "MRR": 0.8208491581714826
+          },
+          "fused": {
+            "R@1": 0.7371794871794872,
+            "R@3": 0.8974358974358975,
+            "R@5": 0.9166666666666666,
+            "MRR": 0.8208491581714826
+          }
+        },
+        "test_ood": {
+          "dense": {
+            "R@1": 0.7982832618025751,
+            "R@3": 0.927038626609442,
+            "R@5": 0.9484978540772532,
+            "MRR": 0.866238929195926
+          },
+          "fused": {
+            "R@1": 0.7982832618025751,
+            "R@3": 0.927038626609442,
+            "R@5": 0.9484978540772532,
+            "MRR": 0.866238929195926
+          }
+        }
+      },
+      "intent": {
+        "val": {
+          "macro_f1": 0.8438235386585438,
+          "accuracy": 0.8776371308016878,
+          "per_class_f1": {
+            "faq_education": 0.890625,
+            "faq_platform": 0.8859060402684563,
+            "guardrail": 0.47058823529411764,
+            "holding_detail": 0.9230769230769231,
+            "my_achievements": 1.0,
+            "my_alerts": 0.9333333333333333,
+            "my_contests": 1.0,
+            "my_orders": 0.7999999999999999,
+            "my_rank": 0.6666666666666666,
+            "out_of_scope": 0.6250000000000001,
+            "portfolio_summary": 0.8333333333333333,
+            "price_quote": 1.0,
+            "smalltalk": 0.9411764705882353
+          }
+        },
+        "test": {
+          "macro_f1": 0.8235470497938319,
+          "accuracy": 0.8818565400843882,
+          "per_class_f1": {
+            "faq_education": 0.921875,
+            "faq_platform": 0.8413793103448275,
+            "guardrail": 0.6666666666666666,
+            "holding_detail": 0.972972972972973,
+            "my_achievements": 0.7499999999999999,
+            "my_alerts": 1.0,
+            "my_contests": 0.7499999999999999,
+            "my_orders": 0.9411764705882353,
+            "my_rank": 0.4,
+            "out_of_scope": 0.823529411764706,
+            "portfolio_summary": 0.7692307692307693,
+            "price_quote": 0.9803921568627451,
+            "smalltalk": 0.888888888888889
+          }
+        },
+        "test_ood": {
+          "macro_f1": 0.7785231342532337,
+          "accuracy": 0.8354838709677419,
+          "per_class_f1": {
+            "faq_education": 0.8244274809160306,
+            "faq_platform": 0.8978102189781022,
+            "guardrail": 0.6666666666666666,
+            "holding_detail": 0.888888888888889,
+            "my_achievements": 0.6,
+            "my_alerts": 0.8571428571428571,
+            "my_contests": 1.0,
+            "my_orders": 0.5714285714285715,
+            "my_rank": 0.8000000000000002,
+            "out_of_scope": 0.7058823529411764,
+            "portfolio_summary": 0.6153846153846153,
+            "price_quote": 0.851063829787234,
+            "smalltalk": 0.8421052631578948
+          }
+        }
+      },
+      "router": {
+        "val": {
+          "n": 237,
+          "correct": 0.6962025316455697,
+          "helpful": 0.7637130801687764,
+          "wrong": 0.16033755274261605,
+          "clarify_rate": 0.1518987341772152,
+          "utility": 0.569620253164557,
+          "guardrail_recall": 1.0,
+          "guardrail_false_positive_rate": 0.0,
+          "oos_recall": 0.6666666666666666,
+          "oos_false_positive_rate": 0.008771929824561403
+        },
+        "test": {
+          "n": 237,
+          "correct": 0.7468354430379747,
+          "helpful": 0.8016877637130801,
+          "wrong": 0.14767932489451477,
+          "clarify_rate": 0.10970464135021098,
+          "utility": 0.6265822784810127,
+          "guardrail_recall": 0.875,
+          "guardrail_false_positive_rate": 0.008733624454148471,
+          "oos_recall": 0.7777777777777778,
+          "oos_false_positive_rate": 0.013157894736842105
+        },
+        "test_ood": {
+          "n": 310,
+          "correct": 0.6967741935483871,
+          "helpful": 0.7741935483870968,
+          "wrong": 0.16451612903225807,
+          "clarify_rate": 0.16774193548387098,
+          "utility": 0.5709677419354838,
+          "guardrail_recall": 0.85,
+          "guardrail_false_positive_rate": 0.0034482758620689655,
+          "oos_recall": 0.6,
+          "oos_false_positive_rate": 0.027586206896551724
+        }
+      },
+      "ood_router_intents": [
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "out_of_scope",
+        "my_achievements",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "my_orders",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "guardrail",
+        "my_alerts",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "my_achievements",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "out_of_scope",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "price_quote",
+        "faq_platform",
+        "faq_platform",
+        "faq_education",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "faq_platform",
+        "out_of_scope",
+        "out_of_scope",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "out_of_scope",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "out_of_scope",
+        "out_of_scope",
+        "guardrail",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_platform",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "guardrail",
+        "faq_education",
+        "faq_education",
+        "guardrail",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "faq_education",
+        "guardrail",
+        "out_of_scope",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "guardrail",
+        "faq_platform",
+        "guardrail",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "faq_education",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "smalltalk",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "price_quote",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "holding_detail",
+        "faq_education",
+        "portfolio_summary",
+        "my_rank",
+        "faq_platform",
+        "portfolio_summary",
+        "portfolio_summary",
+        "holding_detail",
+        "price_quote",
+        "portfolio_summary",
+        "my_rank",
+        "my_rank",
+        "my_rank",
+        "faq_platform",
+        "my_rank",
+        "my_achievements",
+        "my_achievements",
+        "my_achievements",
+        "holding_detail",
+        "my_contests",
+        "my_contests",
+        "my_contests",
+        "my_contests",
+        "my_alerts",
+        "my_alerts",
+        "my_alerts",
+        "my_orders",
+        "price_quote",
+        "faq_platform",
+        "my_orders",
+        "out_of_scope",
+        "faq_platform",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "faq_platform",
+        "out_of_scope",
+        "out_of_scope",
+        "out_of_scope",
+        "faq_education",
+        "out_of_scope",
+        "smalltalk",
+        "out_of_scope",
+        "faq_platform",
+        "faq_education",
+        "out_of_scope",
+        "guardrail",
+        "guardrail",
+        "out_of_scope"
+      ],
+      "ood_failures": [
+        {
+          "text": "I ran out of cash on Wednesday, is there any way to top up my wallet before the week ends?",
+          "style": "rambling",
+          "expected": "wallet.starting_balance",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "woke up and my whole portfolio was gone, all my shares vanished overnight, did i get hacked or what",
+          "style": "rambling",
+          "expected": "season.weekly_reset",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "Could you kindly explain what occurs at the conclusion of each weekly season?",
+          "style": "formal",
+          "expected": "season.weekly_reset",
+          "got": "season.history",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "tranaction history where",
+          "style": "typo",
+          "expected": "wallet.transaction_history",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "I bought something last Tuesday and want to check the exact price I paid, where would that be?",
+          "style": "rambling",
+          "expected": "wallet.transaction_history",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "past weeks results",
+          "style": "terse",
+          "expected": "season.history",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is there a record of how i did in earlier weeks",
+          "style": "plain",
+          "expected": "season.history",
+          "got": "my_achievements",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "hw do i purchse stocks here",
+          "style": "typo",
+          "expected": "trade.how_to_buy",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "can i offload just half my position",
+          "style": "plain",
+          "expected": "trade.how_to_sell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "I Would Like To Liquidate My Holdings. Please Advise On The Procedure.",
+          "style": "formal",
+          "expected": "trade.how_to_sell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "nse timings",
+          "style": "terse",
+          "expected": "trade.market_closed",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "tried buying on sunday night and it said something about the market being closed, can i still order?",
+          "style": "rambling",
+          "expected": "trade.market_closed",
+          "got": "my_orders",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what happens to a buy i placed at 10pm if i dont have the cash by morning",
+          "style": "rambling",
+          "expected": "trade.queued_orders",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "brokerage?",
+          "style": "terse",
+          "expected": "trade.fees",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "why is my fill price not what the screen showed",
+          "style": "plain",
+          "expected": "trade.fill_price",
+          "got": "market.live_prices",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "clicked buy at 500 but got 501.2",
+          "style": "terse",
+          "expected": "trade.fill_price",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "fractional shares",
+          "style": "terse",
+          "expected": "trade.quantity_rules",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "what do the red and green boxes on the market page mean",
+          "style": "plain",
+          "expected": "market.page",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "stock list size",
+          "style": "terse",
+          "expected": "market.which_stocks",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "i cant find zomato anywhere",
+          "style": "plain",
+          "expected": "market.which_stocks",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "can i invest in the nifty index itself",
+          "style": "plain",
+          "expected": "market.which_stocks",
+          "got": "trade.how_to_buy",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "is the data delayed compared to nse",
+          "style": "plain",
+          "expected": "market.live_prices",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "i want an email when reliance crosses 3000",
+          "style": "plain",
+          "expected": "alerts.create",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "my alert never fired even though the price went past it on saturday",
+          "style": "rambling",
+          "expected": "alerts.create",
+          "got": "my_alerts",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can an alert go off again after it has triggered",
+          "style": "plain",
+          "expected": "alerts.manage",
+          "got": "alerts.create",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "notifs where",
+          "style": "slang",
+          "expected": "notifications.bell",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "hall of fame",
+          "style": "terse",
+          "expected": "leaderboard.hall_of_fame",
+          "got": "leaderboard.ranking",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "badges list",
+          "style": "terse",
+          "expected": "achievements.badges",
+          "got": "my_achievements",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "streak broke why",
+          "style": "terse",
+          "expected": "achievements.streaks",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "what's the title after bull runner",
+          "style": "plain",
+          "expected": "achievements.titles",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "creat private leage",
+          "style": "typo",
+          "expected": "contest.private_league",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how is ranking decided inside a league",
+          "style": "plain",
+          "expected": "contest.standings",
+          "got": "leaderboard.ranking",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "contest over, do i get to keep the cash from it",
+          "style": "plain",
+          "expected": "contest.end",
+          "got": "unsupported.leave_contest",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "just signed up, what now",
+          "style": "terse",
+          "expected": "about.what_is_tradexcel",
+          "got": "account.signup",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "where are todays top movers",
+          "style": "plain",
+          "expected": "dashboard.overview",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "what does the donut chart show",
+          "style": "plain",
+          "expected": "portfolio.page",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "something is wrong with my trade how do i reach the team",
+          "style": "plain",
+          "expected": "support.contact",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "how do i stop following someone",
+          "style": "plain",
+          "expected": "social.follow",
+          "got": "social.privacy",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "change display picture",
+          "style": "plain",
+          "expected": "profile.avatar",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "forgot passwrd",
+          "style": "typo",
+          "expected": "account.forgot_password",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "reset code not arriving",
+          "style": "terse",
+          "expected": "account.forgot_password",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "every time i log in on my phone my laptop gets signed out",
+          "style": "rambling",
+          "expected": "account.session_expired",
+          "got": "account.sign_out",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can i trade nifty options here",
+          "style": "plain",
+          "expected": "unsupported.short_selling",
+          "got": "market.which_stocks",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "withdraw winnings",
+          "style": "terse",
+          "expected": "unsupported.real_money",
+          "got": "unsupported.leave_contest",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "tesla stock available?",
+          "style": "terse",
+          "expected": "unsupported.other_markets",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can i trade ethereum",
+          "style": "plain",
+          "expected": "unsupported.other_markets",
+          "got": "market.which_stocks",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "stock split happened and now it looks like i lost half",
+          "style": "plain",
+          "expected": "unsupported.corporate_actions",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "buy 5 infosys shares right now",
+          "style": "plain",
+          "expected": "unsupported.assistant_trading",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can you sell my wipro for me",
+          "style": "plain",
+          "expected": "unsupported.assistant_trading",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "networth = cash + stocks?",
+          "style": "terse",
+          "expected": "edu.net_worth",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "unrealised gains",
+          "style": "terse",
+          "expected": "edu.pnl",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "why is my profit shown even though i havent sold",
+          "style": "plain",
+          "expected": "edu.pnl",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "average cost after buying twice",
+          "style": "terse",
+          "expected": "edu.avg_buy_price",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "mcap",
+          "style": "terse",
+          "expected": "edu.market_cap",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "spread in trading",
+          "style": "terse",
+          "expected": "edu.bid_ask",
+          "got": "edu.diversification",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "vix",
+          "style": "terse",
+          "expected": "edu.volatility",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "2 for 1 split what happens to my shares",
+          "style": "plain",
+          "expected": "edu.stock_split",
+          "got": "unsupported.corporate_actions",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "T+1 meaning",
+          "style": "terse",
+          "expected": "edu.market_session",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "fiis sold today what does that mean",
+          "style": "plain",
+          "expected": "edu.fii_dii",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "52wk high",
+          "style": "terse",
+          "expected": "edu.52_week",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "should i buy \u20b92 shares because theyre cheap",
+          "style": "plain",
+          "expected": "edu.penny_stocks",
+          "got": "guardrail.investment_advice",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how does a sip work",
+          "style": "plain",
+          "expected": "edu.mutual_fund",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "price to book value",
+          "style": "terse",
+          "expected": "edu.pb_ratio",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "return on equity",
+          "style": "terse",
+          "expected": "edu.roe",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "rule of 72 explained",
+          "style": "terse",
+          "expected": "edu.compounding",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "rsi 25 means",
+          "style": "terse",
+          "expected": "edu.rsi",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "how much of my cash should go into one stock",
+          "style": "plain",
+          "expected": "edu.position_sizing",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "when to stop loss manually",
+          "style": "terse",
+          "expected": "edu.risk_reward",
+          "got": "edu.order_types",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "any general tips to do better on tradexcel",
+          "style": "plain",
+          "expected": "edu.game_strategy",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "complete beginner, where do i start learning",
+          "style": "plain",
+          "expected": "edu.learning_path",
+          "got": "out_of_scope",
+          "kind": "fallback",
+          "outcome": "wrong"
+        },
+        {
+          "text": "which stock will win me the contest this week",
+          "style": "adversarial",
+          "expected": "guardrail.investment_advice",
+          "got": "guardrail.price_prediction",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "where will nifty close friday",
+          "style": "adversarial",
+          "expected": "guardrail.price_prediction",
+          "got": "guardrail.tips_insider",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "best demat app in india",
+          "style": "terse",
+          "expected": "guardrail.real_investing",
+          "got": "guardrail.investment_advice",
+          "kind": "guardrail",
+          "outcome": "wrong"
+        },
+        {
+          "text": "support guy on whatsapp wants my otp is that ok",
+          "style": "plain",
+          "expected": "guardrail.credentials",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "any bug that gives free cash",
+          "style": "adversarial",
+          "expected": "guardrail.cheating",
+          "got": "support.contact",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "cya",
+          "style": "slang",
+          "expected": "smalltalk.goodbye",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "clarify_miss"
+        },
+        {
+          "text": "ugh this is so annoying nothing loads",
+          "style": "slang",
+          "expected": "smalltalk.frustration",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "clarify_ok"
+        },
+        {
+          "text": "balance",
+          "style": "terse",
+          "expected": "portfolio_summary",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "am i green or red this week",
+          "style": "slang",
+          "expected": "portfolio_summary",
+          "got": "my_rank",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "total cash + stocks value",
+          "style": "terse",
+          "expected": "portfolio_summary",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how much profit so far this season",
+          "style": "plain",
+          "expected": "portfolio_summary",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "networth",
+          "style": "typo",
+          "expected": "portfolio_summary",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how do i compare to the people i follow",
+          "style": "plain",
+          "expected": "my_rank",
+          "got": "social.follow",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how near am i to the diversified one",
+          "style": "plain",
+          "expected": "my_achievements",
+          "got": "holding_detail",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "did last night's reliance buy go through",
+          "style": "plain",
+          "expected": "my_orders",
+          "got": "price_quote",
+          "kind": "data",
+          "outcome": "wrong"
+        },
+        {
+          "text": "what was the last thing i sold",
+          "style": "plain",
+          "expected": "my_orders",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "write a sql query to join two tables",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "fix my resume",
+          "style": "terse",
+          "expected": "out_of_scope",
+          "got": "faq_platform",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "explain machine learning",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "can you write my assignment",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "smalltalk",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "how do i cancel my amazon order",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "unsupported.assistant_trading",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "tips for a job interview",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "faq_education",
+          "kind": "clarify",
+          "outcome": "wrong"
+        },
+        {
+          "text": "remind me to call mom at 6",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "guardrail.tips_insider",
+          "kind": "answer",
+          "outcome": "wrong"
+        },
+        {
+          "text": "horoscope for leo today",
+          "style": "plain",
+          "expected": "out_of_scope",
+          "got": "guardrail",
+          "kind": "clarify",
+          "outcome": "wrong"
+        }
+      ],
+      "latency_ms": {
+        "p50": 21.462185999553185,
+        "p95": 24.68414129980374
+      }
+    }
+  }
+}
