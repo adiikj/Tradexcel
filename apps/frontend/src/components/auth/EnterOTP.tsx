@@ -9,6 +9,7 @@ import { verifyOTP } from "../../api/api";
 import { persistSession } from "../../utils/authSession";
 import Image from "next/image";
 import { apiErrorMessage } from "../../api/http";
+import { AUTH_SUBMIT, FormError, Spinner } from "./AuthLayout";
 
 function EnterOTP() {
   const [isLoading, setIsLoading] = useState(false);
@@ -58,6 +59,16 @@ function EnterOTP() {
     }
   };
 
+  // Pasting the whole code from the email fills every box at once.
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const digits = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, otp.length);
+    if (digits.length < 2) return;
+    e.preventDefault();
+    const newOtp = otp.map((_, i) => digits[i] ?? "");
+    setOtp(newOtp);
+    document.getElementById(`otp-input-${Math.min(digits.length, otp.length - 1)}`)?.focus();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -83,87 +94,51 @@ function EnterOTP() {
   };
 
   return (
-    <motion.div
-      className="flex flex-col justify-center items-center min-h-screen pt-10 font-pop p-4 bg-grey"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8 }}
-    >
-      <motion.div
-        className="flex flex-row gap-3 justify-center items-center text-center pb-6"
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        <Image className="w-8 sm:w-10 h-8 sm:h-10" src={logo} alt="" />
-        <Image className="h-6 sm:h-7 w-auto" src={wordmark} alt="Tradexcel" />
-      </motion.div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-grey p-4 font-pop">
+      <div className="mb-8 flex items-center gap-3">
+        <Image className="h-9 w-9" src={logo} alt="" />
+        <Image className="h-6 w-auto" src={wordmark} alt="Tradexcel" />
+      </div>
 
       <motion.div
-        className="max-w-md w-full mx-auto bg-white border border-gray-300 rounded-2xl p-6 sm:p-8 shadow-md"
-        initial={{ scale: 0.9 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.5 }}
+        className="w-full max-w-md rounded-[2rem] border border-gray-200 bg-white p-8 sm:p-10"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
       >
-        <p className="text-gray-600 text-sm text-center mb-4">
-          We emailed a 6-digit code to <span className="font-semibold">{email}</span>
+        <h1 className="text-2xl font-semibold text-gray-900">Check your email</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          We sent a 6-digit code to <span className="font-semibold text-gray-900">{email}</span>. Enter it below to finish creating your account.
         </p>
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 sm:space-y-6">
-            {error && (
-              <motion.p
-                className="text-red-500 text-sm"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
-                {error}
-              </motion.p>
-            )}
-            <div>
-              <label className="text-gray-800 text-sm sm:text-base mb-2 block">
-                Enter OTP
-              </label>
-              <div className="flex gap-2 sm:gap-4 justify-center">
-                {otp.map((digit, index) => (
-                  <motion.input
-                    key={index}
-                    id={`otp-input-${index}`}
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete={index === 0 ? "one-time-code" : "off"}
-                    aria-label={`Digit ${index + 1} of ${otp.length}`}
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleChange(e, index)}
-                    onKeyDown={(e) => handleKeyDown(e, index)}
-                    className="text-gray-800 bg-white w-10 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-xl border border-gray-300 rounded-md outline-blue-500 focus:ring-2 focus:ring-blue-500"
-                    placeholder="-"
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                  />
-                ))}
-              </div>
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          {error && <FormError>{error}</FormError>}
+          <fieldset>
+            <legend className="sr-only">Verification code</legend>
+            <div className="flex justify-between gap-2">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  id={`otp-input-${index}`}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete={index === 0 ? "one-time-code" : "off"}
+                  aria-label={`Digit ${index + 1} of ${otp.length}`}
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleChange(e, index)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  onPaste={handlePaste}
+                  className="h-14 w-12 rounded-xl border border-gray-200 bg-white text-center font-mono text-2xl font-semibold text-gray-900 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 sm:w-14"
+                />
+              ))}
             </div>
-          </div>
-
-          <motion.button
-            type="submit"
-            className="mt-6 w-full py-3 px-4 text-sm tracking-wider flex justify-center items-center font-semibold rounded-md text-white bg-btn-blue hover:bg-blue-600 focus:outline-none"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            {isLoading ? (
-              <div className="loader border-t-2 border-white w-5 h-5 rounded-full animate-spin"></div>
-            ) : (
-              "Submit OTP"
-            )}
-          </motion.button>
+          </fieldset>
+          <button type="submit" disabled={isLoading} className={AUTH_SUBMIT}>
+            {isLoading ? <Spinner /> : "Verify and continue"}
+          </button>
         </form>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
 

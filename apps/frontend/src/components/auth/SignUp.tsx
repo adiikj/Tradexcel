@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { registerUser } from "../../api/api";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { motion } from "framer-motion";
 import GoogleAuthButton from "./GoogleAuthButton";
+import AuthLayout, { AUTH_INPUT, AUTH_LABEL, AUTH_SUBMIT, Divider, FormError, Spinner } from "./AuthLayout";
 import { apiErrorMessage } from "../../api/http";
 
 function SignUp() {
@@ -81,192 +81,144 @@ function SignUp() {
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
   const togglePinVisibility = () => setShowPin(!showPin);
 
+  const hint = "mt-1.5 text-xs text-gray-500";
+
   return (
-    <>
-      <motion.div
-        className="flex flex-col justify-center font-pop h-full p-4 pb-10 bg-grey"
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex flex-col items-center font-pop justify-center pt-8">
-          <motion.span
-            className="text-4xl text-blue-900 font-bold font-pop pb-2"
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          >
-            SIGN UP
-          </motion.span>
-          <motion.p
-            className="text-lg font-pop pb-7"
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-          >
-            Create Your Account
-          </motion.p>
+    <AuthLayout
+      title="Create your account"
+      subtitle="Free forever. No card, no deposits."
+      panelTitle="Start with ₹1,00,000 and trade the real market."
+      points={["₹1,00,000 in virtual cash, reset every week", "250+ NSE stocks at live prices", "Contests, leaderboards and 18 badges to earn"]}
+    >
+      <GoogleAuthButton onError={setError} />
+      <div className="my-6">
+        <Divider>or sign up with email</Divider>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && <FormError>{error}</FormError>}
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label htmlFor="sign-up-name" className={AUTH_LABEL}>
+              Name
+            </label>
+            <input id="sign-up-name" name="name" type="text" autoComplete="name" className={AUTH_INPUT} placeholder="Aditya Sharma" value={formData.name} onChange={handleChange} />
+          </div>
+          <div>
+            <label htmlFor="sign-up-username" className={AUTH_LABEL}>
+              Username
+            </label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">@</span>
+              <input
+                id="sign-up-username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                aria-describedby="sign-up-username-hint"
+                className={`${AUTH_INPUT} pl-8`}
+                placeholder="aditya_trades"
+                value={formData.username}
+                onChange={handleChange}
+              />
+            </div>
+            <p id="sign-up-username-hint" className={hint}>
+              Letters, numbers and underscores.
+            </p>
+          </div>
+        </div>
+        <div>
+          <label htmlFor="sign-up-email" className={AUTH_LABEL}>
+            Email
+          </label>
+          <input id="sign-up-email" name="email" type="email" autoComplete="email" className={AUTH_INPUT} placeholder="you@example.com" value={formData.email} onChange={handleChange} />
+        </div>
+        <div className="grid gap-5 sm:grid-cols-[1.4fr_1fr]">
+          <div>
+            <label htmlFor="sign-up-password" className={AUTH_LABEL}>
+              Password
+            </label>
+            <div className="relative">
+              <input
+                id="sign-up-password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                aria-describedby="sign-up-password-hint"
+                className={`${AUTH_INPUT} pr-12`}
+                placeholder="Your password"
+                value={formData.password}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-gray-400 hover:text-gray-700"
+                onClick={togglePasswordVisibility}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <AiOutlineEyeInvisible aria-hidden="true" /> : <AiOutlineEye aria-hidden="true" />}
+              </button>
+            </div>
+            <p id="sign-up-password-hint" className={hint}>
+              At least 8 characters.
+            </p>
+          </div>
+          <div>
+            <label htmlFor="sign-up-pin" className={AUTH_LABEL}>
+              4-digit PIN
+            </label>
+            <div className="relative">
+              <input
+                id="sign-up-pin"
+                name="pin"
+                type={showPin ? "text" : "password"}
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={4}
+                aria-describedby="sign-up-pin-hint"
+                className={`${AUTH_INPUT} pr-12 font-mono tracking-[0.4em]`}
+                placeholder="••••"
+                value={formData.pin}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-gray-400 hover:text-gray-700"
+                onClick={togglePinVisibility}
+                aria-label={showPin ? "Hide PIN" : "Show PIN"}
+              >
+                {showPin ? <AiOutlineEyeInvisible aria-hidden="true" /> : <AiOutlineEye aria-hidden="true" />}
+              </button>
+            </div>
+            <p id="sign-up-pin-hint" className={hint}>
+              For quick sign-in later.
+            </p>
+          </div>
         </div>
 
-        <motion.div
-          className="max-w-md w-full mx-auto border-2 border-btn-blue rounded-2xl p-8 bg-white"
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8 }}
-        >
-          <div className="mb-6">
-            <GoogleAuthButton onError={setError} />
-          </div>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-px flex-1 bg-gray-300" />
-            <span className="text-gray-500 text-sm">or sign up with email</span>
-            <div className="h-px flex-1 bg-gray-300" />
-          </div>
+        <button type="submit" disabled={isLoading} className={AUTH_SUBMIT}>
+          {isLoading ? <Spinner /> : "Create account"}
+        </button>
+        <p className="text-center text-xs text-gray-500">
+          By signing up you agree to our{" "}
+          <Link href="/terms" className="underline hover:text-gray-800">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="underline hover:text-gray-800">
+            Privacy Policy
+          </Link>
+          .
+        </p>
+      </form>
 
-          <form onSubmit={handleSubmit}>
-            <div className="space-y-6">
-              {error && (
-                <motion.p
-                  className="text-red-500 text-sm"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  {error}
-                </motion.p>
-              )}
-              <motion.div
-                initial={{ x: -50, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <label htmlFor="sign-up-name" className="text-gray-800 text-sm mb-2 block">Your Name</label>
-                <input
-                  id="sign-up-name"
-                  name="name"
-                  type="text"
-                  className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
-                  placeholder="Enter Your Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                />
-              </motion.div>
-              <motion.div
-                initial={{ x: -50, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-              >
-                <label htmlFor="sign-up-username" className="text-gray-800 text-sm mb-2 block">Your Username</label>
-                <input
-                  id="sign-up-username"
-                  name="username"
-                  type="text"
-                  className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
-                  placeholder="Enter Your Username"
-                  value={formData.username}
-                  onChange={handleChange}
-                />
-              </motion.div>
-              <motion.div
-                initial={{ x: -50, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-              >
-                <label htmlFor="sign-up-email" className="text-gray-800 text-sm mb-2 block">Email ID</label>
-                <input
-                  id="sign-up-email"
-                  name="email"
-                  type="text"
-                  className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
-                  placeholder="Enter email"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </motion.div>
-              <motion.div
-                initial={{ x: -50, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
-                className="relative"
-              >
-                <label htmlFor="sign-up-password" className="text-gray-800 text-sm mb-2 block">Password</label>
-                <input
-                  id="sign-up-password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
-                  placeholder="Enter password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer pt-6"
-                  onClick={togglePasswordVisibility}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <AiOutlineEyeInvisible aria-hidden="true" /> : <AiOutlineEye aria-hidden="true" />}
-                </button>
-              </motion.div>
-              <motion.div
-                initial={{ x: -50, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-                className="relative"
-              >
-                <label className="text-gray-800 text-sm mb-2 block">4-Digit PIN</label>
-                <p className="text-gray-500 text-xs mb-2">
-                  A quick way to log in later, instead of your password.
-                </p>
-                <input aria-label="4-digit PIN"
-                  name="pin"
-                  type={showPin ? "text" : "password"}
-                  inputMode="numeric"
-                  maxLength={4}
-                  className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
-                  placeholder="Enter a 4-digit PIN"
-                  value={formData.pin}
-                  onChange={handleChange}
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer pt-6"
-                  onClick={togglePinVisibility}
-                  aria-label={showPin ? "Hide password" : "Show password"}
-                >
-                  {showPin ? <AiOutlineEyeInvisible aria-hidden="true" /> : <AiOutlineEye aria-hidden="true" />}
-                </button>
-              </motion.div>
-
-              <motion.button
-                type="submit"
-                className="mt-6 w-full py-3 px-4 text-sm tracking-wider flex justify-center items-center font-semibold rounded-md text-white bg-btn-blue hover:bg-blue-600 focus:outline-none"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
-              >
-                {isLoading ? (
-                  <div className="loader border-t-2 border-white w-5 h-5 rounded-full animate-spin"></div>
-                ) : (
-                  "Sign Up"
-                )}
-              </motion.button>
-            </div>
-          </form>
-          <motion.div
-            className="text-center mt-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-          >
-            <span className="text-sm text-gray-700">Already have an account?</span>
-            <Link href="/signin" className="text-blue-500 text-sm font-bold ml-2">
-              Login here
-            </Link>
-          </motion.div>
-        </motion.div>
-      </motion.div>
-    </>
+      <p className="mt-8 text-center text-sm text-gray-600">
+        Already have an account?{" "}
+        <Link href="/signin" className="font-semibold text-blue-600 hover:underline">
+          Sign in
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }
 

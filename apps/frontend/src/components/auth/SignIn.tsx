@@ -5,8 +5,8 @@ import { loginUser } from "../../api/api";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { motion } from "framer-motion";
 import GoogleAuthButton from "./GoogleAuthButton";
+import AuthLayout, { AUTH_INPUT, AUTH_LABEL, AUTH_SUBMIT, Divider, FormError, Spinner } from "./AuthLayout";
 import { persistSession, postLoginPath } from "../../utils/authSession";
 import { apiErrorMessage } from "../../api/http";
 import type { RootState } from "../../redux/store";
@@ -52,139 +52,83 @@ function SignIn() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="flex flex-col justify-center font-pop h-full p-4 pb-10 bg-grey"
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to pick up where you left off."
+      panelTitle="Your portfolio kept moving while you were away."
+      points={["Live NSE prices on every holding", "See where you rank this season", "Contests and leagues waiting for you"]}
     >
-      <div className="flex flex-col items-center font-pop justify-center pt-8">
-        <motion.span
-          className="text-4xl text-blue-900 font-bold font-pop pb-2"
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-        >
-          Welcome Back
-        </motion.span>
-        <motion.p
-          className="text-lg font-pop pb-7"
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-        >
-          Enter Your Details to Login
-        </motion.p>
+      <GoogleAuthButton onError={setError} />
+      <div className="my-6">
+        <Divider>or sign in with email</Divider>
       </div>
-      <motion.div
-        className="max-w-md w-full mx-auto border-2 border-btn-blue rounded-2xl p-8 bg-white"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="mb-6">
-          <GoogleAuthButton onError={setError} />
-        </div>
-        <div className="flex items-center gap-4 mb-6">
-          <div className="h-px flex-1 bg-gray-300" />
-          <span className="text-gray-500 text-sm">or sign in with email</span>
-          <div className="h-px flex-1 bg-gray-300" />
+
+      <form onSubmit={handleSignIn} className="space-y-5">
+        {error && <FormError>{error}</FormError>}
+        <div>
+          <label htmlFor="sign-in-emailOrUsername" className={AUTH_LABEL}>
+            Email or username
+          </label>
+          <input
+            id="sign-in-emailOrUsername"
+            name="emailOrUsername"
+            type="text"
+            autoComplete="username"
+            value={emailOrUsername}
+            onChange={(e) => setEmailOrUsername(e.target.value)}
+            className={AUTH_INPUT}
+            placeholder="you@example.com"
+            required
+          />
         </div>
 
-        <form onSubmit={handleSignIn}>
-          <div className="space-y-6">
-            {error && (
-              <motion.p
-                className="text-red-500 text-sm"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                {error}
-              </motion.p>
-            )}
-            <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <label htmlFor="sign-in-emailOrUsername" className="text-gray-800 text-sm mb-2 block">
-                Email or Username
-              </label>
-              <input
-                id="sign-in-emailOrUsername"
-                name="emailOrUsername"
-                type="text"
-                value={emailOrUsername}
-                onChange={(e) => setEmailOrUsername(e.target.value)}
-                className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
-                placeholder="Enter email or username"
-                required
-              />
-            </motion.div>
-
-            <motion.div
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-gray-800 text-sm block">
-                  {mode === "password" ? "Password" : "4-Digit PIN"}
-                </label>
-                <button
-                  type="button"
-                  onClick={switchMode}
-                  className="text-blue-500 text-xs font-semibold"
-                >
-                  Use {mode === "password" ? "PIN" : "password"} instead
-                </button>
-              </div>
-              <div className="relative">
-                <input aria-label={mode === "password" ? "Password" : "4-digit PIN"}
-                  name="credential"
-                  type={showCredential ? "text" : "password"}
-                  inputMode={mode === "pin" ? "numeric" : "text"}
-                  maxLength={mode === "pin" ? 4 : undefined}
-                  value={credential}
-                  onChange={(e) => setCredential(e.target.value)}
-                  className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
-                  placeholder={mode === "password" ? "Enter password" : "Enter your 4-digit PIN"}
-                  required
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
-                  onClick={() => setShowCredential(!showCredential)}
-                  aria-label={showCredential ? "Hide password" : "Show password"}
-                >
-                  {showCredential ? <AiOutlineEyeInvisible aria-hidden="true" /> : <AiOutlineEye aria-hidden="true" />}
-                </button>
-              </div>
-            </motion.div>
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label htmlFor="sign-in-credential" className="text-sm font-medium text-gray-800">
+              {mode === "password" ? "Password" : "4-digit PIN"}
+            </label>
+            <button type="button" onClick={switchMode} className="text-xs font-semibold text-blue-600 hover:underline">
+              Use {mode === "password" ? "PIN" : "password"} instead
+            </button>
           </div>
+          <div className="relative">
+            <input
+              id="sign-in-credential"
+              aria-label={mode === "password" ? "Password" : "4-digit PIN"}
+              name="credential"
+              type={showCredential ? "text" : "password"}
+              inputMode={mode === "pin" ? "numeric" : "text"}
+              autoComplete={mode === "password" ? "current-password" : "off"}
+              maxLength={mode === "pin" ? 4 : undefined}
+              value={credential}
+              onChange={(e) => setCredential(e.target.value)}
+              className={`${AUTH_INPUT} pr-12 ${mode === "pin" ? "font-mono tracking-[0.4em]" : ""}`}
+              placeholder={mode === "password" ? "Your password" : "••••"}
+              required
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-gray-400 hover:text-gray-700"
+              onClick={() => setShowCredential(!showCredential)}
+              aria-label={showCredential ? "Hide" : "Show"}
+            >
+              {showCredential ? <AiOutlineEyeInvisible aria-hidden="true" /> : <AiOutlineEye aria-hidden="true" />}
+            </button>
+          </div>
+        </div>
 
-          <motion.button
-            type="submit"
-            className="mt-6 w-full py-3 px-4 text-sm tracking-wider flex justify-center items-center font-semibold rounded-md text-white bg-btn-blue hover:bg-blue-600 focus:outline-none"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            {isLoading ? (
-              <div className="loader border-t-2 border-white w-5 h-5 rounded-full animate-spin"></div>
-            ) : (
-              "Sign In"
-            )}
-          </motion.button>
-        </form>
-        <p className="text-gray-800 text-md mt-6 text-center">
-          Don&apos;t have an account?
-          <Link href="/signup" className="text-blue-500 hover:underline font-semibold group ml-1">
-            Sign up here
-          </Link>
-        </p>
-      </motion.div>
-    </motion.div>
+        <button type="submit" disabled={isLoading} className={AUTH_SUBMIT}>
+          {isLoading ? <Spinner /> : "Sign in"}
+        </button>
+      </form>
+
+      <p className="mt-8 text-center text-sm text-gray-600">
+        New to Tradexcel?{" "}
+        <Link href="/signup" className="font-semibold text-blue-600 hover:underline">
+          Create a free account
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }
 
