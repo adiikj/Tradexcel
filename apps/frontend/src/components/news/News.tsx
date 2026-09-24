@@ -19,6 +19,12 @@ const INDEX_NAMES: Record<string, string> = { "^NSEI": "Nifty 50", NSEI: "Nifty 
 
 const tickerLabel = (ticker: string) => INDEX_NAMES[ticker] ?? ticker.replace(/\.(NS|BO)$/, "");
 
+// Yahoo tags stories with foreign listings and fund codes too (WIT, MSCIEF);
+// only Indian stocks and the two indices mean anything here. Tags are compared
+// by label so "^NSEI" and "NSEI" count as one "Nifty 50".
+const isIndian = (ticker: string) => ticker in INDEX_NAMES || /\.(NS|BO)$/.test(ticker);
+const articleLabels = (a: NewsArticle) => [...new Set((a.relatedTickers ?? []).filter(isIndian).map(tickerLabel))];
+
 function Meta({ article }: { article: NewsArticle }) {
   return (
     <p className="flex flex-wrap items-center gap-x-2 text-xs text-gray-500 dark:text-gray-400">
@@ -29,13 +35,14 @@ function Meta({ article }: { article: NewsArticle }) {
   );
 }
 
-function Tickers({ tickers }: { tickers: string[] }) {
-  if (!tickers?.length) return null;
+function Tickers({ article }: { article: NewsArticle }) {
+  const labels = articleLabels(article);
+  if (!labels.length) return null;
   return (
     <div className="flex flex-wrap gap-1.5">
-      {tickers.slice(0, 4).map((ticker) => (
-        <span key={ticker} className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-          {tickerLabel(ticker)}
+      {labels.slice(0, 4).map((label) => (
+        <span key={label} className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+          {label}
         </span>
       ))}
     </div>
@@ -59,7 +66,7 @@ function LeadStory({ article }: { article: NewsArticle }) {
         <h2 className="text-lg font-semibold leading-snug group-hover:underline md:text-xl">{article.title}</h2>
         <Meta article={article} />
         <div className="mt-auto">
-          <Tickers tickers={article.relatedTickers} />
+          <Tickers article={article} />
         </div>
       </div>
     </a>
@@ -78,7 +85,7 @@ function NewsCard({ article }: { article: NewsArticle }) {
         <p className="line-clamp-3 font-semibold leading-snug group-hover:underline">{article.title}</p>
         <Meta article={article} />
         <div className="mt-auto pt-1">
-          <Tickers tickers={article.relatedTickers} />
+          <Tickers article={article} />
         </div>
       </div>
       {article.thumbnail ? (
@@ -123,7 +130,7 @@ function News() {
 
   const tickerFilters = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const a of articles) for (const t of a.relatedTickers ?? []) counts.set(t, (counts.get(t) ?? 0) + 1);
+    for (const a of articles) for (const label of articleLabels(a)) counts.set(label, (counts.get(label) ?? 0) + 1);
     return [...counts.entries()]
       .filter(([, n]) => n > 1)
       .sort((a, b) => b[1] - a[1])
@@ -134,7 +141,7 @@ function News() {
   const ordered = useMemo(
     () =>
       [...articles]
-        .filter((a) => !ticker || a.relatedTickers?.includes(ticker))
+        .filter((a) => !ticker || articleLabels(a).includes(ticker))
         .sort((a, b) => b.publishedAt - a.publishedAt),
     [articles, ticker]
   );
@@ -185,7 +192,7 @@ function News() {
               </button>
               {tickerFilters.map((t) => (
                 <button key={t} type="button" aria-pressed={ticker === t} onClick={() => setTicker(ticker === t ? null : t)} className={chip(ticker === t)}>
-                  {tickerLabel(t)}
+                  {t}
                 </button>
               ))}
             </div>
