@@ -7,6 +7,7 @@ import { app } from './app.js';
 import { startContestSettlementJob } from './jobs/contestSettlement.js';
 import { startAlertCheckerJob } from './jobs/alertChecker.js';
 import { startWeeklyResetJob } from './jobs/weeklyReset.js';
+import { startQueuedOrdersJob } from './jobs/queuedOrders.js';
 import { initPriceSocket } from './realtime/priceSocket.js';
 import logger from "./utils/logger.js";
 
@@ -24,6 +25,7 @@ connectDB()
     startContestSettlementJob();
     startAlertCheckerJob();
     startWeeklyResetJob();
+    startQueuedOrdersJob();
     initPriceSocket(server);
 
 })

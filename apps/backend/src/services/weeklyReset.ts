@@ -14,6 +14,13 @@ function getMostRecentMonday(date: Date): Date {
   return d;
 }
 
+// The next Monday 00:00 UTC boundary strictly after `date`.
+export function getNextWeeklyReset(date: Date = new Date()): Date {
+  const next = getMostRecentMonday(date);
+  next.setUTCDate(next.getUTCDate() + 7);
+  return next;
+}
+
 // Closes out the week that just ended for every player: snapshots their net
 // worth (cash + mark-to-market holdings) against the fixed starting balance,
 // then force-liquidates holdings and resets the wallet back to a fresh
@@ -59,6 +66,12 @@ export async function runWeeklyReset(): Promise<number> {
           },
         }),
         prisma.holding.deleteMany({ where: { userId: user.id } }),
+        // Last week's queued sells have nothing left to sell; queued buys
+        // carry into the new season and fill from the fresh wallet.
+        prisma.queuedOrder.updateMany({
+          where: { userId: user.id, side: "SELL", status: "PENDING", createdAt: { lt: weekEnd } },
+          data: { status: "CANCELLED", failureReason: "The weekly reset sold all holdings", resolvedAt: new Date() },
+        }),
         prisma.wallet.update({ where: { userId: user.id }, data: { balance: STARTING_BALANCE } }),
       ]);
       resetCount += 1;

@@ -1,27 +1,25 @@
 import { Prisma } from "@prisma/client";
 import { Response } from "express";
-import { ApiError } from "../utils/ApiError.js";
 import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
 import { fetchQuoteOrThrow } from "../services/pricing.js";
-import {
-  tradeSchema,
-  computeWeightedAvgPrice,
-  computeRemainingQuantity,
-  canAfford,
-  canSell,
-} from "../services/tradeMath.js";
+import { tradeSchema } from "../services/tradeMath.js";
+import { executeBuy, executeSell } from "../services/tradeExecution.js";
+import { isMarketOpen } from "../services/marketHours.js";
+import { queueOrder, cancelQueuedOrder, listQueuedOrders } from "../services/queuedOrders.js";
 import { checkAndAwardAchievements } from "../services/achievements.js";
-import { lockWallet } from "../services/ledgerLock.js";
 import logger from "../utils/logger.js";
 
 interface AuthRequest {
   user?: { id: string };
+  params: any;
   body: any;
 }
 
+// Outside market hours the order is queued (202) instead of filling at the
+// stale closing price; jobs/queuedOrders.ts places it after the open.
 const buyStock = asyncHandler(async (req: AuthRequest, res: Response) => {
   const parsed = tradeSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -32,51 +30,13 @@ const buyStock = asyncHandler(async (req: AuthRequest, res: Response) => {
 
   const quote = await fetchQuoteOrThrow(symbol);
   const price = new Prisma.Decimal(quote.price);
-  const total = price.mul(quantity);
 
-  const result = await prisma.$transaction(async (tx) => {
-    await lockWallet(tx, userId);
+  if (!isMarketOpen()) {
+    const { order, message } = await queueOrder(userId, "BUY", symbol, quantity, price);
+    return res.status(202).json(new ApiResponse(202, message, { queued: true, order }));
+  }
 
-    const wallet = await tx.wallet.findUnique({ where: { userId } });
-    if (!wallet) {
-      throw new ApiError(404, "Wallet not found");
-    }
-    if (!canAfford(total, wallet.balance)) {
-      throw new ApiError(400, "Insufficient funds for this trade");
-    }
-
-    const updatedWallet = await tx.wallet.update({
-      where: { userId },
-      data: { balance: { decrement: total } },
-    });
-
-    const existingHolding = await tx.holding.findUnique({
-      where: { userId_symbol: { userId, symbol } },
-    });
-
-    const holding = existingHolding
-      ? await tx.holding.update({
-          where: { userId_symbol: { userId, symbol } },
-          data: {
-            quantity: existingHolding.quantity + quantity,
-            avgBuyPrice: computeWeightedAvgPrice(
-              existingHolding.quantity,
-              existingHolding.avgBuyPrice,
-              quantity,
-              total
-            ),
-          },
-        })
-      : await tx.holding.create({
-          data: { userId, symbol, quantity, avgBuyPrice: price },
-        });
-
-    const transaction = await tx.transaction.create({
-      data: { userId, symbol, side: "BUY", quantity, price, total },
-    });
-
-    return { wallet: updatedWallet, holding, transaction };
-  });
+  const result = await prisma.$transaction((tx) => executeBuy(tx, userId, symbol, quantity, price));
 
   checkAndAwardAchievements(userId).catch((error) => logger.error({ err: error }, "Error checking achievements"));
 
@@ -96,40 +56,12 @@ const sellStock = asyncHandler(async (req: AuthRequest, res: Response) => {
   const quote = await fetchQuoteOrThrow(symbol);
   const price = new Prisma.Decimal(quote.price);
 
-  const result = await prisma.$transaction(async (tx) => {
-    await lockWallet(tx, userId);
+  if (!isMarketOpen()) {
+    const { order, message } = await queueOrder(userId, "SELL", symbol, quantity, price);
+    return res.status(202).json(new ApiResponse(202, message, { queued: true, order }));
+  }
 
-    const holding = await tx.holding.findUnique({
-      where: { userId_symbol: { userId, symbol } },
-    });
-    if (!holding || !canSell(quantity, holding.quantity)) {
-      throw new ApiError(400, "Insufficient holdings to sell");
-    }
-
-    const total = price.mul(quantity);
-
-    const wallet = await tx.wallet.update({
-      where: { userId },
-      data: { balance: { increment: total } },
-    });
-
-    const remainingQuantity = computeRemainingQuantity(holding.quantity, quantity);
-    const updatedHolding =
-      remainingQuantity === 0
-        ? await tx.holding
-            .delete({ where: { userId_symbol: { userId, symbol } } })
-            .then(() => null)
-        : await tx.holding.update({
-            where: { userId_symbol: { userId, symbol } },
-            data: { quantity: remainingQuantity },
-          });
-
-    const transaction = await tx.transaction.create({
-      data: { userId, symbol, side: "SELL", quantity, price, total },
-    });
-
-    return { wallet, holding: updatedHolding, transaction };
-  });
+  const result = await prisma.$transaction((tx) => executeSell(tx, userId, symbol, quantity, price));
 
   checkAndAwardAchievements(userId).catch((error) => logger.error({ err: error }, "Error checking achievements"));
 
@@ -138,4 +70,14 @@ const sellStock = asyncHandler(async (req: AuthRequest, res: Response) => {
     .json(new ApiResponse(200, "Stock sold successfully", result));
 });
 
-export { buyStock, sellStock };
+const getQueuedOrders = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const orders = await listQueuedOrders(req.user!.id);
+  return res.status(200).json(new ApiResponse(200, "Orders fetched successfully", orders));
+});
+
+const cancelOrder = asyncHandler(async (req: AuthRequest, res: Response) => {
+  await cancelQueuedOrder(req.user!.id, String(req.params.id));
+  return res.status(200).json(new ApiResponse(200, "Order cancelled", null));
+});
+
+export { buyStock, sellStock, getQueuedOrders, cancelOrder };

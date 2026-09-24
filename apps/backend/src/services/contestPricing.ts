@@ -3,13 +3,19 @@ import prisma from "../db/prisma.js";
 import { fetchQuoteOrThrow, getQuotes } from "./pricing.js";
 import { resolveSimulatedDate } from "./contestClock.js";
 import { ApiError } from "../utils/ApiError.js";
+import { isMarketOpen, getNextOpenLabel } from "./marketHours.js";
 
 type ContestForPricing = { startAt: Date; historicalDates: Date[] };
 
-// Historical close for a replay contest, otherwise today's live quote.
+// Trade price inside a contest: the historical close for a replay contest,
+// otherwise today's live quote. Live contests don't queue orders like the main
+// wallet does, so outside market hours they refuse rather than fill at a stale close.
 export async function resolveContestPrice(contest: ContestForPricing, symbol: string): Promise<Prisma.Decimal> {
   const simulatedDate = resolveSimulatedDate(contest);
   if (!simulatedDate) {
+    if (!isMarketOpen()) {
+      throw new ApiError(400, `The market is closed, so contest trading is paused. ${getNextOpenLabel()} IST.`);
+    }
     const quote = await fetchQuoteOrThrow(symbol);
     return new Prisma.Decimal(quote.price);
   }
