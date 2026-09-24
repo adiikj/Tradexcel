@@ -1,24 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ADMIN_SESSION_COOKIE, SESSION_COOKIE } from "./utils/sessionFlag";
+import { isAppPath } from "./utils/appRoutes";
 
 // Redirects on the session hint before any HTML is sent, so protected pages
 // never flash for logged-out visitors and logged-in users skip the landing and
 // auth pages. Not a security boundary - the API authorizes every request.
-const PROTECTED = [
-  "/dashboard",
-  "/portfolio",
-  "/market",
-  "/wallet",
-  "/leaderboard",
-  "/contest",
-  "/alerts",
-  "/achievements",
-  "/activity",
-  "/news",
-  "/support",
-  "/faq",
-  "/your-profile",
-];
 const GUEST_ONLY = ["/", "/signin", "/signup"];
 
 export function proxy(request: NextRequest) {
@@ -35,7 +21,7 @@ export function proxy(request: NextRequest) {
 
   const loggedIn = request.cookies.get(SESSION_COOKIE)?.value === "1";
 
-  if (!loggedIn && PROTECTED.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+  if (!loggedIn && isAppPath(pathname)) {
     const url = new URL("/signin", request.url);
     url.searchParams.set("next", pathname + search);
     return NextResponse.redirect(url);
