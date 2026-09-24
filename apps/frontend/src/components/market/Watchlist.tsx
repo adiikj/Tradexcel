@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import type { MarketStock } from "../../types/market";
 import { changeGlyph, changeTextClass } from "./marketColors";
 import { formatInr } from "../../utils/format";
+import Sparkline from "../ui/Sparkline";
 
 export type WatchFilter = "all" | "gainers" | "losers" | "holdings";
 type SortKey = "name" | "price" | "change";
@@ -14,30 +15,6 @@ type WatchlistProps = {
   onSelect: (symbol: string) => void;
   holdings: Record<string, number>;
 };
-
-// 30-day trend line. Decorative (aria-hidden) - the row's numbers carry the data.
-function Sparkline({ closes: raw }: { closes: number[] }) {
-  // Yahoo leaves null for bars still forming; plotting them as 0 draws a cliff.
-  const closes = raw.filter((v) => Number.isFinite(v));
-  if (closes.length < 2) return <span className="inline-block w-14" />;
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
-  const span = max - min || 1;
-  const points = closes.map((v, i) => `${(i / (closes.length - 1)) * 56},${22 - ((v - min) / span) * 20}`).join(" ");
-  const up = closes[closes.length - 1] >= closes[0];
-  return (
-    <svg width="56" height="24" viewBox="0 0 56 24" aria-hidden="true" className="shrink-0">
-      <polyline
-        points={points}
-        fill="none"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        className={up ? "stroke-teal-600" : "stroke-red-600 dark:stroke-red-500"}
-      />
-    </svg>
-  );
-}
 
 const FILTERS: { key: WatchFilter; label: string }[] = [
   { key: "all", label: "All" },
@@ -157,7 +134,7 @@ function Watchlist({ stocks, isLoading, selectedSymbol, onSelect, holdings }: Wa
                         </button>
                       </td>
                       <td className="py-2">
-                        <Sparkline closes={s.closes} />
+                        <Sparkline values={s.closes} />
                       </td>
                       <td className="px-2 py-2 text-right tabular-nums whitespace-nowrap">{s.price != null ? formatInr(s.price) : "—"}</td>
                       <td className={`pl-1 pr-4 py-2 text-right text-xs tabular-nums whitespace-nowrap ${changeTextClass(s.changePct)}`}>
