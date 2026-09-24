@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import type { Quote } from "@tradexcel/shared";
 import { ApiError } from "../utils/ApiError.js";
-import { isMarketOpen } from "./marketHours.js";
+import { isMarketOpen, getNextMarketOpen } from "./marketHours.js";
 import logger from "../utils/logger.js";
 
 const CACHE_TTL_MS = 12_000;
@@ -42,6 +42,13 @@ async function fetchQuote(symbol: string): Promise<Quote> {
   };
 }
 
+// A closed-market quote is held longer, but never past the next open - a
+// close price fetched at 9:10 must not be served (or fill queued orders) at 9:20.
+function cacheExpiry(now = Date.now()): number {
+  if (isMarketOpen(new Date(now))) return now + CACHE_TTL_MS;
+  return Math.min(now + CLOSED_MARKET_CACHE_TTL_MS, getNextMarketOpen(new Date(now)).getTime());
+}
+
 // Serves from an in-memory cache when possible; Yahoo rate-limits aggressively.
 export async function getQuote(symbol: string): Promise<Quote> {
   const key = symbol.toUpperCase();
@@ -51,8 +58,7 @@ export async function getQuote(symbol: string): Promise<Quote> {
   }
 
   const quote = await fetchQuote(key);
-  const ttl = isMarketOpen() ? CACHE_TTL_MS : CLOSED_MARKET_CACHE_TTL_MS;
-  cache.set(key, { quote, expiresAt: Date.now() + ttl });
+  cache.set(key, { quote, expiresAt: cacheExpiry() });
   return quote;
 }
 
