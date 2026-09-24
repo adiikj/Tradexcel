@@ -1,298 +1,309 @@
 "use client";
-import React, { useCallback, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import Header from '../dashboard/Header';
-import Vheader from '../dashboard/Vheader';
-import { getPortfolio } from '../../api/api';
-import TradeModal from '../trade/TradeModal';
-import { formatInr, formatSignedInr, formatPercent } from '../../utils/format';
-import { useLiveQuotes } from '../../hooks/useLiveQuotes';
-import { useMarketStatus } from '../../hooks/useMarketStatus';
-import LiveStatusBadge from '../layout/LiveStatusBadge';
-import MarketClosedBanner from '../layout/MarketClosedBanner';
+import React, { useCallback, useMemo, useState } from "react";
+import Link from "next/link";
+import { PiArrowRight, PiChartLineUp } from "react-icons/pi";
+import type { PortfolioHolding, PortfolioSummary, TransactionRecord } from "@tradexcel/shared";
+import Header from "../dashboard/Header";
+import Vheader from "../dashboard/Vheader";
+import { getBatchStockData, getPortfolio, getPublicProfile, getTransactions, getUserProfile } from "../../api/api";
+import TradeModal from "../trade/TradeModal";
+import QuickTrade from "../trade/QuickTrade";
+import { formatInr } from "../../utils/format";
+import { useLiveQuotes } from "../../hooks/useLiveQuotes";
+import { useMarketStatus } from "../../hooks/useMarketStatus";
+import LiveStatusBadge from "../layout/LiveStatusBadge";
+import MarketClosedBanner from "../layout/MarketClosedBanner";
 import { useAsyncEffect } from "../../hooks/useAsyncEffect";
-import { onActivateKey } from "../../utils/a11y";
 import { apiErrorMessage } from "../../api/http";
-import type { PortfolioHolding, PortfolioSummary } from "@tradexcel/shared";
+import { changeGlyph, changeTextClass } from "../market/marketColors";
+import stockList from "../market/StockData.json";
+import type { StockListing } from "../../types/market";
+import HoldingsTable, { type HoldingRow } from "./HoldingsTable";
+import AllocationDonut, { type Slice } from "./AllocationDonut";
+import WeeklyResults, { type WeekResult } from "./WeeklyResults";
+import RecentTrades from "./RecentTrades";
+import { Card, StatTile } from "../ui/Panel";
 
-// Cycled across holdings for the allocation bar + row avatars; cash stays neutral gray.
-const ALLOCATION_COLORS = [
-  "bg-blue-500", "bg-purple-500", "bg-teal-500", "bg-amber-500",
-  "bg-pink-500", "bg-indigo-500", "bg-cyan-500", "bg-rose-500",
-];
+// Every wallet starts each weekly season with this much (backend tradeMath.ts).
+const STARTING_BALANCE = 100000;
+const DONUT_HOLDINGS = 4;
+
+const NAMES = new Map((stockList as StockListing[]).map((s) => [s.symbol, s]));
+
+type Quote = { changePerShare: number | null; changePct: number | null; closes: number[] };
+
+const signedPct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
+const signedInr = (v: number) => `${v >= 0 ? "+" : "−"}${formatInr(Math.abs(v))}`;
 
 function Portfolio() {
-  const router = useRouter();
-
   const [holdings, setHoldings] = useState<PortfolioHolding[]>([]);
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
+  const [quotes, setQuotes] = useState<Record<string, Quote>>({});
+  const [trades, setTrades] = useState<TransactionRecord[]>([]);
+  const [weeks, setWeeks] = useState<WeekResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [tradeModal, setTradeModal] = useState<{ symbol: string; side: "BUY" | "SELL"; initialPrice: number; availableQty: number } | null>(null);
 
   // State is only set after the first await, so effects can call this directly.
   const loadPortfolio = useCallback(async (isActive: () => boolean = () => true) => {
     try {
-      const response = await getPortfolio();
+      const [portfolioRes, tradesRes] = await Promise.all([getPortfolio(), getTransactions(1, 6).catch(() => null)]);
       if (!isActive()) return;
-      setHoldings(response?.data?.holdings || []);
-      setSummary(response?.data?.summary || null);
+      const nextHoldings = portfolioRes?.data?.holdings || [];
+      setHoldings(nextHoldings);
+      setSummary(portfolioRes?.data?.summary || null);
+      setTrades(tradesRes?.data?.transactions || []);
+      setError("");
+
+      // Today's move + 30-day trend for each holding (one batch request).
+      if (nextHoldings.length > 0) {
+        const batch = await getBatchStockData(nextHoldings.map((h) => h.symbol)).catch(() => ({}));
+        if (!isActive()) return;
+        const next: Record<string, Quote> = {};
+        for (const h of nextHoldings) {
+          const q = (batch as Record<string, { todayChange?: unknown; percentageChange?: unknown; stockPrices?: number[] } | null>)[h.symbol];
+          const change = parseFloat(String(q?.todayChange));
+          const magnitude = parseFloat(String(q?.percentageChange));
+          next[h.symbol] = {
+            changePerShare: Number.isFinite(change) ? change : null,
+            changePct: Number.isFinite(change) && Number.isFinite(magnitude) ? Math.sign(change) * Math.abs(magnitude) : null,
+            closes: q?.stockPrices ?? [],
+          };
+        }
+        setQuotes(next);
+      }
     } catch (err) {
       if (!isActive()) return;
-      setError(apiErrorMessage(err, 'Failed to load portfolio.'));
+      setError(apiErrorMessage(err, "We couldn't load your portfolio. Please try again."));
     } finally {
       if (isActive()) setIsLoading(false);
     }
   }, []);
 
+  // Weekly season results live on the public profile.
+  const loadWeeks = useCallback(async (isActive: () => boolean) => {
+    try {
+      const me = await getUserProfile();
+      if (!isActive() || !me?.data?.username) return;
+      const profile = await getPublicProfile(me.data.username);
+      if (!isActive()) return;
+      const history = [...(profile?.data?.weeklyPerformance ?? [])].reverse();
+      setWeeks(
+        history.map((w) => ({
+          key: w.weekStart,
+          label: new Date(w.weekStart).toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
+          pnlPercent: w.pnlPercent,
+        }))
+      );
+    } catch {
+      // The chart falls back to just this week.
+    }
+  }, []);
+
   // For buttons/handlers: show the loading state, then load.
-  const fetchPortfolio = useCallback(
-    () => {
-      setIsLoading(true);
-      return loadPortfolio();
-    },
-    [loadPortfolio]
-  );
+  const fetchPortfolio = useCallback(() => {
+    setIsLoading(true);
+    return loadPortfolio();
+  }, [loadPortfolio]);
 
   useAsyncEffect((isActive) => loadPortfolio(isActive), [loadPortfolio]);
+  useAsyncEffect((isActive) => loadWeeks(isActive), [loadWeeks]);
 
-  const openStockDetail = (symbol: string) => {
-    router.push(`/market?symbol=${encodeURIComponent(symbol)}`);
-  };
-
-  const { quotes: liveQuotes, connected: liveConnected } = useLiveQuotes(
-    holdings.map((h) => h.symbol)
-  );
+  const { quotes: liveQuotes, connected: liveConnected } = useLiveQuotes(holdings.map((h) => h.symbol));
   const marketStatus = useMarketStatus();
 
-  // Overlays a live tick onto a holding's derived fields using the same math
-  // the backend uses in portfolio.controller.ts (currentValue = price * qty,
-  // unrealizedPnl = currentValue - investedValue). Holdings with no tick yet
-  // pass through untouched (still showing the values from the initial fetch).
-  const liveHoldings = holdings.map((holding) => {
-    const tick = liveQuotes[holding.symbol];
-    if (!tick) return holding;
-
-    const quantity = Number(holding.quantity);
-    const investedValue = Number(holding.investedValue ?? Number(holding.avgBuyPrice) * quantity);
-    const currentValue = tick.price * quantity;
-    const unrealizedPnl = currentValue - investedValue;
-    const unrealizedPnlPercent = investedValue > 0 ? (unrealizedPnl / investedValue) * 100 : null;
-
-    return {
-      ...holding,
-      currentPrice: tick.price,
-      currentValue,
-      unrealizedPnl,
-      unrealizedPnlPercent,
-      priceStale: false,
-    };
-  });
-
+  // ---- derived figures (live ticks overlay the fetched snapshot) ----
   const walletBalance = Number(summary?.walletBalance ?? 0);
-  const totalInvested = Number(summary?.totalInvested ?? 0);
-  const totalCurrentValue = liveHoldings.reduce(
-    (sum, h) => sum + Number(h.currentValue ?? h.investedValue ?? 0),
+
+  const rows: HoldingRow[] = useMemo(() => {
+    const base = holdings.map((h) => {
+      const tick = liveQuotes[h.symbol];
+      const quote = quotes[h.symbol];
+      const quantity = Number(h.quantity);
+      const avgPrice = Number(h.avgBuyPrice);
+      const invested = Number(h.investedValue ?? avgPrice * quantity);
+      const price = tick ? tick.price : h.currentPrice != null ? Number(h.currentPrice) : null;
+      const value = price != null ? price * quantity : invested;
+      const pnl = price != null ? value - invested : null;
+      const dayChangePct = tick?.changePercent != null ? tick.changePercent : (quote?.changePct ?? null);
+      const listing = NAMES.get(h.symbol);
+      return {
+        symbol: h.symbol,
+        shortName: listing?.shortName ?? h.symbol.replace(/\.NS$/, ""),
+        fullName: listing?.fullName ?? h.symbol,
+        quantity,
+        avgPrice,
+        price,
+        value,
+        invested,
+        pnl,
+        pnlPct: pnl != null && invested > 0 ? (pnl / invested) * 100 : null,
+        dayChangePct,
+        closes: quote?.closes ?? [],
+        weight: 0,
+        stale: !tick && Boolean(h.priceStale),
+        dayChangePerShare: tick?.change ?? quote?.changePerShare ?? null,
+      };
+    });
+    const totalValue = base.reduce((sum, r) => sum + r.value, 0);
+    return base.map((r) => ({ ...r, weight: totalValue > 0 ? (r.value / totalValue) * 100 : 0 }));
+  }, [holdings, liveQuotes, quotes]);
+
+  const holdingsValue = rows.reduce((sum, r) => sum + r.value, 0);
+  const invested = rows.reduce((sum, r) => sum + r.invested, 0);
+  const unrealised = holdingsValue - invested;
+  const netWorth = walletBalance + holdingsValue;
+  const seasonReturn = netWorth - STARTING_BALANCE;
+  const dayPnl = rows.reduce(
+    (sum, r) => sum + (r.dayChangePerShare ?? 0) * r.quantity,
     0
   );
-  const totalPnl = totalCurrentValue - totalInvested;
-  const netWorth = walletBalance + totalCurrentValue;
-  const isPnlPositive = totalPnl >= 0;
+  const dayBase = holdingsValue - dayPnl;
 
-  const allocation = [
-    ...liveHoldings.map((h, i) => ({
-      label: h.symbol,
-      value: Number(h.currentValue ?? Number(h.avgBuyPrice) * h.quantity),
-      color: ALLOCATION_COLORS[i % ALLOCATION_COLORS.length],
-    })),
-    { label: "Cash", value: walletBalance, color: "bg-gray-300 dark:bg-gray-600" },
-  ].filter((slice) => slice.value > 0);
+  const slices: Slice[] = useMemo(() => {
+    const byValue = [...rows].sort((a, b) => b.value - a.value);
+    const shown = byValue.slice(0, DONUT_HOLDINGS);
+    const rest = byValue.slice(DONUT_HOLDINGS);
+    return [
+      ...shown.map((r): Slice => ({ key: r.symbol, label: r.shortName, value: r.value, kind: "holding" })),
+      ...(rest.length ? [{ key: "other", label: `Other (${rest.length})`, value: rest.reduce((s, r) => s + r.value, 0), kind: "other" as const }] : []),
+      ...(walletBalance > 0 ? [{ key: "cash", label: "Cash", value: walletBalance, kind: "cash" as const }] : []),
+    ].filter((s) => s.value > 0);
+  }, [rows, walletBalance]);
 
-  const cardBg = "bg-gray-50 dark:bg-gray-900";
+  const weekResults: WeekResult[] = [
+    ...weeks,
+    ...(summary ? [{ key: "current", label: "This week", pnlPercent: (seasonReturn / STARTING_BALANCE) * 100, current: true }] : []),
+  ];
+
+  const openTrade = (row: HoldingRow, side: "BUY" | "SELL") =>
+    setTradeModal({ symbol: row.symbol, side, initialPrice: row.price ?? row.avgPrice, availableQty: row.quantity });
 
   return (
     <>
-      <div className={`bg-white text-black dark:bg-gray-800 dark:text-white font-pop mb-16 md:mb-0 transition-colors duration-300`}>
+      <div className="min-h-screen bg-gray-50 font-pop text-gray-900 transition-colors duration-300 dark:bg-gray-800 dark:text-white">
         <Header />
         <div className="flex">
           <Vheader />
-          <main className="flex-1 min-w-0 p-6 m-0 md:m-10">
-            <h1 className="text-2xl md:text-3xl font-bold">Your Portfolio</h1>
-            <div className="h-2 w-44 bg-blue-500 rounded-full mb-6 animate-line"></div>
+          <main className="mb-20 min-w-0 flex-1 space-y-4 md:mb-0 px-5 py-6 md:px-8 md:py-8 lg:px-12 lg:py-10">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h1 className="text-2xl font-bold md:text-3xl">Portfolio</h1>
+                <div className="mt-1 h-0.5 w-32 rounded-full bg-blue-600 dark:bg-blue-400 animate-line" />
+              </div>
+              <div className="flex items-center gap-3">
+                <LiveStatusBadge connected={liveConnected} marketOpen={marketStatus.open} />
+                <QuickTrade cash={walletBalance} holdings={holdings} onTraded={fetchPortfolio} />
+              </div>
+            </div>
+
             <MarketClosedBanner />
 
             {error && (
-              <div className="mb-4 flex items-center gap-3">
-                <p className="text-red-500">{error}</p>
-                <button onClick={fetchPortfolio} className="text-sm text-blue-500 underline">
+              <div className="flex items-center gap-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-300">
+                <span className="flex-1">{error}</span>
+                <button type="button" onClick={fetchPortfolio} className="font-medium underline">
                   Retry
                 </button>
               </div>
             )}
 
-            {isLoading ? (
-              <div className="space-y-6">
-                <div className={`h-40 rounded-2xl animate-pulse ${cardBg}`} />
-                <div className={`h-24 rounded-2xl animate-pulse ${cardBg}`} />
+            {isLoading && !summary ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+                  <div className="col-span-2 h-32 animate-pulse rounded-2xl bg-white dark:bg-gray-900" />
+                  {Array.from({ length: 3 }, (_, i) => (
+                    <div key={i} className="h-32 animate-pulse rounded-2xl bg-white dark:bg-gray-900" />
+                  ))}
+                </div>
+                <div className="h-80 animate-pulse rounded-2xl bg-white dark:bg-gray-900" />
               </div>
             ) : (
-              <>
-                {/* Net worth hero */}
-                <section className={`p-6 md:p-8 rounded-2xl w-full shadow-lg ${cardBg} transition-colors duration-300`}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs md:text-sm uppercase tracking-widest text-gray-400">Net Worth</span>
-                    <LiveStatusBadge connected={liveConnected} marketOpen={marketStatus.open} />
+              <div className={`space-y-4 transition-opacity ${isLoading ? "opacity-60" : ""}`}>
+                {/* Headline numbers */}
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+                  <div className="col-span-2 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:shadow-none dark:ring-gray-800">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Net worth</p>
+                    <p className="mt-1 text-4xl font-semibold tracking-tight tabular-nums">{formatInr(netWorth)}</p>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                      <span className={`font-semibold ${changeTextClass(seasonReturn)}`}>
+                        {changeGlyph(seasonReturn)} {signedInr(seasonReturn)} ({signedPct((seasonReturn / STARTING_BALANCE) * 100)})
+                      </span>{" "}
+                      this season
+                    </p>
+                    <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-gray-100 pt-3 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                      <span>
+                        Invested <span className="font-semibold text-gray-900 dark:text-white">{formatInr(invested)}</span>
+                      </span>
+                      <span>
+                        Worth <span className="font-semibold text-gray-900 dark:text-white">{formatInr(holdingsValue)}</span>
+                      </span>
+                    </p>
                   </div>
-                  <div className="flex flex-wrap items-baseline gap-3 mb-6">
-                    <span className="text-2xl md:text-4xl font-bold tabular-nums">{formatInr(netWorth)}</span>
-                    <span
-                      className={`text-xs md:text-sm px-2.5 py-1 rounded-full font-semibold tabular-nums ${
-                        isPnlPositive ? "bg-green-500/15 text-green-500" : "bg-red-500/15 text-red-500"
-                      }`}
-                    >
-                      {formatSignedInr(totalPnl)}
+                  <StatTile label="Today" hint={dayBase > 0 ? <span className={changeTextClass(dayPnl)}>{signedPct((dayPnl / dayBase) * 100)} on holdings</span> : "No holdings"}>
+                    <span className={changeTextClass(dayPnl)}>
+                      {changeGlyph(dayPnl)} {signedInr(dayPnl)}
                     </span>
-                  </div>
+                  </StatTile>
+                  <StatTile label="Total return" hint={invested > 0 ? <span className={changeTextClass(unrealised)}>{signedPct((unrealised / invested) * 100)} unrealised</span> : "Nothing invested yet"}>
+                    <span className={changeTextClass(unrealised)}>
+                      {changeGlyph(unrealised)} {signedInr(unrealised)}
+                    </span>
+                  </StatTile>
+                  <StatTile label="Cash" hint="Buying power">
+                    {formatInr(walletBalance)}
+                  </StatTile>
+                </div>
 
-                  <div className="flex flex-wrap gap-x-10 gap-y-4 pt-5 border-t border-gray-500/20">
-                    <div>
-                      <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Invested</div>
-                      <div className="text-base font-semibold tabular-nums">{formatInr(summary?.totalInvested)}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Cash</div>
-                      <div className="text-base font-semibold tabular-nums">{formatInr(walletBalance)}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Holdings</div>
-                      <div className="text-base font-semibold tabular-nums">{holdings.length}</div>
-                    </div>
-                  </div>
-
-                  {/* Allocation bar - real data (holding value vs cash), not decoration */}
-                  {allocation.length > 0 && netWorth > 0 && (
-                    <div className="mt-6 pt-5 border-t border-gray-500/20">
-                      <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Allocation</div>
-                      <div className="w-full h-3 rounded-full overflow-hidden flex">
-                        {allocation.map((slice) => (
-                          <div
-                            key={slice.label}
-                            className={slice.color}
-                            style={{ width: `${(slice.value / netWorth) * 100}%` }}
-                            title={`${slice.label}: ${((slice.value / netWorth) * 100).toFixed(1)}%`}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
-                        {allocation.map((slice) => (
-                          <div key={slice.label} className="flex items-center gap-1.5 text-xs text-gray-400">
-                            <span className={`w-2 h-2 rounded-full ${slice.color}`} />
-                            {slice.label} · {((slice.value / netWorth) * 100).toFixed(1)}%
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </section>
-
-                {/* Stock Holdings Section */}
-                <section className={`mt-8 w-full p-6 rounded-2xl shadow-lg ${cardBg} transition-colors duration-300`}>
-                  <h2 className="text-lg md:text-xl font-semibold mb-6">Stock Holdings</h2>
-                  {holdings.length === 0 ? (
-                    <div className="text-center py-10">
-                      <p className="text-gray-400 mb-4">No holdings yet - make your first trade to see it here.</p>
-                      <Link
-                        href="/market"
-                        className="inline-block px-6 py-2 rounded-md bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
-                      >
-                        Go to Market
+                {/* Holdings + allocation */}
+                <div className="grid gap-4 lg:grid-cols-3">
+                  <Card
+                    title={`Holdings (${rows.length})`}
+                    className="lg:col-span-2"
+                    action={
+                      <Link href="/market" className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
+                        Browse market <PiArrowRight aria-hidden="true" className="h-4 w-4" />
                       </Link>
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className="border-b border-gray-300 dark:border-gray-700">
-                            <th className="py-3 px-4 text-sm md:text-base font-medium">Symbol</th>
-                            <th className="py-3 px-4 text-sm md:text-base font-medium">Qty</th>
-                            <th className="py-3 px-4 text-sm md:text-base font-medium">Avg Cost</th>
-                            <th className="py-3 px-4 text-sm md:text-base font-medium">Current Price</th>
-                            <th className="py-3 px-4 text-sm md:text-base font-medium">Current Value</th>
-                            <th className="py-3 px-4 text-sm md:text-base font-medium">P&amp;L</th>
-                            <th className="py-3 px-4 text-sm md:text-base font-medium"></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {liveHoldings.map((holding, index) => {
-                            const pnl = holding.unrealizedPnl !== null ? Number(holding.unrealizedPnl) : null;
-                            const pnlPercent = holding.unrealizedPnlPercent !== null ? Number(holding.unrealizedPnlPercent) : null;
-                            const pnlPositive = pnl !== null && pnl >= 0;
-                            const accentColor = ALLOCATION_COLORS[index % ALLOCATION_COLORS.length];
-                            return (
-                              <tr
-                                key={holding.id}
-                                onClick={() => openStockDetail(holding.symbol)}
-                                onKeyDown={onActivateKey(() => openStockDetail(holding.symbol))}
-                                tabIndex={0}
-                                aria-label={`View ${holding.symbol}`}
-                                className={`border-b border-l-4 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                                  pnl === null
-                                    ? "border-l-transparent"
-                                    : pnlPositive
-                                    ? "border-l-green-500"
-                                    : "border-l-red-500"
-                                } ${
-                                  "border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                                } transition-colors duration-150`}
-                              >
-                                <td className="py-3 px-4 text-xs md:text-base font-medium">
-                                  <div className="flex items-center gap-2">
-                                    <span className={`w-6 h-6 rounded-full ${accentColor} text-white text-[10px] font-bold flex items-center justify-center shrink-0`}>
-                                      {holding.symbol.slice(0, 1)}
-                                    </span>
-                                    {holding.symbol}
-                                    {holding.priceStale && (
-                                      <span className="text-xs text-yellow-500">(stale)</span>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="py-3 px-4 text-xs md:text-base tabular-nums">{holding.quantity}</td>
-                                <td className="py-3 px-4 text-xs md:text-base tabular-nums">{formatInr(holding.avgBuyPrice)}</td>
-                                <td className="py-3 px-4 text-xs md:text-base tabular-nums">
-                                  {holding.currentPrice !== null ? formatInr(holding.currentPrice) : '-'}
-                                </td>
-                                <td className="py-3 px-4 text-xs md:text-base tabular-nums">
-                                  {holding.currentValue !== null ? formatInr(holding.currentValue) : '-'}
-                                </td>
-                                <td className={`py-3 px-4 text-xs md:text-base font-semibold tabular-nums ${pnl === null ? "" : pnlPositive ? "text-green-500" : "text-red-500"}`}>
-                                  {pnl === null ? '-' : `${formatSignedInr(pnl)} (${formatPercent(pnlPercent)})`}
-                                </td>
-                                <td className="py-3 px-4 text-xs md:text-base">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setTradeModal({
-                                        symbol: holding.symbol,
-                                        side: "SELL",
-                                        initialPrice: Number(holding.currentPrice ?? holding.avgBuyPrice),
-                                        availableQty: holding.quantity,
-                                      });
-                                    }}
-                                    className={`px-4 py-1.5 rounded text-white text-xs md:text-sm transition-colors duration-200 active:scale-95 bg-red-500 hover:bg-red-400 dark:bg-red-600 dark:hover:bg-red-500`}
-                                  >
-                                    Sell
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </section>
-              </>
+                    }
+                  >
+                    {rows.length === 0 ? (
+                      <div className="flex flex-col items-center py-10 text-center">
+                        <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
+                          <PiChartLineUp aria-hidden="true" className="h-6 w-6" />
+                        </span>
+                        <p className="font-medium">No holdings yet</p>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">You have {formatInr(walletBalance)} to invest this season.</p>
+                        <Link href="/market" className="mt-4 rounded-xl bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                          Find a stock
+                        </Link>
+                      </div>
+                    ) : (
+                      <HoldingsTable rows={rows} onBuy={(r) => openTrade(r, "BUY")} onSell={(r) => openTrade(r, "SELL")} />
+                    )}
+                  </Card>
+                  <Card title="Allocation">
+                    <AllocationDonut slices={slices} total={netWorth} />
+                  </Card>
+                </div>
+
+                {/* Seasons + recent trades */}
+                <div className="grid gap-4 lg:grid-cols-3">
+                  <Card title="Weekly results" className="lg:col-span-2" action={<span className="text-xs text-gray-500 dark:text-gray-400">Return per season</span>}>
+                    <WeeklyResults weeks={weekResults} />
+                  </Card>
+                  <Card
+                    title="Recent trades"
+                    action={
+                      <Link href="/wallet" className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
+                        All <PiArrowRight aria-hidden="true" className="h-4 w-4" />
+                      </Link>
+                    }
+                  >
+                    <RecentTrades trades={trades} />
+                  </Card>
+                </div>
+              </div>
             )}
           </main>
         </div>
