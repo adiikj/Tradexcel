@@ -24,6 +24,20 @@ No hosted LLM is involved. The model runs in Node.js through transformers.js on 
 | `tradexcel_router.json` | Runtime settings: mean pooling + L2 norm, fusion weight, router thresholds, intent-head weights, and the regex guard patterns. |
 | `tokenizer.json`, `config.json` | Standard tokenizer and config. |
 
+## Usage
+
+In Node.js with [transformers.js](https://huggingface.co/docs/transformers.js):
+
+```js
+import { pipeline } from "@huggingface/transformers";
+
+const embed = await pipeline("feature-extraction", "adiikj/tradexcel-assistant-encoder", { dtype: "fp32" });
+const vectors = await embed(["how do contests work", "what's my rank"], { pooling: "mean", normalize: true });
+// vectors.dims -> [2, 384]; compare with a dot product (cosine similarity)
+```
+
+To reproduce the full assistant, load `tradexcel_router.json` as well: apply the guard patterns, run the intent head (softmax of `coef · x + intercept`), then retrieve cards with the thresholds in `policy`.
+
 ## Training
 
 - **Data:** synthetic and hand-written. There are 142 cards with 1,192 paraphrased questions, 9 live-data and off-topic intents with templates filled from 258 real NSE stock names, and 60 out-of-scope examples. Card questions are split 70/15/15 per card, and intent templates are split *by template* before filling.
