@@ -36,7 +36,7 @@ describe("price_quote", () => {
   it("formats the price and today's move, and returns quote cards", async () => {
     quotes.getQuotes.mockResolvedValue({ "TCS.NS": q(3500, 35) });
     const a = await DATA_HANDLERS.price_quote(ctx(["TCS.NS"]));
-    expect(a.text).toContain("**TCS** (Tata Consultancy Services): **₹3,500.00** ▲ +1.01% (+₹35.00) today");
+    expect(a.text).toContain("Here's the latest:\n- **TCS** (Tata Consultancy Services): **₹3,500.00** ▲ +1.01% (+₹35.00) today");
     expect(a.quotes).toEqual([expect.objectContaining({ symbol: "TCS.NS", price: 3500 })]);
     expect(a.links[0].href).toBe("/market?symbol=TCS.NS");
   });
@@ -51,7 +51,7 @@ describe("price_quote", () => {
 
   it("asks which company for an ambiguous word with no default", async () => {
     const a = await DATA_HANDLERS.price_quote(ctx([], [{ term: "tata", candidates: ["TCS.NS", "TATASTEEL.NS"] }]));
-    expect(a.text).toBe("Which **tata** company do you mean?");
+    expect(a.text).toBe("There are a few **tata** companies. Which one did you mean?");
     expect(a.suggestions).toEqual(["TCS price", "TATASTEEL price"]);
     expect(quotes.getQuotes).not.toHaveBeenCalled();
   });
@@ -64,7 +64,7 @@ describe("price_quote", () => {
 
   it("points to the Market page when no listed stock is named", async () => {
     const a = await DATA_HANDLERS.price_quote(ctx([]));
-    expect(a.text).toContain("couldn't spot a listed stock");
+    expect(a.text).toContain("couldn't find a listed stock");
     expect(a.links).toEqual([{ label: "Browse stocks", href: "/market" }]);
   });
 });
@@ -95,7 +95,7 @@ describe("portfolio_summary", () => {
     quotes.getQuotes.mockResolvedValue({ "INFY.NS": q(1650, 0), "ITC.NS": q(380, 0) });
     const a = await DATA_HANDLERS.portfolio_summary(ctx([]));
     // 50,000 + 16,500 + 38,000 = 1,04,500 vs 1,00,000 start
-    expect(a.text).toContain("Your net worth is **₹1,04,500.00**, ▲ +₹4,500.00 (+4.50%) this season.");
+    expect(a.text).toContain("Your net worth is **₹1,04,500.00**, ▲ +₹4,500.00 (+4.50%) this season. Nice, you're in the green.");
     expect(a.text).toContain("Best: **INFY** +10.00%; worst: **ITC** −5.00%");
   });
 });
@@ -109,7 +109,7 @@ describe("my_rank", () => {
     const a = await DATA_HANDLERS.my_rank(ctx([]));
     expect(a.text).toContain("You're **#2** of 2 players");
     expect(a.text).toContain("🐂 **Bull Runner**");
-    expect(a.text).toContain("₹18,000.00 behind #1 (@top)");
+    expect(a.text).toContain("₹18,000.00 behind #1 (@top). Top 10, nice work!");
   });
 });
 

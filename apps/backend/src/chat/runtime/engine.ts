@@ -139,7 +139,7 @@ export class ChatEngine {
         return {
           kind: "clarify",
           intent: decision.intent,
-          text: "I'm not quite sure what you mean. Is it one of these?",
+          text: "Hmm, I want to make sure I get this right. Did you mean one of these?",
           links: [],
           suggestions: decision.top3.map((id) => asQuestion(this.cardById.get(id)!.questions[0])),
           cardId: null,
@@ -149,7 +149,7 @@ export class ChatEngine {
         return {
           kind: "fallback",
           intent: "out_of_scope",
-          text: "That's outside what I can help with. I can answer questions about Tradexcel, look up stock prices, and tell you how your portfolio, rank and contests are doing.",
+          text: "That's a bit outside my lane! I'm best at questions about Tradexcel, live stock prices, and how your portfolio, rank and contests are doing.",
           links: [],
           suggestions: FALLBACK_SUGGESTIONS,
           cardId: null,
@@ -166,7 +166,7 @@ export class ChatEngine {
           return {
             kind: "data",
             intent: decision.intent,
-            text: "I couldn't fetch that right now. Please try again in a moment.",
+            text: "Sorry, I couldn't pull that up just now. Mind trying again in a moment?",
             links: [],
             suggestions: [],
             cardId: null,

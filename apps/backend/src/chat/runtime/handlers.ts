@@ -41,13 +41,13 @@ function whichStock(ctx: DataContext, suffix: string): DataAnswer | null {
   const amb = ctx.ambiguous.find((a) => !a.default);
   if (amb) {
     return {
-      text: `Which **${amb.term}** company do you mean?`,
+      text: `There are a few **${amb.term}** companies. Which one did you mean?`,
       links: [],
       suggestions: amb.candidates.slice(0, 4).map((s) => `${shortName(s)} ${suffix}`),
     };
   }
   return {
-    text: "I couldn't spot a listed stock in that. Try the company name or NSE symbol, like “TCS price”. Only the 250+ stocks on the Market page are available.",
+    text: "Hmm, I couldn't find a listed stock in that. Try the company name or NSE symbol, like “TCS price”. I know the 250+ stocks on the Market page.",
     links: [{ label: "Browse stocks", href: "/market" }],
     suggestions: ["Reliance price", "Which stocks can I trade?"],
   };
@@ -72,8 +72,9 @@ async function priceQuote(ctx: DataContext): Promise<DataAnswer> {
     const move = q.changePercent == null ? "" : ` ${arrow(q.change)} ${signedPct(q.changePercent)}${q.change == null ? "" : ` (${signedInr(q.change)})`} today`;
     return `- **${shortName(s)}** (${fullName(s)}): **${inr(q.price)}**${move}`;
   });
+  const lead = symbols.length > 1 ? "Here's how they're trading:" : "Here's the latest:";
   return {
-    text: lines.join("\n") + closedNote() + assumptionNote(ctx),
+    text: `${lead}\n${lines.join("\n")}` + closedNote() + assumptionNote(ctx),
     links: symbols.slice(0, 2).map((s) => ({ label: `${shortName(s)} chart`, href: `/market?symbol=${encodeURIComponent(s)}` })),
     suggestions: symbols.length === 1 ? [`How is my ${shortName(symbols[0])} doing?`, "How do I set a price alert?"] : ["What's my portfolio worth?"],
     quotes,
@@ -86,10 +87,10 @@ async function holdingDetail(ctx: DataContext): Promise<DataAnswer> {
     // No stock named: offer the ones they actually hold.
     const held = await prisma.holding.findMany({ where: { userId: ctx.userId }, select: { symbol: true }, orderBy: { symbol: "asc" }, take: 4 });
     if (held.length === 0) {
-      return { text: "You don't hold any stocks right now.", links: [{ label: "Find a stock", href: "/market" }], suggestions: ["How do I buy a stock?"] };
+      return { text: "You're not holding any stocks right now. Want to find one to start with?", links: [{ label: "Find a stock", href: "/market" }], suggestions: ["How do I buy a stock?"] };
     }
     return {
-      text: "Which holding do you mean?",
+      text: "Sure! Which holding should I check?",
       links: [{ label: "Open Portfolio", href: "/portfolio" }],
       suggestions: held.map((h) => `How is my ${shortName(h.symbol)} doing?`),
     };
@@ -136,8 +137,10 @@ async function portfolioSummary(ctx: DataContext): Promise<DataAnswer> {
   const invested = rows.reduce((s, r) => s + r.invested, 0);
   const netWorth = cash + holdingsValue;
   const season = netWorth - STARTING_BALANCE;
+  // A little encouragement, never advice.
+  const mood = season > 0 ? " Nice, you're in the green." : season < 0 ? " A tough stretch so far, but there's still time." : "";
   const lines = [
-    `Your net worth is **${inr(netWorth)}**, ${arrow(season)} ${signedInr(season)} (${signedPct((season / STARTING_BALANCE) * 100)}) this season.`,
+    `Your net worth is **${inr(netWorth)}**, ${arrow(season)} ${signedInr(season)} (${signedPct((season / STARTING_BALANCE) * 100)}) this season.${mood}`,
     `- Cash: ${inr(cash)}`,
     `- ${rows.length} holding${rows.length === 1 ? "" : "s"} worth ${inr(holdingsValue)}${invested > 0 ? ` (${signedInr(holdingsValue - invested)} on ${inr(invested)} invested)` : ""}`,
   ];
@@ -163,7 +166,9 @@ async function myRank(ctx: DataContext): Promise<DataAnswer> {
   const lines = [
     `You're **#${me.rank}** of ${rankings.length} players, with a net worth of ${inr(me.netWorth)} (${signedPct(me.totalPnlPercent)}).`,
     `Your title: ${title.icon} **${title.name}**.`,
-    above ? `You're ${inr(above.netWorth - me.netWorth)} behind #${above.rank} (@${above.username}).` : "You're at the top. 🏔️",
+    above
+      ? `You're ${inr(above.netWorth - me.netWorth)} behind #${above.rank} (@${above.username}).${me.rank <= 10 ? " Top 10, nice work!" : ""}`
+      : "You're at the very top. Well played!",
   ];
   return { text: lines.join("\n"), links: [{ label: "Open Leaderboard", href: "/leaderboard" }], suggestions: ["How is the leaderboard ranked?", "What are titles?"] };
 }
@@ -177,8 +182,14 @@ async function myAchievements(ctx: DataContext): Promise<DataAnswer> {
   const byId = new Map(BADGE_CATALOG.map((b) => [b.id, b]));
   const latest = earned[0] && byId.get(earned[0].badgeId);
   const missing = BADGE_CATALOG.filter((b) => !have.has(b.id)).slice(0, 3);
+  const tally =
+    have.size === 0
+      ? "No badges yet, but your first trade earns one."
+      : have.size === BADGE_CATALOG.length
+        ? `You've collected all **${have.size}** badges. Impressive!`
+        : `You've earned **${have.size} of ${BADGE_CATALOG.length}** badges.${latest ? ` Latest: ${latest.icon} ${latest.name}.` : ""}`;
   const lines = [
-    `You've earned **${have.size} of ${BADGE_CATALOG.length}** badges.${latest ? ` Latest: ${latest.icon} ${latest.name}.` : ""}`,
+    tally,
     `Login streak: **${user?.currentStreak ?? 0} day${user?.currentStreak === 1 ? "" : "s"}** (best ${user?.longestStreak ?? 0}).`,
   ];
   if (missing.length) lines.push("Some you could go for next:", ...missing.map((b) => `- ${b.icon} **${b.name}**: ${b.description}`));
@@ -193,7 +204,7 @@ async function myContests(ctx: DataContext): Promise<DataAnswer> {
     take: 5,
   });
   if (entries.length === 0) {
-    return { text: "You haven't joined any contests yet.", links: [{ label: "Open Contests", href: "/contest" }], suggestions: ["How do contests work?", "How do I create a private league?"] };
+    return { text: "You haven't joined any contests yet. They're a fun way to compete with others, and they don't touch your weekly wallet.", links: [{ label: "Open Contests", href: "/contest" }], suggestions: ["How do contests work?", "How do I create a private league?"] };
   }
   const lines = await Promise.all(
     entries.map(async (e) => {
@@ -223,7 +234,7 @@ async function myAlerts(ctx: DataContext): Promise<DataAnswer> {
   });
   if (alerts.length === 0) {
     const about = ctx.link.symbols.length ? ` for ${ctx.link.symbols.map(shortName).join(", ")}` : "";
-    return { text: `You don't have any price alerts${about}.`, links: [{ label: "Set an alert", href: "/alerts" }], suggestions: ["How do I set a price alert?"] };
+    return { text: `You don't have any price alerts${about} yet. Set one and I'll make sure you get an email when the price hits.`, links: [{ label: "Set an alert", href: "/alerts" }], suggestions: ["How do I set a price alert?"] };
   }
   const lines = alerts.map((a) => {
     const target = `${shortName(a.symbol)} ${a.direction === "ABOVE" ? "above" : "below"} ${inr(a.targetPrice.toNumber())}`;
@@ -243,7 +254,7 @@ async function myOrders(ctx: DataContext): Promise<DataAnswer> {
     lines.push(`**${pending.length} order${pending.length === 1 ? "" : "s"} waiting for the market to open:**`);
     lines.push(...pending.map((o) => `- ${o.side === "BUY" ? "Buy" : "Sell"} ${o.quantity} ${shortName(o.symbol)} (last price ${inr(o.quotedPrice.toNumber())})`));
   } else {
-    lines.push("You have no orders waiting for the open.");
+    lines.push("Nothing's waiting for the market to open right now.");
   }
   if (recent.length) {
     lines.push("**Recent trades:**");
