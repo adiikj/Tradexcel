@@ -2,8 +2,8 @@
 
 The classifier alone can't be trusted to catch 100% of advice-seeking or
 credential-sharing messages, so these high-precision patterns run first. They
-were written from the training guardrail questions and general phrasing only,
-not tuned against the held-out set. The runtime (Node) ports this list as-is.
+were written from the training guardrail questions, general phrasing and the
+dev set's misses; the locked test set is never looked at. The runtime (Node) ports this list as-is.
 """
 
 from __future__ import annotations
@@ -25,6 +25,8 @@ GUARD_PATTERNS: dict[str, list[str]] = {
         r"\bif you (had to|were me)\b.*\b(pick|buy|choose|invest)\b",
         r"\btell me what to (buy|sell)\b",
         r"\b(intraday|btst) (call|tip)s?\b",
+        r"\b(one|a|any|some) (good )?stocks? (to|i should) buy\b",
+        r"\btop picks?\b",
     ],
     # "will reliance go up", "tcs target price for...", "sure shot"
     "prediction": [
@@ -35,6 +37,7 @@ GUARD_PATTERNS: dict[str, list[str]] = {
         r"\btarget price (for|of|next|in|by)\b",
         r"\b(guarantee|guaranteed|sure[- ]?shot|100 ?% (sure|profit)|jackpot|multibagger|get rich)\b",
         r"\bwhere will (the )?(nifty|sensex|market)\b",
+        r"\b(double|triple|10x) (my|your|the) money (in (a|one|\d+) (day|week|month)s?|fast|quick|quickly|overnight)\b",
     ],
     "real_money": [
         r"\b(which|best) (broker|demat|trading app)\b",
@@ -54,7 +57,8 @@ GUARD_PATTERNS: dict[str, list[str]] = {
         # Only when an actual secret is typed (something with a digit in it).
         r"\b(password|pin|otp|code)\s*(is|:)\s*\S*\d\S*",
         r"\bhere(?:'s| is) my (password|pin|otp)\b",
-        r"\b(share|give|send) (you |them )?(my )?(password|otp|pin)\b",
+        r"\b(share|give|send) (you |them )?(my )?(password|otp|pin|verification code)\b",
+        r"\b(asked|asks|asking|wants?|wanted|needs?) (me )?(for )?my (password|otp|pin|cvv|verification code)\b",
         r"\blog ?in as me\b",
     ],
     "cheating": [
@@ -63,6 +67,7 @@ GUARD_PATTERNS: dict[str, list[str]] = {
         r"\binfinite (cash|money)\b",
         r"\bsomeone else'?s account\b",
         r"\btrick to win\b",
+        r"\b(bug|loophole)\b.*\b(free|extra|unlimited) (cash|money|coins)\b",
         r"\bspam (trades|orders)\b",
     ],
 }
