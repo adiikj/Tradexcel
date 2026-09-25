@@ -37,6 +37,26 @@ describe("decide", () => {
   });
 });
 
+describe("margin and data-override gates", () => {
+  it("asks when the top two cards are too close", () => {
+    const p = { ...POLICY, restrict: false, t_margin: 0.05 };
+    expect(decide(p, false, { faq_platform: 0.9 }, [0.8, 0.78, 0.1, 0.1], CARDS, INTENTS)).toMatchObject({ kind: "clarify", top3: ["faq.a", "faq.b", "edu.c"] });
+    expect(decide(p, false, { faq_platform: 0.9 }, [0.8, 0.7, 0.1, 0.1], CARDS, INTENTS)).toMatchObject({ kind: "answer", card: "faq.a" });
+  });
+
+  it("ignores cards outside the restricted intent when judging the margin", () => {
+    const p = { ...POLICY, t_margin: 0.05 };
+    expect(decide(p, false, { faq_education: 0.9 }, [0.9, 0.8, 0.6, 0.1], CARDS, INTENTS)).toMatchObject({ kind: "answer", card: "edu.c" });
+  });
+
+  it("lets a near-exact card beat a weak live-data intent", () => {
+    const p = { ...POLICY, t_data: 0.6 };
+    expect(decide(p, false, { my_rank: 0.5, faq_platform: 0.3 }, [0.9, 0.2, 0.1, 0.1], CARDS, INTENTS)).toMatchObject({ kind: "answer", card: "faq.a", intent: "faq_platform" });
+    expect(decide(p, false, { my_rank: 0.7, faq_platform: 0.2 }, [0.9, 0.2, 0.1, 0.1], CARDS, INTENTS)).toMatchObject({ kind: "data", intent: "my_rank" });
+    expect(decide(p, false, { my_rank: 0.5, faq_platform: 0.3 }, [0.8, 0.2, 0.1, 0.1], CARDS, INTENTS)).toMatchObject({ kind: "data" });
+  });
+});
+
 describe("intentProbs", () => {
   it("is a softmax over W·x + b", () => {
     const head = { classes: ["a", "b"], coef: [[1, 0], [0, 1]], intercept: [0, 0] };

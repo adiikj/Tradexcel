@@ -6,13 +6,17 @@ export type RouterConfig = {
   kb_hash: string;
   encoder: { base_model: string; pooling: "mean" | "cls"; max_seq_length: number; normalize: boolean; onnx_file: string; dtype: "fp32" | "q8" };
   fusion: { method: "weighted_rrf"; dense_weight: number; k: number };
-  policy: { t_guard: number; t_oos: number; t_card: number; restrict: boolean };
+  // t_margin / t_data are optional so older router configs keep working.
+  policy: { t_guard: number; t_oos: number; t_card: number; restrict: boolean; t_margin?: number; t_data?: number };
   intent_head: { classes: string[]; coef: number[][]; intercept: number[] };
   guard_patterns: Record<string, string[]>;
   guard_pattern_flags: string;
 };
 
 export const CARD_INTENTS = new Set(["faq_platform", "faq_education", "guardrail", "smalltalk"]);
+
+// A card this similar overrides a weak live-data intent (router.py DATA_OVERRIDE_SIM).
+export const DATA_OVERRIDE_SIM = 0.85;
 
 export function compileGuards(patterns: RouterConfig["guard_patterns"], flags = "i"): [string, RegExp][] {
   return Object.entries(patterns).flatMap(([kind, list]) => list.map((p) => [kind, new RegExp(p, flags)] as [string, RegExp]));
@@ -62,10 +66,23 @@ export function decide(
   }
   const intent = Object.keys(probs).reduce((a, b) => (probs[b] > probs[a] ? b : a));
   if (intent === "out_of_scope" || probs[intent] < policy.t_oos) return { kind: "fallback", intent: "out_of_scope", confidence: probs[intent] };
-  if (!CARD_INTENTS.has(intent)) return { kind: "data", intent, confidence: probs[intent] };
+  if (!CARD_INTENTS.has(intent)) {
+    // "badges list" leans "my badges", but the badges card is a near-exact match.
+    if (probs[intent] < (policy.t_data ?? 0)) {
+      const cards = best((i) => cardIntents[i] !== "guardrail");
+      if (cards[0][0] >= DATA_OVERRIDE_SIM) {
+        const [score, i] = cards[0];
+        return { kind: "answer", intent: cardIntents[i], card: cardIds[i], top3: cards.map(([, j]) => cardIds[j]), confidence: score };
+      }
+    }
+    return { kind: "data", intent, confidence: probs[intent] };
+  }
 
   const top = best((i) => (policy.restrict ? cardIntents[i] === intent : cardIntents[i] !== "guardrail"));
   const top3 = top.map(([, i]) => cardIds[i]);
   const confidence = top[0][0];
-  return { kind: confidence < policy.t_card ? "clarify" : "answer", intent, card: top3[0], top3, confidence };
+  // Two near-equal cards: ask rather than guess.
+  const second = top[1]?.[0] ?? -Infinity;
+  const unsure = confidence < policy.t_card || confidence - second < (policy.t_margin ?? 0);
+  return { kind: unsure ? "clarify" : "answer", intent, card: top3[0], top3, confidence };
 }
