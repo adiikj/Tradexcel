@@ -18,6 +18,18 @@ cards:
       - which share will give maximum return
       - tell me what to buy to win the contest
       - is it a good time to buy hdfc bank
+      - what should i invest in right now
+      - name a stock that will beat the market
+      - top pick for this week
+      - which share should i add to my portfolio
+      - is reliance a buy at current levels
+      - should i exit my tcs position
+      - help me choose between infosys and wipro to buy
+      - what would you buy if you were me
+      - honestly which stock is best
+      - give me your best stock idea
+      - should i average down on my losing stock
+      - build me a portfolio of stocks to buy
     tags: [advice, recommendation, tips]
     links:
       - { label: Open Market, href: /market }
@@ -40,6 +52,16 @@ cards:
       - when will the market recover
       - is this stock going to rise
       - guarantee me a profit
+      - how high can tcs go
+      - will nifty cross 25000
+      - expected price of hdfc next week
+      - is a crash coming
+      - when will reliance hit a new high
+      - will my stock recover
+      - what's the outlook for infosys shares
+      - how much will wipro rise
+      - which way will the market move tomorrow
+      - can you guarantee returns
     tags: [prediction, forecast]
     related: [guardrail.investment_advice]
     hard_negatives: [trade.market_closed]
@@ -60,6 +82,11 @@ cards:
       - is now a good time to start investing real money
       - should i put my money in fd or stocks
       - help me plan my investments
+      - should i move my fd money into stocks
+      - how should i invest my bonus
+      - is it wise to invest my savings now
+      - best app to start real investing
+      - how much real money should i put in shares
     tags: [real money, broker, personal finance]
     related: [guardrail.investment_advice, unsupported.real_money]
     hard_negatives: [unsupported.real_money]
@@ -98,6 +125,11 @@ cards:
       - intraday call for today
       - double my money in a week
       - get rich quick stock
+      - any secret stock tips
+      - got insider news on any company
+      - what are operators buying
+      - share a hot tip
+      - which stock will be the next multibagger
     tags: [tips, insider, scam]
     related: [guardrail.investment_advice, edu.pe_ratio]
     hard_negatives: [guardrail.price_prediction]
@@ -117,6 +149,11 @@ cards:
       - my pin is 1234, check my account
       - should i share my otp with support
       - log in as me
+      - my pin is 4821
+      - here is my password so you can check
+      - i'll give you my login details
+      - do you want my verification code
+      - otp for my account is 551203
     tags: [security, password, otp]
     links:
       - { label: Reset password, href: /forgot-password }
@@ -138,6 +175,11 @@ cards:
       - trick to win every contest
       - bot to spam trades
       - hack someone's account
+      - can i create two accounts
+      - trick the system for extra cash
+      - bug to double my balance
+      - how to manipulate the leaderboard
+      - use a bot to win contests
     tags: [cheating, exploit, hack]
     links:
       - { label: Open Support, href: /support }

@@ -70,6 +70,9 @@ intents:
       - how is my stock doing
       - check one of my holdings
       - details of my position
+      - how is my stake doing
+      - my shares in this company
+      - profit on my position
 
   - id: portfolio_summary
     description: The user's overall wallet, holdings and returns.
@@ -110,6 +113,26 @@ intents:
       - total value of my holdings
       - how are my investments doing
       - quick update on my portfolio
+      - cash remaining in my account
+      - my wallet balance right now
+      - value of everything i own
+      - am i profitable overall
+      - profit so far
+      - how much have i earned this week
+      - my gains and losses
+      - total returns on my account
+      - net worth update
+      - how's my money doing
+      - my equity value
+      - have i made or lost money
+      - my season performance so far
+      - how much is idle cash
+      - my top gainer
+      - my worst stock
+      - biggest loser in my portfolio
+      - what am i holding
+      - current positions please
+      - account overview
 
   - id: my_rank
     description: The user's leaderboard rank and title.
@@ -134,6 +157,24 @@ intents:
       - what percentile am i in
       - who is just above me
       - did my rank go up
+      - my rank today
+      - my place on the leaderboard
+      - how high am i ranked
+      - rank check
+      - where do i rank this week
+      - am i top 10 yet
+      - my leaderboard spot
+      - how many players are ahead
+      - what's my standing among players
+      - my position vs others
+      - who is right above me on the leaderboard
+      - how far behind the leader am i
+      - what title do i have now
+      - my rank among friends
+      - my global rank
+      - did i climb in rankings
+      - am i near the top
+      - where do i sit on the board
 
   - id: my_achievements
     description: The user's badges, missing badges, and login streak.
@@ -156,6 +197,19 @@ intents:
       - did i get a badge today
       - my progress on achievements
       - list my earned badges
+      - my badges
+      - badges unlocked
+      - which badges have i got
+      - my achievement progress
+      - what trophies do i have
+      - badges left to earn
+      - my streak count
+      - how long is my login streak now
+      - my longest login streak
+      - did i earn a badge recently
+      - how many achievements left
+      - am i close to any badge
+      - my latest achievement
 
   - id: my_contests
     description: The user's contests and leagues, their rank and cash in them.
@@ -178,6 +232,18 @@ intents:
       - results of my finished contests
       - check my league position
       - how far behind am i in the contest
+      - my contests
+      - contests i joined
+      - my league results
+      - how am i placed in my league
+      - my rank in the contest
+      - money left in my contest
+      - my contest portfolio value
+      - contests i'm playing
+      - when do my contests end
+      - did i finish top 3 in any contest
+      - my private league position
+      - my performance in the tournament
 
   - id: my_alerts
     description: The user's price alerts.
@@ -196,6 +262,16 @@ intents:
       - my alerts
       - are any alerts close to triggering
       - my triggered alerts this week
+      - my price alerts
+      - alerts i have set up
+      - any alerts triggered today
+      - list of my alerts
+      - which alerts are still waiting
+      - did my alert hit
+      - alerts status
+      - my alert on tcs
+      - my active price notifications
+      - alerts that went off
 
   - id: my_orders
     description: The user's queued (after-hours) orders and recent trades.
@@ -218,6 +294,16 @@ intents:
       - list my orders
       - was my weekend buy placed
       - what did i sell recently
+      - my pending orders
+      - orders queued for tomorrow
+      - my latest trade
+      - recent orders
+      - did my order execute
+      - my order history lately
+      - what did i sell today
+      - last purchase i made
+      - queued buys
+      - anything waiting to execute
 
   - id: out_of_scope
     description: Anything unrelated to Tradexcel, trading or the user's account.
@@ -283,3 +369,157 @@ intents:
       - what's the score of the football match
       - best places to eat nearby
       - how to meditate
+      # added in the improvement round: wider coverage of everyday requests
+      - what's the weather like this weekend
+      - will it snow in manali
+      - humidity in chennai today
+      - debug my python code
+      - how do i center a div in css
+      - explain recursion in programming
+      - write a function to find prime numbers
+      - what is react js
+      - how to install node on ubuntu
+      - git merge conflict help
+      - give me a chicken curry recipe
+      - how long to boil an egg
+      - vegetarian dinner ideas
+      - best biryani recipe
+      - who won the football world cup
+      - when is the next cricket match
+      - ipl points table
+      - who is the best tennis player
+      - latest bollywood movies
+      - recommend a web series
+      - who sang this song
+      - best songs of 2025
+      - what's trending on youtube
+      - how to go viral on reels
+      - write a birthday wish for my friend
+      - write a love letter
+      - compose a short poem about rain
+      - tell me a joke
+      - tell me a riddle
+      - who was the first prime minister of india
+      - when did world war 2 end
+      - what is the largest ocean
+      - how far is the moon
+      - how does the human heart work
+      - symptoms of fever
+      - what medicine for headache
+      - how many hours should i sleep
+      - best exercises for back pain
+      - diet plan for weight gain
+      - how to get a visa for canada
+      - cheapest flights to goa
+      - hotels near connaught place
+      - things to do in mumbai
+      - book movie tickets
+      - order a pizza
+      - track my amazon package
+      - how do i return a flipkart order
+      - how to recharge my phone
+      - check my electricity bill
+      - how to apply for a pan card
+      - aadhaar card update process
+      - how to open a savings account
+      - what's the interest rate on home loans
+      - calculate emi for a car loan
+      - how to improve credit score
+      - how do i file my income tax return online
+      - convert 100 dollars to rupees
+      - what's the euro exchange rate
+      - how to learn english fast
+      - meaning of the word serendipity
+      - synonyms for happy
+      - spell necessary
+      - translate this sentence to tamil
+      - write my college essay
+      - solve this integral
+      - explain newton's third law
+      - what is photosynthesis
+      - periodic table of elements
+      - help me prepare for an interview
+      - how to write a resume
+      - salary of a software engineer
+      - best colleges for mba
+      - how to become a data scientist
+      - learn guitar online
+      - how to draw a cat
+      - best board games for family
+      - how to play chess better
+      - minecraft tips
+      - gta 6 release date
+      - how to fix a slow laptop
+      - reset my phone to factory settings
+      - my printer is not working
+      - how to change instagram password
+      - recover my facebook account
+      - whatsapp not working
+      - how to use chatgpt
+      - what is artificial intelligence
+      - are aliens real
+      - what happens after death
+      - motivational quote please
+      - how to be more productive
+      - relationship advice
+      - how to make friends
+      - i'm bored, entertain me
+      - what's your favourite colour
+      - do you like pizza
+      - where do you live
+      - what is love
+      - who will win the election
+      - latest political news
+      - how to grow tomatoes
+      - care tips for a cactus
+      - best dog breeds for apartments
+      - how to clean a laptop screen
+      - how to tie a tie
+      - how to iron a shirt
+      - wedding gift ideas
+      - how to plan a party
+      - what day is it today
+      - set a timer for 10 minutes
+      - wake me up at 7
+      - call my mom
+      - open youtube
+      - play lofi music
+      - read me a bedtime story
+      - what's the population of mumbai
+      - how tall is burj khalifa
+      - fastest animal on earth
+      - how to make cold coffee
+      # Shaped like FAQ questions but about something else entirely.
+      - explain photosynthesis
+      - explain blockchain to me
+      - explain how neural networks work
+      - explain the french revolution
+      - what is cloud computing
+      - what is the theory of relativity
+      - how do i cancel my swiggy order
+      - how do i cancel my netflix subscription
+      - how do i delete my instagram account
+      - how do i reset my gmail password
+      - how do i change my whatsapp number
+      - how do i refund a zomato order
+      - how do i join a zoom meeting
+      - how do i update my linkedin profile
+      - what's 17 plus 25
+      - what is 12 squared
+      - calculate 15 percent of 2000
+      - solve 3x + 5 = 20
+      - what's the square root of 144
+      - help me with my homework
+      - do my maths homework
+      - improve my cv
+      - write a cover letter for me
+      - proofread my email
+      - summarise this article for me
+      - write sql to join two tables
+      - fix this javascript error
+      - how do i learn react
+      - what's a good laptop to buy
+      - best phone under 20000
+      - how do i make my room cooler
+      - what does dna stand for
+      - how does the internet work
