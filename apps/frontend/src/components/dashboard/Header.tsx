@@ -19,6 +19,8 @@ import Avatar from "../ui/Avatar";
 import ThemedImage from "../ui/ThemedImage";
 import { HEADER_ICON_BUTTON } from "../layout/headerStyles";
 import { requestTour } from "../tour/ProductTour";
+import TexAvatar from "../chat/TexAvatar";
+import { openTex } from "../chat/texEvents";
 
 function MarketStatusPill() {
   const { open } = useMarketStatus();
@@ -104,6 +106,17 @@ const Header = () => {
       {/* Actions */}
       <div className="flex items-center gap-1 md:gap-2">
         <MarketStatusPill />
+
+        <button
+          type="button"
+          onClick={openTex}
+          aria-label="Ask Tex"
+          title="Ask Tex, your Tradexcel assistant"
+          className="inline-flex h-9 items-center gap-2 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 p-1 text-[13px] font-semibold text-white shadow-sm shadow-indigo-600/25 transition-transform hover:-translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 lg:pr-3.5"
+        >
+          <TexAvatar size="xs" className="h-7 w-7 ring-2 ring-white/60" />
+          <span className="hidden lg:inline">Ask Tex</span>
+        </button>
 
         {/* Replays the walkthrough: in place on the dashboard, otherwise the dashboard picks up the request. */}
         <Link

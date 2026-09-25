@@ -1,5 +1,6 @@
 "use client";
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { OPEN_TEX_EVENT } from "../chat/texEvents";
 
 // A guided walkthrough of the dashboard for new players. Each step spotlights
 // an element marked with `data-tour="<target>"` and explains it in a sentence.
@@ -201,6 +202,14 @@ function ProductTour() {
       localStorage.setItem(DONE_KEY, "1");
     } catch {}
   }, []);
+
+  // Opening Tex means the user has something to ask; the tour's overlay
+  // would sit on top of the chat and swallow its clicks, so step aside.
+  useEffect(() => {
+    if (!open) return;
+    window.addEventListener(OPEN_TEX_EVENT, finish);
+    return () => window.removeEventListener(OPEN_TEX_EVENT, finish);
+  }, [open, finish]);
 
   const next = useCallback(() => (index >= steps.length - 1 ? finish() : setIndex((i) => i + 1)), [index, steps.length, finish]);
   const back = useCallback(() => setIndex((i) => Math.max(0, i - 1)), []);

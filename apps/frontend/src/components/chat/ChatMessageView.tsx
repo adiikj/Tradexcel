@@ -1,25 +1,35 @@
 import Link from "next/link";
-import { PiArrowClockwise, PiArrowUpRight, PiShieldCheck } from "react-icons/pi";
+import { PiArrowClockwise, PiArrowRight, PiShieldCheck } from "react-icons/pi";
 import type { ChatQuote } from "@tradexcel/shared";
 import { formatInr } from "../../utils/format";
-import { changeGlyph, changeTextClass } from "../market/marketColors";
 import ChatMarkdown from "./ChatMarkdown";
 import TexAvatar from "./TexAvatar";
 import type { ChatMessage } from "./chatStorage";
+import { CARD } from "./chatTheme";
 
 function QuoteCard({ quote }: { quote: ChatQuote }) {
+  const pct = quote.changePercent;
+  const tone =
+    pct == null
+      ? "bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-300"
+      : pct >= 0
+        ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
+        : "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400";
   return (
     <Link
       href={`/market?symbol=${encodeURIComponent(quote.symbol)}`}
-      className="flex min-w-[8.5rem] flex-1 flex-col rounded-xl bg-white px-3 py-2 ring-1 ring-gray-200 transition-colors hover:ring-blue-400 dark:bg-gray-900 dark:ring-gray-700"
+      className={`flex flex-col gap-1 rounded-xl p-3 transition-colors hover:border-blue-300 dark:hover:border-blue-400/50 ${CARD}`}
     >
-      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">{quote.name}</span>
-      <span className="text-base font-semibold tabular-nums">{formatInr(quote.price)}</span>
-      {quote.changePercent != null && (
-        <span className={`text-xs font-medium tabular-nums ${changeTextClass(quote.changePercent)}`}>
-          {changeGlyph(quote.changePercent)} {Math.abs(quote.changePercent).toFixed(2)}% today
-        </span>
-      )}
+      <span className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold tracking-wide text-slate-500 dark:text-blue-100/70">{quote.name}</span>
+        {pct != null && (
+          <span className={`rounded-md px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ${tone}`}>
+            {pct >= 0 ? "+" : "−"}
+            {Math.abs(pct).toFixed(2)}% today
+          </span>
+        )}
+      </span>
+      <span className="text-[15px] font-semibold tabular-nums text-gray-900 dark:text-white">{formatInr(quote.price)}</span>
     </Link>
   );
 }
@@ -37,22 +47,22 @@ export default function ChatMessageView({ message, showSuggestions, onSend, onNa
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
-        <p className="max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-blue-600 px-3.5 py-2 text-sm text-white">{message.text}</p>
+        <p className="max-w-[80%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-gradient-to-br from-blue-600 to-indigo-600 px-3.5 py-2 text-[14px] leading-6 text-white shadow-sm shadow-indigo-600/20">{message.text}</p>
       </div>
     );
   }
 
   if (message.role === "error") {
     return (
-      <div className="flex items-end gap-2">
-        <TexAvatar size="sm" />
-        <div className="flex max-w-[85%] flex-col items-start gap-2 rounded-2xl rounded-bl-md bg-red-50 px-3.5 py-2.5 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-300">
-          <span>{message.text}</span>
+      <div className="flex gap-3">
+        <TexAvatar size="xs" className="mt-0.5" />
+        <div className="text-[14px] leading-6">
+          <p className="text-red-600 dark:text-red-300">{message.text}</p>
           <button
             type="button"
             onClick={() => onSend(message.retry)}
             disabled={disabled}
-            className="inline-flex items-center gap-1 text-xs font-semibold underline disabled:opacity-50"
+            className="mt-1 inline-flex items-center gap-1 text-[13px] font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 dark:text-gray-400 dark:hover:text-white"
           >
             <PiArrowClockwise aria-hidden="true" className="h-3.5 w-3.5" /> Try again
           </button>
@@ -63,12 +73,12 @@ export default function ChatMessageView({ message, showSuggestions, onSend, onNa
 
   const { reply } = message;
   return (
-    <div className="flex items-start gap-2">
-      <TexAvatar size="sm" className="mt-0.5" />
-      <div className="flex min-w-0 max-w-[88%] flex-col gap-2">
-        <div className="rounded-2xl rounded-bl-md bg-gray-100 px-3.5 py-2.5 text-sm leading-relaxed text-gray-900 dark:bg-gray-800 dark:text-gray-100">
+    <div className="flex gap-2.5">
+      <TexAvatar size="xs" className="mt-1" />
+      <div className="flex min-w-0 max-w-[88%] flex-col items-start gap-2.5">
+        <div className={`rounded-2xl rounded-tl-md px-3.5 py-2.5 text-[14px] leading-6 text-slate-700 dark:text-slate-100 [&_strong]:text-slate-900 dark:[&_strong]:text-white ${CARD}`}>
           {reply.kind === "guardrail" && (
-            <p className="mb-1.5 inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+            <p className="mb-2 inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:bg-amber-400/10 dark:text-amber-300">
               <PiShieldCheck aria-hidden="true" className="h-3.5 w-3.5" /> Not something I can advise on
             </p>
           )}
@@ -76,7 +86,7 @@ export default function ChatMessageView({ message, showSuggestions, onSend, onNa
         </div>
 
         {reply.quotes && reply.quotes.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="grid w-full grid-cols-2 gap-2">
             {reply.quotes.map((q) => (
               <QuoteCard key={q.symbol} quote={q} />
             ))}
@@ -84,15 +94,16 @@ export default function ChatMessageView({ message, showSuggestions, onSend, onNa
         )}
 
         {reply.links.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
             {reply.links.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 onClick={onNavigate}
-                className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:bg-blue-500/15 dark:text-blue-300 dark:hover:bg-blue-500/25"
+                className="group inline-flex items-center gap-1 text-[13px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200"
               >
-                {l.label} <PiArrowUpRight aria-hidden="true" className="h-3 w-3" />
+                {l.label}
+                <PiArrowRight aria-hidden="true" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Link>
             ))}
           </div>
@@ -106,7 +117,7 @@ export default function ChatMessageView({ message, showSuggestions, onSend, onNa
                 type="button"
                 disabled={disabled}
                 onClick={() => onSend(s)}
-                className="rounded-full px-3 py-1 text-left text-xs font-medium text-gray-700 ring-1 ring-gray-300 transition-colors hover:bg-gray-100 disabled:opacity-50 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-800"
+                className="rounded-full border border-blue-200 bg-white px-3 py-1.5 text-left text-[13px] font-medium text-blue-700 transition-colors hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 dark:border-blue-300/30 dark:bg-[#1a2642] dark:text-blue-200 dark:hover:bg-blue-400/15"
               >
                 {s}
               </button>

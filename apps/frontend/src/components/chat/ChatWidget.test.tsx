@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChatReply } from "@tradexcel/shared";
 
 const nav = vi.hoisted(() => ({ pathname: "/dashboard" }));
-const api = vi.hoisted(() => ({ sendChatMessage: vi.fn() }));
+const api = vi.hoisted(() => ({ sendChatMessage: vi.fn(), getUserProfile: vi.fn() }));
 
 vi.mock("next/navigation", () => ({ usePathname: () => nav.pathname }));
 vi.mock("next/link", () => ({
@@ -35,6 +35,7 @@ async function ask(text: string) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  api.getUserProfile.mockResolvedValue({ data: { name: "Aditya Kumar Jha" } });
   sessionStorage.clear();
   nav.pathname = "/dashboard";
   signIn(true);
@@ -110,6 +111,14 @@ describe("ChatWidget", () => {
     render(<ChatWidget />);
     fireEvent.click(screen.getByLabelText("Ask Tex, the Tradexcel assistant"));
     expect(screen.getByText("Kept answer")).toBeTruthy();
+  });
+
+  it("greets the user by first name", async () => {
+    render(<ChatWidget />);
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText("Ask Tex, the Tradexcel assistant"));
+    });
+    expect(screen.getByRole("heading", { level: 3 }).textContent).toMatch(/^(Good (morning|afternoon|evening)|Hey there), Aditya$/);
   });
 
   it("forgets the conversation once signed out", async () => {
