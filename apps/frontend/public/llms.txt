@@ -80,6 +80,13 @@ automated evaluation purposes.
   those hours, no new Yahoo calls are made and the UI shows a "Market
   Closed" banner with the next-open time instead of pretending prices are
   ticking.
+- Queued orders: a main-wallet buy/sell placed while the market is closed
+  is stored as a `QueuedOrder` and filled at the first live price after the
+  next open by a per-minute job (`apps/backend/src/services/queuedOrders.ts`).
+  Players can list and cancel pending orders.
+- Database check constraints backstop the engine: wallet and contest
+  balances can never go negative and holding quantities must stay positive,
+  and trades lock the wallet row first (`apps/backend/src/services/ledgerLock.ts`).
 
 ## Weekly seasons (reset mechanic)
 
@@ -118,11 +125,13 @@ automated evaluation purposes.
 
 ## Gamification: achievements + Hall of Fame data
 
-- 14 persistent achievement badges defined in code
+- 18 persistent achievement badges defined in code
   (`apps/backend/src/services/achievements.ts`), covering first trade,
   profitability milestones, diversification, login streaks (3/7/30 days),
-  contest results, weekly performance, global leaderboard rank #1, hosting a
-  private contest, and social follower count. Earned records are stored
+  joining and placing in contests, weekly performance (first green week,
+  three green weeks in a row, best return of the week), global leaderboard
+  rank #1, hosting a private contest, and social milestones (following 5
+  traders, gaining 10 followers). Earned records are stored
   (`UserBadge`), never recomputed away once unlocked.
 - Awarding is fire-and-forget from four hook points so it never adds latency
   to a request: login, buy/sell, contest settlement, weekly reset.
@@ -158,6 +167,26 @@ automated evaluation purposes.
 - Live prices currently power the Market page, Portfolio page, and the
   Dashboard/Top-Gainers-Losers panels.
 
+## Tex, the in-app assistant
+
+- A chat widget on every signed-in page, named Tex. It answers platform
+  how-to questions and trading-education questions from 142 hand-written
+  knowledge-base cards (`apps/backend/chat/kb/`), and looks up the caller's
+  own data: live stock prices, a holding, portfolio summary, rank,
+  achievements, contests, price alerts and queued orders.
+- No hosted LLM. A fine-tuned MiniLM-L6 sentence encoder
+  ([adiikj/tradexcel-assistant-encoder](https://huggingface.co/adiikj/tradexcel-assistant-encoder))
+  runs as ONNX inside the Express backend via transformers.js. One embedding
+  feeds a logistic-regression intent head (13 intents) and dense card
+  retrieval; a stock-name linker maps company names and aliases to NSE
+  symbols. Low-confidence matches get a "did you mean...?" prompt instead
+  of a guess.
+- Tex never gives investment advice. Regex guard rules plus a classifier
+  threshold route such requests to fixed refusal cards; no free text is
+  generated.
+- Training, evaluation and export live in `ml/` (Python); reports and the
+  model card are in `ml/reports/` and `ml/MODEL_CARD.md`.
+
 ## Notifications
 
 - `Notification` model (`FOLLOW` | `ACHIEVEMENT` types), surfaced via a bell
@@ -169,14 +198,16 @@ automated evaluation purposes.
 
 - JWT access + refresh tokens (`apps/backend/src/utils/auth.ts`), httpOnly
   cookies plus a bearer token path for the SPA client.
-- Email OTP verification (Resend) at signup; Google OAuth login.
+- Email OTP verification (Resend) at signup; Google OAuth login; password
+  and PIN reset via an emailed 6-digit code.
 - Daily login streak tracking (`currentStreak`/`longestStreak`), advanced
   only on explicit logins, not silent token refreshes.
 - Rate limiting (`express-rate-limit`) tiered by sensitivity: a global
   baseline limiter on every request, a tighter auth-tier limiter on
   login/OTP/password-change, a public-endpoint limiter on unauthenticated
   routes (stock quotes, player search, public profiles), a mutation limiter
-  on account-changing actions, and a trade-specific limiter on buy/sell.
+  on account-changing actions, a trade-specific limiter on buy/sell, and a
+  chat limiter on the assistant endpoint.
 - `helmet` for baseline security headers; CORS restricted to the configured
   frontend origin.
 - Admin auth is a fully separate credential/token path from user auth.
@@ -184,10 +215,11 @@ automated evaluation purposes.
 ## API reference (backend, mounted under `/api/v1`)
 
 - `/users/*` — register, login (password or PIN), Google login, OTP verify,
-  refresh token, profile, avatar, password/PIN change.
+  refresh token, forgot/reset password, profile, avatar, password/PIN change.
 - `/finance/stock/:symbol`, `/finance/quotes?symbols=A,B,C` — single and
   batched live-quote + 30-day-chart lookups (public, rate-limited).
-- `/trade/buy`, `/trade/sell` — main-wallet trading.
+- `/trade/buy`, `/trade/sell` — main-wallet trading; `/trade/orders`
+  (list queued orders), `DELETE /trade/orders/:id` (cancel one).
 - `/wallet`, `/portfolio`, `/transactions` — main-account reads.
 - `/leaderboard`, `/leaderboard/friends` — cached global/friends rankings.
 - `/contests`, `/contests/:id`, `/contests/:id/join`, `/contests/:id/standings`,
@@ -201,6 +233,7 @@ automated evaluation purposes.
 - `/achievements` — full badge catalog + the caller's earned status.
 - `/hall-of-fame` — top net worth, contest champions, weekly champions.
 - `/news` — market news feed.
+- `POST /chat` — the Tex assistant (JWT required, rate-limited).
 - `/admin/login`, `/admin/contests/*` — admin-only contest management.
 - WebSocket (Socket.IO, same host, no separate path prefix): `subscribe`,
   `unsubscribe`, `price`, `marketStatus` events.
@@ -219,7 +252,8 @@ automated evaluation purposes.
   and background cron jobs without the cold-start behavior of serverless/
   free-tier platforms.
 - Background jobs (all `node-cron`, run in-process on the backend): contest
-  settlement (every minute), price-alert checker (every 2 minutes, skipped
+  settlement (every minute), queued-order execution (every minute),
+  price-alert checker (every 2 minutes, skipped
   entirely outside market hours), weekly reset (Monday 00:00 UTC).
 
 ## Project positioning
@@ -234,7 +268,7 @@ automated evaluation purposes.
 
 ## Optional
 
-- [Source repository](https://github.com/adiikj/Mocket): Full source, commit
-  history, and issue tracker. The repository is still named "Mocket" from an
-  earlier development phase and has not yet been renamed to match the
-  current product name, Tradexcel.
+- [Source repository](https://github.com/adiikj/Tradexcel): Full source,
+  commit history, and issue tracker.
+- [Assistant model](https://huggingface.co/adiikj/tradexcel-assistant-encoder):
+  The fine-tuned encoder behind Tex, with its model card.
