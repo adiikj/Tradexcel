@@ -63,8 +63,11 @@ const heldoutCaseSchema = z
     style: z.enum(["terse", "typo", "rambling", "multi", "formal", "slang", "adversarial", "plain"]),
   })
   .strict();
-const heldoutFileSchema = z.object({ cases: z.array(heldoutCaseSchema) }).strict();
-export type HeldoutCase = z.infer<typeof heldoutCaseSchema>;
+// role "dev": may be looked at while improving the models (tuning, error
+// analysis). role "test": written before a round of changes and only scored
+// at the end, so its numbers stay honest.
+const heldoutFileSchema = z.object({ role: z.enum(["dev", "test"]), cases: z.array(heldoutCaseSchema) }).strict();
+export type HeldoutCase = z.infer<typeof heldoutCaseSchema> & { role: "dev" | "test" };
 
 const entityCaseSchema = z
   .object({
@@ -116,7 +119,10 @@ export function loadDatasets(kbDir = KB_DIR): { data: Datasets; errors: string[]
   for (const file of existsSync(evalDir) ? readdirSync(evalDir).filter((f) => f.endsWith(".yaml")).sort() : []) {
     const path = join(evalDir, file);
     if (file.startsWith("entities")) entityCases.push(...(readYaml(path, entityFileSchema, errors)?.cases ?? []));
-    else heldout.push(...(readYaml(path, heldoutFileSchema, errors)?.cases ?? []));
+    else {
+      const file = readYaml(path, heldoutFileSchema, errors);
+      if (file) heldout.push(...file.cases.map((c) => ({ ...c, role: file.role })));
+    }
   }
 
   return { data: { intents, entities, heldout, entityCases, stocks: STOCK_LIST }, errors };

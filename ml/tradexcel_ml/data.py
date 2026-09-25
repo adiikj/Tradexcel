@@ -6,7 +6,10 @@ Splits (all deterministic given the seed):
 - Intent examples: split the same way, per intent.
 - Intent templates: split *by template*, then filled with stock names, so test
   sentences come from templates the model never saw.
-- test_ood: the hand-written held-out set (different styles, never tuned on).
+- ood_dev: the first hand-written held-out set (different styles). It was
+  looked at during P3, so it's now used for tuning the style-shift fixes.
+- test_ood: heldout_v2, written before the improvement round and only scored
+  at the end.
 """
 
 from __future__ import annotations
@@ -109,7 +112,8 @@ def heldout_examples(export: dict) -> list[Example]:
             intent, card = expect[len("intent:") :], None
         else:
             intent, card = card_intent[expect], expect
-        out.append(Example(case["text"], intent, card, "test_ood", "heldout", case["style"], tuple(case.get("stocks") or ())))
+        split = "ood_dev" if case["role"] == "dev" else "test_ood"
+        out.append(Example(case["text"], intent, card, split, "heldout", case["style"], tuple(case.get("stocks") or ())))
     return out
 
 

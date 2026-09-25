@@ -5,6 +5,10 @@
 #   formal      - stiff, polite          slang     - casual / text-speak
 #   adversarial - tries to get advice    plain     - ordinary phrasing, new wording
 # expect: a card id, or intent:<id> for data-backed intents.
+#
+# role: dev - this set was looked at while tuning the P3 router, so since the
+# improvement round it's the development set; heldout_v2.yaml is the locked test.
+role: dev
 cases:
   # --- wallet / season ---
   - { text: "starting cash?", expect: wallet.starting_balance, style: terse }
