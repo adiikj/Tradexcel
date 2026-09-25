@@ -12,7 +12,7 @@ mined hard negative per anchor. Unlike the stock loss, columns that belong to
 the anchor's own group (same card or intent) are masked out, so two
 paraphrases of the same card are never pushed apart as if they were negatives.
 
-The best epoch is chosen on `val` (mean of retrieval R@1 and intent macro-F1);
+The best epoch is chosen on val + the dev held-out set (mean of retrieval R@1 and intent macro-F1);
 test sets are not looked at here.
 """
 
@@ -45,6 +45,7 @@ from .retrieval import Index, plain_answer, ranks_of
 class Anchor:
     text: str
     group: str  # card id, or intent:<id> for live-data intents
+    intent: str = ""  # label for the multi-task intent head
 
 
 def build_pools(cards: list[dict], train) -> tuple[list[Anchor], dict[str, list[str]]]:
@@ -56,7 +57,7 @@ def build_pools(cards: list[dict], train) -> tuple[list[Anchor], dict[str, list[
     for e in train:
         group = e.card if e.card else f"intent:{e.intent}"
         pools[group].append(e.text)
-        anchors.append(Anchor(e.text, group))
+        anchors.append(Anchor(e.text, group, e.intent))
     return anchors, pools
 
 
@@ -82,13 +83,14 @@ def mine_negatives(model: SentenceTransformer, anchors: list[Anchor], pools: dic
     return out
 
 
-def contrastive_loss(model, anchors: list[Anchor], positives: list[str], negatives: list[str], neg_groups: list[str], scale: float) -> torch.Tensor:
-    def embed(texts):
-        features = model.preprocess(texts) if hasattr(model, "preprocess") else model.tokenize(texts)
-        return F.normalize(model(features)["sentence_embedding"], dim=-1)
+def embed(model, texts):
+    features = model.preprocess(texts) if hasattr(model, "preprocess") else model.tokenize(texts)
+    return F.normalize(model(features)["sentence_embedding"], dim=-1)
 
-    a = embed([x.text for x in anchors])
-    c = embed(positives + negatives)
+
+def contrastive_loss(model, anchors: list[Anchor], positives: list[str], negatives: list[str], neg_groups: list[str], scale: float, a=None) -> torch.Tensor:
+    a = embed(model, [x.text for x in anchors]) if a is None else a
+    c = embed(model, positives + negatives)
     logits = a @ c.T * scale
     groups = [x.group for x in anchors]
     col_groups = groups + neg_groups
@@ -102,7 +104,23 @@ def contrastive_loss(model, anchors: list[Anchor], positives: list[str], negativ
     return F.cross_entropy(logits, torch.arange(n))
 
 
-def evaluate_val(model: SentenceTransformer, cards, examples, seed: int) -> dict[str, float]:
+class IntentHead(torch.nn.Module):
+    """Linear classifier on the normalised sentence embedding - the same
+    softmax(W·x + b) the runtime already evaluates for its intent head."""
+
+    def __init__(self, dim: int, classes: list[str]):
+        super().__init__()
+        self.classes = classes
+        self.linear = torch.nn.Linear(dim, len(classes))
+
+    def forward(self, x):
+        return self.linear(x)
+
+    def export(self) -> dict:
+        return {"classes": self.classes, "coef": self.linear.weight.detach().tolist(), "intercept": self.linear.bias.detach().tolist()}
+
+
+def evaluate_val(model: SentenceTransformer, cards, examples, seed: int, head: IntentHead | None = None) -> dict[str, float]:
     train_q = defaultdict(list)
     for e in by_split(examples, "train"):
         if e.source == "card":
@@ -110,16 +128,25 @@ def evaluate_val(model: SentenceTransformer, cards, examples, seed: int) -> dict
     index = Index(cards, train_q)
     enc = lambda texts: model.encode(texts, batch_size=64, normalize_embeddings=True, show_progress_bar=False)  # noqa: E731
     matrix = enc(index.texts)
-    val_cards = [e for e in by_split(examples, "val") if e.card]
+    # Epoch selection on val + the dev held-out set (the locked test is never touched here).
+    dev = by_split(examples, "val") + by_split(examples, "ood_dev")
+    val_cards = [e for e in dev if e.card]
     card_index = {c["id"]: i for i, c in enumerate(cards)}
     scores = index.card_scores(enc([e.text for e in val_cards]) @ matrix.T)
     r1 = metrics.retrieval_metrics(ranks_of(scores, [card_index[e.card] for e in val_cards]))["R@1"]
 
-    train, val = by_split(examples, "train"), by_split(examples, "val")
+    train, val = by_split(examples, "train"), dev
     clf = LogisticRegression(max_iter=3000, C=10, class_weight="balanced", random_state=seed)
     clf.fit(enc([e.text for e in train]), [e.intent for e in train])
-    f1 = metrics.classification_metrics([e.intent for e in val], list(clf.predict(enc([e.text for e in val]))))["macro_f1"]
-    return {"val_R@1": r1, "val_intent_macro_f1": f1, "val_score": (r1 + f1) / 2}
+    val_emb = enc([e.text for e in val])
+    f1 = metrics.classification_metrics([e.intent for e in val], list(clf.predict(val_emb)))["macro_f1"]
+    out = {"val_R@1": r1, "val_intent_macro_f1": f1}
+    if head is not None:
+        with torch.no_grad():
+            pred = head(torch.tensor(val_emb)).argmax(1).tolist()
+        out["val_head_macro_f1"] = metrics.classification_metrics([e.intent for e in val], [head.classes[i] for i in pred])["macro_f1"]
+    out["val_score"] = (r1 + max(f1, out.get("val_head_macro_f1", 0.0))) / 2
+    return out
 
 
 def main(model_key: str) -> None:
@@ -132,7 +159,7 @@ def main(model_key: str) -> None:
 
     export = load_export()
     linker = StockLinker(export["stocks"], export["entities"])
-    examples = build_dataset(export, linker, seed)
+    examples = build_dataset(export, linker, seed, augment=cfg.get("augment", 0))
     cards = export["cards"]
     anchors, pools = build_pools(cards, by_split(examples, "train"))
 
@@ -140,12 +167,27 @@ def main(model_key: str) -> None:
     model.max_seq_length = tc["max_seq_length"]
     if spec.get("gradient_checkpointing"):
         model[0].auto_model.gradient_checkpointing_enable()
-    history = [{"epoch": 0, **evaluate_val(model, cards, examples, seed)}]
+    # Multi-task: an intent head trained jointly, so the embedding space is
+    # shaped for classification as well as retrieval.
+    mt = cfg.get("multitask") or {}
+    head = None
+    if mt.get("weight", 0) > 0:
+        classes = sorted({a.intent for a in anchors})
+        head = IntentHead(model.get_sentence_embedding_dimension(), classes)
+        counts = np.array([sum(a.intent == c for a in anchors) for c in classes], dtype=float)
+        class_weight = torch.tensor(counts.sum() / (len(classes) * counts), dtype=torch.float32)
+        label_of = {c: i for i, c in enumerate(classes)}
+
+    history = [{"epoch": 0, **evaluate_val(model, cards, examples, seed, head)}]
     print(f"[{spec['label']}] epoch 0 (pretrained): {history[-1]}")
     best_score, best_state = history[-1]["val_score"], copy.deepcopy(model.state_dict())
+    best_head = copy.deepcopy(head.state_dict()) if head else None
 
     steps_per_epoch = (len(anchors) + tc["batch_size"] - 1) // tc["batch_size"]
-    optimizer = torch.optim.AdamW(model.parameters(), lr=tc["lr"], weight_decay=tc["weight_decay"])
+    groups = [{"params": model.parameters(), "lr": tc["lr"]}]
+    if head:
+        groups.append({"params": head.parameters(), "lr": mt.get("head_lr", 2e-3)})
+    optimizer = torch.optim.AdamW(groups, weight_decay=tc["weight_decay"])
     scheduler = get_linear_schedule_with_warmup(optimizer, int(tc["warmup_ratio"] * steps_per_epoch * tc["epochs"]), steps_per_epoch * tc["epochs"])
     group_of = {}
     for group, texts in pools.items():
@@ -167,24 +209,32 @@ def main(model_key: str) -> None:
                 candidates = [t for t in pools[a.group] if t != a.text] or [a.text]
                 positives.append(random.choice(candidates))
             negatives = [random.choice(mined[a.text]) for a in batch for _ in range(tc["hard_negatives_per_anchor"])]
-            loss = contrastive_loss(model, batch, positives, negatives, [group_of[n] for n in negatives], tc["scale"])
+            a = embed(model, [x.text for x in batch])
+            loss = contrastive_loss(model, batch, positives, negatives, [group_of[n] for n in negatives], tc["scale"], a=a)
+            if head:
+                y = torch.tensor([label_of[x.intent] for x in batch])
+                loss = loss + mt["weight"] * F.cross_entropy(head(a), y, weight=class_weight)
             optimizer.zero_grad()
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            torch.nn.utils.clip_grad_norm_(list(model.parameters()) + (list(head.parameters()) if head else []), 1.0)
             optimizer.step()
             scheduler.step()
             losses.append(loss.item())
         model.eval()
-        entry = {"epoch": epoch, "train_loss": float(np.mean(losses)), "seconds": round(time.time() - start, 1), **evaluate_val(model, cards, examples, seed)}
+        entry = {"epoch": epoch, "train_loss": float(np.mean(losses)), "seconds": round(time.time() - start, 1), **evaluate_val(model, cards, examples, seed, head)}
         history.append(entry)
         print(f"[{spec['label']}] epoch {epoch}: {entry}")
         if entry["val_score"] > best_score:
             best_score, best_state = entry["val_score"], copy.deepcopy(model.state_dict())
+            best_head = copy.deepcopy(head.state_dict()) if head else None
 
     model.load_state_dict(best_state)
     best_epoch = max(history, key=lambda h: h["val_score"])["epoch"]
     out_dir = ARTIFACTS_DIR / "models" / model_key
     model.save(str(out_dir))
+    if head:
+        head.load_state_dict(best_head)
+        (out_dir / "intent_head.json").write_text(json.dumps(head.export()))
     (out_dir / "training_history.json").write_text(
         json.dumps({"base_model": spec["name"], "label": spec["label"], "pooling": spec["pooling"], "best_epoch": best_epoch, "config": tc, "history": history, "kb_hash": export["kb_hash"]}, indent=2)
     )

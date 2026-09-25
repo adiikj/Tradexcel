@@ -2,6 +2,12 @@
 # picked on `val`, everything else is a standard small-model default.
 seed: 13
 fills_per_template: 6
+# Style variants per training example (augment.py); 0 disables.
+augment: 3
+# Jointly train a linear intent head with the contrastive loss (0 disables).
+multitask:
+  weight: 1.0
+  head_lr: 2.0e-3
 models:
   minilm:
     name: sentence-transformers/all-MiniLM-L6-v2
@@ -14,7 +20,7 @@ models:
     # 12 layers vs MiniLM's 6: trade ~30% speed for much lower activation memory.
     gradient_checkpointing: true
 train:
-  epochs: 6
+  epochs: 5
   batch_size: 32
   lr: 3.0e-5
   warmup_ratio: 0.1
