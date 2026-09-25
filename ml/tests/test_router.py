@@ -74,3 +74,28 @@ def test_weighted_rrf_extremes():
 )
 def test_guard_rules(text, kind):
     assert guard_match(text) == kind
+
+
+def test_fast_policy_eval_matches_decide():
+    from tradexcel_ml.router import FastPolicyEval, outcome
+
+    rng = np.random.default_rng(0)
+    cards = ["faq.a", "faq.b", "faq.c", "edu.d", "edu.e", "guardrail.x", "guardrail.y"]
+    intents = np.array(["faq_platform"] * 3 + ["faq_education"] * 2 + ["guardrail"] * 2)
+    guard = intents == "guardrail"
+    classes = ["faq_platform", "faq_education", "guardrail", "out_of_scope", "price_quote", "my_rank"]
+    n = 300
+    probs = [dict(zip(classes, p)) for p in rng.dirichlet(np.ones(len(classes)) * 0.6, n)]
+    scores = rng.uniform(0.3, 0.98, (n, len(cards)))
+    rules = rng.random(n) < 0.05
+    gold_i = rng.choice(classes, n)
+    gold_c = [rng.choice(cards[:5]) if g in ("faq_platform", "faq_education") else (rng.choice(cards[5:]) if g == "guardrail" else None) for g in gold_i]
+    ok = rng.random(n) < 0.9
+    fast = FastPolicyEval(rules, probs, scores, scores, cards, intents, guard, gold_i, gold_c, ok)
+    for pol in [Policy(0.5, 0.3, 0.6, False, 0.0, 0.0), Policy(0.3, 0.2, 0.7, True, 0.05, 0.6), Policy(0.8, 0.0, 0.5, False, 0.1, 0.9)]:
+        ds = [decide(pol, rules[i], probs[i], scores[i], scores[i], cards, intents, guard) for i in range(n)]
+        outs = [outcome(d, gold_i[i], gold_c[i], ok[i]) for i, d in enumerate(ds)]
+        ref = summarize(outs, ds, list(gold_i))
+        got = fast.evaluate(pol)
+        for k in ("correct", "helpful", "wrong", "clarify_rate", "utility", "guardrail_recall", "oos_recall"):
+            assert got[k] == pytest.approx(ref[k]), k
