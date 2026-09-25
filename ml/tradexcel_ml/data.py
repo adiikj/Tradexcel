@@ -20,6 +20,7 @@ import random
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .augment import augment_texts
 from .linker import StockLinker, normalize
 from .paths import EXPORT_PATH
 
@@ -117,8 +118,35 @@ def heldout_examples(export: dict) -> list[Example]:
     return out
 
 
-def build_dataset(export: dict, linker: StockLinker, seed: int) -> list[Example]:
-    return card_examples(export, seed) + intent_examples(export, linker, seed) + heldout_examples(export)
+def augmented_examples(examples: list[Example], seed: int, per_example: int) -> list[Example]:
+    """Style variants of *train* examples only (see augment.py). A variant is
+    dropped if it matches any held-out text or a different label's example."""
+    label = lambda e: (e.intent, e.card)  # noqa: E731
+    owner: dict[str, tuple] = {}
+    blocked: set[str] = set()
+    for e in examples:
+        key = " ".join(normalize(e.text))
+        if e.split == "train":
+            owner.setdefault(key, label(e))
+        else:
+            blocked.add(key)
+    out = []
+    for e in examples:
+        if e.split != "train":
+            continue
+        rng = _rng(seed, f"aug:{e.intent}:{e.text}")
+        for kind, text in augment_texts(e.text, rng, per_example):
+            key = " ".join(normalize(text))
+            if key in blocked or owner.get(key, label(e)) != label(e):
+                continue
+            owner[key] = label(e)
+            out.append(Example(text, e.intent, e.card, "train", f"aug:{kind}", stocks=e.stocks, template=e.template))
+    return out
+
+
+def build_dataset(export: dict, linker: StockLinker, seed: int, augment: int = 0) -> list[Example]:
+    base = card_examples(export, seed) + intent_examples(export, linker, seed) + heldout_examples(export)
+    return base + (augmented_examples(base, seed, augment) if augment else [])
 
 
 def by_split(examples: list[Example], split: str) -> list[Example]:
