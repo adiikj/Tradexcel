@@ -10,6 +10,7 @@ with the best val utility becomes the one exported for the runtime.
 from __future__ import annotations
 
 import itertools
+import sys
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -26,14 +27,19 @@ from .guard_rules import guard_match
 from .linker import StockLinker
 from .paths import ARTIFACTS_DIR, CONFIG_DIR, REPORTS_DIR
 from .retrieval import BM25Retriever, Index, ranks_of
-from .router import STOCK_INTENTS, Policy, decide, outcome, summarize
+from .router import STOCK_INTENTS, FastPolicyEval, Policy, decide, outcome, summarize
 
-SPLITS = ("val", "test", "test_ood")
+# "tune" = val + ood_dev: everything picked here (fusion weight, C, router
+# thresholds) is chosen on it. test_ood (heldout_v2) is only scored when run
+# without --dev.
+ALL_SPLITS = ("val", "ood_dev", "tune", "test", "test_ood")
 FUSION_WEIGHTS = [round(w, 2) for w in np.arange(0.5, 1.001, 0.05)]  # weight on the dense ranking
 C_GRID = [0.3, 1, 3, 10, 30]
 T_GUARD = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.01]
-T_OOS = [0.0, 0.2, 0.3, 0.4, 0.5]
-T_CARD = [0.0, 0.3, 0.4, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75]
+T_OOS = [0.0, 0.2, 0.3, 0.4, 0.5, 0.6]
+T_CARD = [0.0, 0.4, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8]
+T_MARGIN = [0.0, 0.01, 0.02, 0.04, 0.06]
+T_DATA = [0.0, 0.4, 0.5, 0.6, 0.7, 0.8]
 
 
 def weighted_rrf(dense: np.ndarray, sparse: np.ndarray, w: float, k: int = 60) -> np.ndarray:
@@ -44,6 +50,24 @@ def weighted_rrf(dense: np.ndarray, sparse: np.ndarray, w: float, k: int = 60) -
         return r
 
     return w / (k + ranks(dense)) + (1 - w) / (k + ranks(sparse))
+
+
+class JointHead:
+    """The linear intent head trained jointly with the encoder (finetune.py
+    multitask), wrapped to look like a fitted LogisticRegression."""
+
+    def __init__(self, spec: dict):
+        self.classes_ = np.asarray(spec["classes"])
+        self.coef_ = np.asarray(spec["coef"])
+        self.intercept_ = np.asarray(spec["intercept"])
+
+    def predict_proba(self, X):
+        z = np.asarray(X) @ self.coef_.T + self.intercept_
+        z = np.exp(z - z.max(1, keepdims=True))
+        return z / z.sum(1, keepdims=True)
+
+    def predict(self, X):
+        return self.classes_[self.predict_proba(X).argmax(1)]
 
 
 def encoder_specs(cfg: dict) -> list[tuple[str, str, str, str]]:
@@ -58,23 +82,30 @@ def encoder_specs(cfg: dict) -> list[tuple[str, str, str, str]]:
 
 
 def main() -> None:
+    dev_only = "--dev" in sys.argv
+    only = [a.split("=", 1)[1] for a in sys.argv if a.startswith("--only=")]
+    SPLITS = tuple(s for s in ALL_SPLITS if not (dev_only and s in ("test", "test_ood")))
     cfg = yaml.safe_load((CONFIG_DIR / "finetune.yaml").read_text())
     seed = cfg["seed"]
     export = load_export()
     linker = StockLinker(export["stocks"], export["entities"])
-    examples = build_dataset(export, linker, seed)
+    examples = build_dataset(export, linker, seed, augment=cfg.get("augment", 0))
     cards = export["cards"]
     card_ids = [c["id"] for c in cards]
     card_index = {c: i for i, c in enumerate(card_ids)}
     card_intents = np.asarray([c["intent"] for c in cards])
     guard_mask = card_intents == "guardrail"
 
+    # Document expansion: optionally index the augmented variants of each card's
+    # train questions too, so terse/typo queries have a close neighbour.
+    index_aug = cfg.get("index_augmented", False) or "--index-aug" in sys.argv
     train_q = defaultdict(list)
     for e in by_split(examples, "train"):
-        if e.source == "card":
+        if e.card and (e.source == "card" or (index_aug and e.source.startswith("aug"))):
             train_q[e.card].append(e.text)
     index = Index(cards, train_q)
-    rows = {s: by_split(examples, s) for s in SPLITS}
+    rows = {s: by_split(examples, s) for s in SPLITS if s != "tune"}
+    rows["tune"] = rows["val"] + rows["ood_dev"]
     train = by_split(examples, "train")
     bm25 = BM25Retriever(index)
     sparse = {s: bm25.score([e.text for e in rows[s]]) for s in SPLITS}
@@ -94,6 +125,8 @@ def main() -> None:
 
     results, configs = {}, {}
     for label, path, key, variant in encoder_specs(cfg):
+        if only and label not in only:
+            continue
         print(f"evaluating {label}")
         enc = Encoder(path)
         matrix = enc.encode(index.texts)
@@ -104,8 +137,8 @@ def main() -> None:
         def r_metrics(scores, s):
             return metrics.retrieval_metrics(ranks_of(scores[card_rows[s]], gold[s]))
 
-        # fusion weight on val R@1
-        w = max(FUSION_WEIGHTS, key=lambda w: (r_metrics(weighted_rrf(dense["val"], sparse["val"], w), "val")["R@1"], w))
+        # fusion weight on tune R@1
+        w = max(FUSION_WEIGHTS, key=lambda w: (r_metrics(weighted_rrf(dense["tune"], sparse["tune"], w), "tune")["R@1"], w))
         fused = {s: weighted_rrf(dense[s], sparse[s], w) for s in SPLITS}
 
         # intent head: C on val macro-F1
@@ -116,8 +149,13 @@ def main() -> None:
         def fit(c):
             return LogisticRegression(max_iter=4000, C=c, class_weight="balanced", random_state=seed).fit(X_train, y_train)
 
-        best_c = max(C_GRID, key=lambda c: metrics.classification_metrics([e.intent for e in rows["val"]], list(fit(c).predict(X["val"])))["macro_f1"])
-        clf = fit(best_c)
+        # Head choice on tune macro-F1: LR over C, or the jointly trained head.
+        heads = {c: fit(c) for c in C_GRID}
+        joint = Path(path) / "intent_head.json"
+        if joint.exists():
+            heads["joint"] = JointHead(json.loads(joint.read_text()))
+        best_c = max(heads, key=lambda c: metrics.classification_metrics([e.intent for e in rows["tune"]], list(heads[c].predict(X["tune"])))["macro_f1"])
+        clf = heads[best_c]
         probs = {s: [dict(zip(clf.classes_, p)) for p in clf.predict_proba(X[s])] for s in SPLITS}
 
         def run(policy: Policy, s: str):
@@ -128,13 +166,16 @@ def main() -> None:
             outs = [outcome(d, e.intent, e.card, ok) for d, e, ok in zip(decisions, rows[s], stocks_ok[s])]
             return decisions, outs
 
-        # Router thresholds on val: best utility among policies that catch every val guardrail.
+        # Router thresholds on tune: best utility among policies that catch every
+        # tune guardrail (vectorised - ~29k candidate policies).
+        t = rows["tune"]
+        fast = FastPolicyEval(rules["tune"], probs["tune"], fused["tune"], dense["tune"], card_ids, card_intents, guard_mask,
+                              [e.intent for e in t], [e.card for e in t], stocks_ok["tune"])
         candidates = []
-        for tg, to, tc, restrict in itertools.product(T_GUARD, T_OOS, T_CARD, (True, False)):
-            p = Policy(tg, to, tc, restrict)
-            decisions, outs = run(p, "val")
-            summary = summarize(outs, decisions, [e.intent for e in rows["val"]])
-            candidates.append((summary["guardrail_recall"] == 1.0, summary["utility"], tg, p))
+        for tg, to, tc, restrict, tm, td in itertools.product(T_GUARD, T_OOS, T_CARD, (True, False), T_MARGIN, T_DATA):
+            p = Policy(tg, to, tc, restrict, tm, td)
+            summary = fast.evaluate(p)
+            candidates.append((summary["guardrail_recall"] == 1.0, round(summary["utility"], 6), tg, p))
         _, _, _, policy = max(candidates, key=lambda c: (c[0], c[1], -c[2]))
 
         entry = {
@@ -152,14 +193,14 @@ def main() -> None:
             entry["intent"][s] = {"macro_f1": m["macro_f1"], "accuracy": m["accuracy"], "per_class_f1": {k: v["f1"] for k, v in m["per_class"].items()}}
             decisions, outs = run(policy, s)
             entry["router"][s] = summarize(outs, decisions, [e.intent for e in rows[s]])
-            if s == "test_ood":
+            if s == ("ood_dev" if dev_only else "test_ood"):
                 entry["ood_router_intents"] = [d.intent for d in decisions]
                 entry["ood_failures"] = [
                     {"text": e.text, "style": e.style, "expected": e.card or e.intent, "got": d.card or d.intent, "kind": d.kind, "outcome": o}
                     for e, d, o in zip(rows[s], decisions, outs)
                     if o != "correct"
                 ]
-        entry["latency_ms"] = measure_latency(enc, [e.text for e in rows["test_ood"]][:50])
+        entry["latency_ms"] = measure_latency(enc, [e.text for e in rows["ood_dev"]][:50])
         results[label] = entry
         configs[label] = {
             "model_path": path,
@@ -172,7 +213,15 @@ def main() -> None:
         }
         enc.close()
 
-    selected = max(results, key=lambda n: results[n]["router"]["val"]["utility"])
+    selected = max(results, key=lambda n: results[n]["router"]["tune"]["utility"])
+    if dev_only:
+        for n, r in results.items():
+            print(f"\n== {n}  (C={r['intent_C']}, fusion={r['fusion_weight']}, policy={r['policy']})")
+            for s in ("val", "ood_dev", "tune"):
+                x, i, rt, rf = r["router"][s], r["intent"][s], r["retrieval"][s]["dense"], r["retrieval"][s]["fused"]
+                print(f"  {s:8s} R@1 {rt['R@1']:.3f} fused {rf['R@1']:.3f}  intentF1 {i['macro_f1']:.3f}  correct {x['correct']:.3f}  helpful {x['helpful']:.3f}  wrong {x['wrong']:.3f}  guard {x['guardrail_recall']}  oos {x['oos_recall']}")
+        (REPORTS_DIR / "dev_failures.json").write_text(json.dumps(results[selected]["ood_failures"], indent=2))
+        return
     out = {"kb_hash": export["kb_hash"], "selected": selected, "rule_quality": rule_quality, "results": results}
     REPORTS_DIR.mkdir(exist_ok=True)
     (REPORTS_DIR / "finetune.json").write_text(json.dumps({k: v for k, v in out.items()}, indent=2, default=float))
