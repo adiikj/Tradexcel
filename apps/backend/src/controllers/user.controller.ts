@@ -64,7 +64,7 @@ async function sendOtpEmail(email: string, otp: string) {
 }
 
 function generateOtp() {
-  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  const otp = String(randomInt(100000, 1000000));
   const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
   return { otp, otpExpiry };
 }
