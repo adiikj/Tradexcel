@@ -35,12 +35,12 @@ function toBlocks(text: string): Block[] {
 
 export default function ChatMarkdown({ text }: { text: string }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {toBlocks(text).map((block, b) => {
         if (block.kind === "ul" || block.kind === "ol") {
           const List = block.kind;
           return (
-            <List key={b} className={`space-y-1 pl-5 ${block.kind === "ul" ? "list-disc" : "list-decimal"}`}>
+            <List key={b} className={`space-y-0.5 pl-4 ${block.kind === "ul" ? "list-disc" : "list-decimal"}`}>
               {block.lines.map((line, i) => (
                 <li key={i}>{inline(line, `${b}-${i}`)}</li>
               ))}

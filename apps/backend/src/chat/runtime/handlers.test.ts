@@ -114,11 +114,14 @@ describe("my_rank", () => {
 });
 
 describe("my_orders", () => {
-  it("lists orders waiting for the open and recent trades", async () => {
-    db.queuedOrder.findMany.mockResolvedValue([{ side: "BUY", quantity: 5, symbol: "TCS.NS", quotedPrice: new Prisma.Decimal(3500) }]);
+  it("lists open orders and recent trades", async () => {
+    db.queuedOrder.findMany.mockResolvedValue([
+      { side: "BUY", quantity: 5, symbol: "TCS.NS", orderType: "MARKET", triggerPrice: null, quotedPrice: new Prisma.Decimal(3500) },
+      { side: "SELL", quantity: 3, symbol: "ITC.NS", orderType: "STOP", triggerPrice: new Prisma.Decimal(395), quotedPrice: new Prisma.Decimal(410) },
+    ]);
     db.transaction.findMany.mockResolvedValue([{ side: "SELL", quantity: 2, symbol: "ITC.NS", price: new Prisma.Decimal(410), createdAt: new Date("2026-09-22T06:00:00Z") }]);
     const a = await DATA_HANDLERS.my_orders(ctx([]));
-    expect(a.text).toContain("**1 order waiting for the market to open:**\n- Buy 5 TCS (last price ₹3,500.00)");
+    expect(a.text).toContain("**2 open orders:**\n- Buy 5 TCS at the open (last price ₹3,500.00)\n- Sell 3 ITC (stop ₹395.00: triggers if the price falls to it)");
     expect(a.text).toContain("22 Sept: sold 2 ITC at ₹410.00");
     expect(a.suggestions).toEqual(["How do I cancel a queued order?"]);
   });

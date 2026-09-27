@@ -86,7 +86,7 @@ cards:
       - A **limit order** only fills at your chosen price or better.
       - A **stop-loss** automatically sells if the price falls to a set level, to cap a loss.
 
-      Real brokers offer all three. Tradexcel only has market orders.
+      Tradexcel supports all three in the Buy and Sell windows.
     questions:
       - what is a market order
       - what is a limit order

@@ -171,9 +171,9 @@ cards:
     category: platform
     title: Checking or cancelling a queued order
     answer: |
-      Orders you place while the market is closed show under **Queued orders** on your Portfolio page, and you can **cancel** any of them until the market opens.
-      At the open, each order is placed at the live price. If you no longer have enough cash or shares by then, it isn't placed. Either way you get a notification.
-      When you queue a buy, your other queued buys count against your cash at the last price you saw.
+      Orders that haven't filled yet show under **Open orders** on your Portfolio page: market orders placed while the market was closed, and limit or stop-loss orders waiting for their price. You can **cancel** any of them until they fill.
+      A queued market order is placed at the live price when the market opens. If you no longer have enough cash or shares by then, it isn't placed. Either way you get a notification.
+      While an order is open, a buy holds back the cash it needs (a limit buy at its limit price) and a sell holds back its shares, so new orders and trades can't spend them.
     questions:
       - how do i cancel a queued order
       - where can i see my pending orders
@@ -198,8 +198,8 @@ cards:
     category: platform
     title: Brokerage, fees and taxes
     answer: |
-      There are **no brokerage fees, taxes or charges** on Tradexcel. A trade costs exactly price × quantity, and a sale pays you exactly price × quantity.
-      Real brokers charge fees, so real-world returns on the same trades would be a little lower.
+      Yes. Like a real broker, every trade in your main wallet pays simulated charges: **brokerage** (0.03%, capped at ₹20), **STT** (0.1%), NSE and SEBI fees, **stamp duty** on buys (0.015%) and **GST** on the brokerage and fees. On a ₹1,00,000 buy that's about ₹142.
+      Charges are added to what a buy costs and taken out of what a sale pays you. The Buy/Sell window shows the estimate, and your Wallet shows what each trade was charged. Contest trades have no charges.
     questions:
       - are there any brokerage charges
       - do i pay fees on trades
@@ -212,7 +212,7 @@ cards:
     tags: [fees, brokerage, tax]
     related: [trade.how_to_buy]
     sources:
-      - apps/backend/src/controllers/trade.controller.ts
+      - apps/backend/src/services/charges.ts
 
   - id: leaderboard.ranking
     category: platform

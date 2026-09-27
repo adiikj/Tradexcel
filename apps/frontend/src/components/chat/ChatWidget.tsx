@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { MotionConfig, motion } from "framer-motion";
-import { PiArrowsClockwise, PiCaretRight, PiChartLineUp, PiGraduationCap, PiNotePencil, PiPaperPlaneRightFill, PiWallet, PiX } from "react-icons/pi";
+import { PiArrowUpBold, PiNotePencil, PiX } from "react-icons/pi";
 import { getUserProfile, sendChatMessage } from "../../api/api";
 import { hasSession } from "../../utils/sessionFlag";
 import { isAppPath } from "../../utils/appRoutes";
@@ -11,15 +11,10 @@ import ChatMessageView from "./ChatMessageView";
 import TexAvatar from "./TexAvatar";
 import { clearMessages, loadMessages, saveMessages, type ChatMessage } from "./chatStorage";
 import { OPEN_TEX_EVENT, openTex } from "./texEvents";
-import { BORDER, CANVAS, CARD, CHROME, DIVIDE, TEX_GRADIENT } from "./chatTheme";
+import { BORDER, CHIP, SURFACE, TEX_GRADIENT } from "./chatTheme";
 
 const MAX_LENGTH = 500;
-const STARTERS = [
-  { text: "How does the weekly reset work?", icon: PiArrowsClockwise },
-  { text: "What's my portfolio worth?", icon: PiWallet },
-  { text: "TCS price", icon: PiChartLineUp },
-  { text: "What is a P/E ratio?", icon: PiGraduationCap },
-];
+const STARTERS = ["How does the weekly reset work?", "What's my portfolio worth?", "TCS price", "What is a P/E ratio?"];
 
 // Replies arrive in ~10 ms; a brief "typing" beat reads as a person answering
 // rather than a lookup. Slower replies aren't delayed further.
@@ -36,7 +31,8 @@ function timeGreeting(hour: number): string {
 let nextId = 0;
 const newId = () => `${Date.now()}-${nextId++}`;
 
-const HEADER_BUTTON = "relative flex h-8 w-8 items-center justify-center rounded-full text-white/85 transition-colors hover:bg-white/15 hover:text-white";
+const HEADER_BUTTON =
+  "flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white";
 
 // Tex, the floating assistant for signed-in app pages. Mounted once (in
 // Providers) so the conversation carries across page navigation; also kept in
@@ -160,9 +156,9 @@ export default function ChatWidget() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className={`fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-40 flex items-center gap-2.5 rounded-full p-1.5 font-pop text-[14px] font-semibold text-white shadow-lg shadow-indigo-600/30 transition-transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/30 md:bottom-6 md:right-6 md:pr-5 ${TEX_GRADIENT}`}
+          className={`fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-40 flex items-center gap-2 rounded-full p-1 font-pop text-[13px] font-semibold text-white shadow-md shadow-indigo-600/20 transition-transform hover:-translate-y-0.5 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/30 md:bottom-6 md:right-6 md:pr-4 ${TEX_GRADIENT}`}
         >
-          <TexAvatar size="md" className="ring-2 ring-white/70" />
+          <TexAvatar size="sm" className="ring-2 ring-white/60" />
           <span className="hidden md:inline">Ask Tex</span>
         </motion.button>
       )}
@@ -175,102 +171,70 @@ export default function ChatWidget() {
             onClick={close}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-[2px] md:hidden"
+            className="fixed inset-0 z-50 bg-slate-900/40 md:hidden"
           />
           <motion.section
             role="dialog"
             aria-label="Tex, the Tradexcel assistant"
-            initial={{ opacity: 0, y: 24, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            style={{ transformOrigin: "bottom right" }}
-            className={`fixed inset-x-0 bottom-0 z-50 flex h-[88dvh] flex-col overflow-hidden rounded-t-3xl font-pop text-slate-900 shadow-[0_28px_70px_-12px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/10 dark:text-white dark:ring-blue-300/15 md:inset-x-auto md:bottom-6 md:right-6 md:h-[min(660px,calc(100vh-3rem))] md:w-[400px] md:rounded-3xl ${CHROME}`}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className={`fixed inset-x-0 bottom-0 z-50 flex h-[85dvh] flex-col overflow-hidden rounded-t-2xl font-pop text-slate-900 shadow-xl ring-1 ring-slate-900/10 dark:text-white dark:ring-white/10 md:inset-x-auto md:bottom-6 md:right-6 md:h-[min(600px,calc(100vh-3rem))] md:w-[380px] md:rounded-2xl ${SURFACE}`}
           >
-            <header className={`relative shrink-0 overflow-hidden text-white ${TEX_GRADIENT}`}>
-              {/* Faint rising trend line: the Tradexcel motif, as texture. */}
-              <svg aria-hidden="true" viewBox="0 0 400 160" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.14]">
-                <path d="M0 130 L70 108 L120 118 L190 70 L250 86 L320 38 L400 20" fill="none" stroke="#fff" strokeWidth="3" strokeLinejoin="round" />
-                <path d="M0 130 L70 108 L120 118 L190 70 L250 86 L320 38 L400 20 V160 H0 Z" fill="#fff" opacity=".35" />
-              </svg>
-              <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-white/40 md:hidden" aria-hidden="true" />
-              <div className="relative flex h-16 items-center gap-3 px-4">
-                <TexAvatar size="md" className="ring-2 ring-white/60" />
-                <div className="min-w-0 flex-1 leading-tight">
-                  <h2 className="text-[15px] font-semibold">Tex</h2>
-                  <p className="flex items-center gap-1.5 truncate text-xs text-blue-100">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" aria-hidden="true" />
-                    Online · your Tradexcel assistant
-                  </p>
-                </div>
-                {messages.length > 0 && (
-                  <button type="button" onClick={() => setMessages([])} aria-label="New conversation" title="New conversation" className={HEADER_BUTTON}>
-                    <PiNotePencil aria-hidden="true" className="h-[18px] w-[18px]" />
-                  </button>
-                )}
-                <button type="button" onClick={close} aria-label="Close Tex" className={HEADER_BUTTON}>
-                  <PiX aria-hidden="true" className="h-[18px] w-[18px]" />
+            <header className={`flex h-12 shrink-0 items-center gap-2.5 border-b px-3 ${BORDER}`}>
+              <TexAvatar size="xs" className="h-7 w-7" />
+              <h2 className="flex-1 text-[14px] font-semibold">Tex</h2>
+              {messages.length > 0 && (
+                <button type="button" onClick={() => setMessages([])} aria-label="New conversation" title="New conversation" className={HEADER_BUTTON}>
+                  <PiNotePencil aria-hidden="true" className="h-[18px] w-[18px]" />
                 </button>
-              </div>
+              )}
+              <button type="button" onClick={close} aria-label="Close Tex" className={HEADER_BUTTON}>
+                <PiX aria-hidden="true" className="h-[18px] w-[18px]" />
+              </button>
+            </header>
+
+            <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4" aria-live="polite">
               {messages.length === 0 && (
-                <div className="relative px-5 pb-7 pt-3">
-                  <h3 className="text-2xl font-semibold tracking-tight">
+                <div className="pt-2">
+                  <h3 className="text-lg font-semibold tracking-tight">
                     {greeting}
                     {firstName ? `, ${firstName}` : ""}
                   </h3>
-                  <p className="mt-1.5 max-w-[20rem] text-[14px] leading-6 text-blue-100">
-                    I&apos;m Tex. I can explain how Tradexcel works, check live stock prices, and look up your portfolio, rank and contests.
+                  <p className="mt-1 text-[13.5px] leading-relaxed text-slate-500 dark:text-slate-400">
+                    Ask how Tradexcel works, check a stock price, or look up your portfolio, rank and contests.
                   </p>
-                </div>
-              )}
-            </header>
-
-            <div ref={scrollRef} className={`flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-5 ${CANVAS}`} aria-live="polite">
-              {messages.length === 0 && (
-                <div>
-                  <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-blue-200/60">Try asking</p>
-                  <ul className={`divide-y overflow-hidden rounded-2xl ${CARD} ${DIVIDE}`} aria-label="Suggested questions">
-                    {STARTERS.map(({ text, icon: Icon }) => (
-                      <li key={text}>
-                        <button
-                          type="button"
-                          onClick={() => send(text)}
-                          className="group flex w-full items-center gap-3 px-3.5 py-3 text-left text-[14px] text-slate-700 transition-colors hover:bg-blue-50/70 dark:text-slate-100 dark:hover:bg-white/5"
-                        >
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-400/15 dark:text-blue-300">
-                            <Icon aria-hidden="true" className="h-[18px] w-[18px]" />
-                          </span>
-                          <span className="flex-1">{text}</span>
-                          <PiCaretRight aria-hidden="true" className="h-4 w-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-500 dark:text-slate-500" />
-                        </button>
-                      </li>
+                  <div className="mt-4 flex flex-wrap gap-1.5" role="group" aria-label="Suggested questions">
+                    {STARTERS.map((text) => (
+                      <button key={text} type="button" onClick={() => send(text)} className={CHIP}>
+                        {text}
+                      </button>
                     ))}
-                  </ul>
+                  </div>
+                  <p className="mt-5 text-[11.5px] text-slate-400 dark:text-slate-500">Virtual money only. Tex doesn&apos;t give investment advice.</p>
                 </div>
               )}
               {messages.map((m) => (
                 <ChatMessageView key={m.id} message={m} showSuggestions={m.id === lastAssistant && !pending} onSend={send} onNavigate={onNavigate} disabled={pending} />
               ))}
               {pending && (
-                <div className="flex items-center gap-2.5" role="status">
-                  <TexAvatar size="xs" />
-                  <span className={`flex items-center gap-1 rounded-2xl rounded-tl-md px-3.5 py-3 ${CARD}`} aria-hidden="true">
-                    {[0, 150, 300].map((delay) => (
-                      <span key={delay} className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 dark:bg-blue-200/70" style={{ animationDelay: `${delay}ms` }} />
-                    ))}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-blue-200/60">Tex is typing…</span>
+                <div role="status" className="flex items-center gap-1 py-1">
+                  <span className="sr-only">Tex is typing…</span>
+                  {[0, 150, 300].map((delay) => (
+                    <span key={delay} aria-hidden="true" className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 dark:bg-slate-500" style={{ animationDelay: `${delay}ms` }} />
+                  ))}
                 </div>
               )}
             </div>
 
             <form
-              className={`shrink-0 border-t px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 md:pb-3 ${BORDER}`}
+              className="shrink-0 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-1 md:pb-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 send(input);
               }}
             >
-              <div className="flex items-end gap-2 rounded-3xl border border-slate-200 bg-slate-50 py-1.5 pl-4 pr-1.5 transition-shadow focus-within:border-blue-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/10 dark:border-[#2c3d63] dark:bg-[#22304f] dark:focus-within:border-blue-400">
+              <div className={`flex items-end gap-1.5 rounded-2xl border py-1 pl-3.5 pr-1 transition-colors focus-within:border-blue-500 dark:focus-within:border-blue-400 ${BORDER}`}>
                 <label htmlFor="chat-input" className="sr-only">
                   Message Tex
                 </label>
@@ -287,19 +251,18 @@ export default function ChatWidget() {
                       send(input);
                     }
                   }}
-                  placeholder="Ask Tex anything about Tradexcel…"
-                  className="flex-1 resize-none bg-transparent py-1.5 text-[14px] leading-6 outline-none placeholder:text-slate-400 dark:placeholder:text-blue-200/40"
+                  placeholder="Ask Tex…"
+                  className="flex-1 resize-none bg-transparent py-1.5 text-[14px] leading-6 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
                 <button
                   type="submit"
                   disabled={!input.trim() || pending}
                   aria-label="Send"
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-md shadow-indigo-600/30 transition-all hover:brightness-110 active:scale-95 disabled:opacity-40 disabled:shadow-none ${TEX_GRADIENT}`}
+                  className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-white/10 dark:disabled:text-slate-500"
                 >
-                  <PiPaperPlaneRightFill aria-hidden="true" className="h-4 w-4" />
+                  <PiArrowUpBold aria-hidden="true" className="h-4 w-4" />
                 </button>
               </div>
-              <p className="mt-2 text-center text-[11px] text-slate-400 dark:text-blue-200/40">Virtual money only · not investment advice</p>
             </form>
           </motion.section>
         </>

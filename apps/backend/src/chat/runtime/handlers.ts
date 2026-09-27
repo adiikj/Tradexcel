@@ -243,6 +243,13 @@ async function myAlerts(ctx: DataContext): Promise<DataAnswer> {
   return { text: lines.join("\n"), links: [{ label: "Open Alerts", href: "/alerts" }], suggestions: ["How do alerts work?"] };
 }
 
+function orderCondition(o: { side: string; orderType?: string; triggerPrice?: Prisma.Decimal | null; quotedPrice: Prisma.Decimal }): string {
+  const at = o.triggerPrice ? inr(o.triggerPrice.toNumber()) : "";
+  if (o.orderType === "LIMIT") return `(limit ${at}: fills at or ${o.side === "BUY" ? "below" : "above"} it)`;
+  if (o.orderType === "STOP") return `(stop ${at}: triggers if the price ${o.side === "SELL" ? "falls" : "rises"} to it)`;
+  return `at the open (last price ${inr(o.quotedPrice.toNumber())})`;
+}
+
 async function myOrders(ctx: DataContext): Promise<DataAnswer> {
   const symbolFilter = ctx.link.symbols.length ? { symbol: { in: ctx.link.symbols } } : {};
   const [pending, recent] = await Promise.all([
@@ -251,10 +258,10 @@ async function myOrders(ctx: DataContext): Promise<DataAnswer> {
   ]);
   const lines: string[] = [];
   if (pending.length) {
-    lines.push(`**${pending.length} order${pending.length === 1 ? "" : "s"} waiting for the market to open:**`);
-    lines.push(...pending.map((o) => `- ${o.side === "BUY" ? "Buy" : "Sell"} ${o.quantity} ${shortName(o.symbol)} (last price ${inr(o.quotedPrice.toNumber())})`));
+    lines.push(`**${pending.length} open order${pending.length === 1 ? "" : "s"}:**`);
+    lines.push(...pending.map((o) => `- ${o.side === "BUY" ? "Buy" : "Sell"} ${o.quantity} ${shortName(o.symbol)} ${orderCondition(o)}`));
   } else {
-    lines.push("Nothing's waiting for the market to open right now.");
+    lines.push("You don't have any open orders right now.");
   }
   if (recent.length) {
     lines.push("**Recent trades:**");
