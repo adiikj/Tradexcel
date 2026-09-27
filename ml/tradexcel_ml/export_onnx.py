@@ -206,7 +206,7 @@ def main() -> None:
         "Quantization note: plain per-tensor INT8 dropped the minimum cosine to 0.83 and changed the top card on 14% of queries; "
         "per-channel weight scales (used here) keep the same 23 MB size with near-identical embeddings.",
         "",
-        "The runtime loads `onnx/model_quantized.onnx` with transformers.js, pooling "
+        f"The runtime loads `onnx/{chosen}` with transformers.js, pooling "
         f"`{cfg['pooling']}` + L2 normalisation, and `tradexcel_router.json` for the fusion weight, thresholds, intent head and guard patterns.",
     ]
     (REPORTS_DIR / "export.md").write_text("\n".join(lines) + "\n")
