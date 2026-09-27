@@ -5,7 +5,10 @@ import BrowserFrame from "./BrowserFrame";
 
 import portfolio from "../../assets/tradexcel/dash-portfolio.png";
 import wallet from "../../assets/tradexcel/dash-wallet.png";
-import market from "../../assets/tradexcel/dash-market.png";
+import market from "../../assets/tradexcel/dash-market-live.png";
+import analytics from "../../assets/tradexcel/dash-analytics.png";
+import learn from "../../assets/tradexcel/dash-learn.png";
+import home from "../../assets/tradexcel/dash-daily-call.png";
 import contests from "../../assets/tradexcel/dash-contests.png";
 import leaderboard from "../../assets/tradexcel/dash-leaderboard.png";
 import achievements from "../../assets/tradexcel/dash-achievements.png";
@@ -13,6 +16,13 @@ import news from "../../assets/tradexcel/dash-news.png";
 import profile from "../../assets/tradexcel/dash-profile.png";
 
 const tabs = [
+  {
+    key: "home",
+    label: "Home",
+    img: home,
+    heading: "Your day at a glance",
+    desc: "Net worth, rank and today's biggest movers, plus a daily call: will NIFTY 50 close up or down next session?",
+  },
   {
     key: "portfolio",
     label: "Portfolio",
@@ -25,21 +35,35 @@ const tabs = [
     label: "Wallet",
     img: wallet,
     heading: "A clear ledger of every trade",
-    desc: "Your cash balance, this season's cash flow day by day, and every buy and sell you've made.",
+    desc: "Your cash balance, this season's cash flow day by day, and every buy and sell with its charges itemised.",
+  },
+  {
+    key: "analytics",
+    label: "Analytics",
+    img: analytics,
+    heading: "Know what's actually working",
+    desc: "Your season charted against NIFTY 50, realized P&L and win rate, sector exposure and a journal for every trade.",
   },
   {
     key: "market",
     label: "Market",
     img: market,
     heading: "Real prices, real movement",
-    desc: "Browse 250+ NSE stocks with live prices, detailed charts and a heatmap of the whole market.",
+    desc: "Browse 250+ NSE stocks with live prices, detailed charts and a heatmap of the whole market, and star the ones you want to watch.",
+  },
+  {
+    key: "learn",
+    label: "Learn",
+    img: learn,
+    heading: "Learn by doing",
+    desc: "Short quests that each end with something to try, and replays of real market moments like the 2020 crash to trade through day by day.",
   },
   {
     key: "contests",
     label: "Contests",
     img: contests,
     heading: "Compete in public or private leagues",
-    desc: "Join a live public contest or host your own private room with a custom stock universe and invite code.",
+    desc: "Join a live public contest, host a private league with its own stocks and rules, or challenge a friend to a 1v1 duel.",
   },
   {
     key: "leaderboard",
