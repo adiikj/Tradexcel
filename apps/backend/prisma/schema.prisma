@@ -34,6 +34,8 @@ model User {
   currentStreak Int       @default(0)
   longestStreak Int       @default(0)
   lastLoginDate DateTime? @db.Date
+  // Monday's "your week" recap email (services/weeklyRecap.ts). On by default, off in profile settings.
+  weeklyRecapEmails Boolean @default(true)
 
   wallet                Wallet?
   holdings              Holding[]
@@ -42,6 +44,11 @@ model User {
   contestEntries        ContestEntry[]
   ownedContests         Contest[]        @relation("ContestOwner")
   priceAlerts           PriceAlert[]
+  watchlist             WatchlistItem[]
+  dailySnapshots        DailySnapshot[]
+  questCompletions      QuestCompletion[]
+  practiceSessions      PracticeSession[]
+  predictions           Prediction[]
   following             Follow[]         @relation("Following")
   followers             Follow[]         @relation("Followers")
   notificationsReceived Notification[]   @relation("NotificationRecipient")
@@ -86,6 +93,7 @@ enum NotificationType {
   FOLLOW
   ACHIEVEMENT
   ORDER
+  CONTEST
 }
 
 model Notification {
@@ -151,7 +159,9 @@ model Transaction {
   side      Side
   quantity  Int
   price     Decimal  @db.Decimal(18, 4)
-  total     Decimal  @db.Decimal(18, 2)
+  total     Decimal  @db.Decimal(18, 2) // price x quantity, before charges
+  charges   Decimal  @default(0) @db.Decimal(18, 2) // services/charges.ts
+  note      String?  @db.VarChar(500) // the player's trade-journal entry
   createdAt DateTime @default(now())
 }
 
@@ -162,9 +172,16 @@ enum QueuedOrderStatus {
   FAILED
 }
 
-// A main-wallet order placed while the market was closed. It fills at the
-// first live price after the next open (jobs/queuedOrders.ts); quotedPrice is
-// only the last price the user saw, used to reserve cash for pending buys.
+enum OrderType {
+  MARKET
+  LIMIT
+  STOP
+}
+
+// A main-wallet order waiting to fill (jobs/queuedOrders.ts). MARKET orders
+// were placed while the market was closed and fill at the first live price
+// after the open. LIMIT and STOP orders wait until the price reaches
+// triggerPrice. quotedPrice is only the last price the user saw.
 model QueuedOrder {
   id            String            @id @default(cuid())
   userId        String
@@ -173,6 +190,8 @@ model QueuedOrder {
   side          Side
   quantity      Int
   quotedPrice   Decimal           @db.Decimal(18, 4)
+  orderType     OrderType         @default(MARKET)
+  triggerPrice  Decimal?          @db.Decimal(18, 4)
   status        QueuedOrderStatus @default(PENDING)
   failureReason String?
   transactionId String?           @unique
@@ -219,6 +238,13 @@ model Contest {
   // Null/empty means an ordinary contest trading at live prices, unchanged.
   historicalStartDate DateTime?         @db.Date
   historicalDates     DateTime[]        @db.Date
+  // Optional rules (services/contestRules.ts): how many different stocks a
+  // player may hold, and the most any one stock may be of their net worth.
+  maxHoldings         Int?
+  maxPositionPercent  Int?
+  // Caps the number of players; a duel is a private contest with 2.
+  maxEntries          Int?
+  isDuel              Boolean           @default(false)
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
 
@@ -298,4 +324,117 @@ model PriceAlert {
   triggeredAt DateTime?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+}
+
+// Stocks a player has starred on the Market page, in the order they added them.
+model WatchlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symbol    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, symbol])
+}
+
+// Net worth at each weekday's close (jobs/dailySnapshot.ts), for the
+// Portfolio page's equity curve. Weekly results live in WeeklySnapshot.
+model DailySnapshot {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  netWorth  Decimal  @db.Decimal(18, 2)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+}
+
+// Learn page quests the player has completed (services/quests.ts holds the
+// definitions). Sticky: a quest stays done even if the condition later lapses.
+model QuestCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questId     String
+  completedAt DateTime @default(now())
+
+  @@unique([userId, questId])
+}
+
+enum PracticeStatus {
+  ACTIVE
+  FINISHED
+}
+
+// A solo replay of a past market episode (services/practice.ts), stepped one
+// trading day at a time by the player. Its own cash and holdings, priced from
+// the ContestHistoricalPrice cache; never touches the main wallet, contests or
+// leaderboards.
+model PracticeSession {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenarioId    String
+  dates         DateTime[]        @db.Date
+  dayIndex      Int               @default(0)
+  balance       Decimal           @default(100000) @db.Decimal(18, 2)
+  status        PracticeStatus    @default(ACTIVE)
+  finalNetWorth Decimal?          @db.Decimal(18, 2)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  holdings      PracticeHolding[]
+  trades        PracticeTrade[]
+
+  @@index([userId, status])
+}
+
+model PracticeHolding {
+  id          String          @id @default(cuid())
+  sessionId   String
+  session     PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  symbol      String
+  quantity    Int
+  avgBuyPrice Decimal         @db.Decimal(18, 4)
+
+  @@unique([sessionId, symbol])
+}
+
+model PracticeTrade {
+  id        String          @id @default(cuid())
+  sessionId String
+  session   PracticeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  symbol    String
+  side      Side
+  quantity  Int
+  price     Decimal         @db.Decimal(18, 4)
+  total     Decimal         @db.Decimal(18, 2)
+  charges   Decimal         @db.Decimal(18, 2)
+  dayIndex  Int
+  createdAt DateTime        @default(now())
+
+  @@index([sessionId])
+}
+
+enum PredictionDirection {
+  UP
+  DOWN
+}
+
+// The daily call (services/predictions.ts): will NIFTY 50 close up or down
+// on `date` (an IST trading day)? Resolved after that day's close; `correct`
+// stays null for an unresolved call or a flat close.
+model Prediction {
+  id         String              @id @default(cuid())
+  userId     String
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date       DateTime            @db.Date
+  direction  PredictionDirection
+  resolved   Boolean             @default(false)
+  correct    Boolean?
+  indexClose Decimal?            @db.Decimal(18, 2)
+  createdAt  DateTime            @default(now())
+
+  @@unique([userId, date])
+  @@index([resolved, date])
 }
