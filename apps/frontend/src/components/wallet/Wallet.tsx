@@ -6,6 +6,7 @@ import type { TransactionRecord } from "@tradexcel/shared";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import { getTransactions, getUserProfile, getWallet } from "../../api/api";
+import { cashMoved, netCashFlow } from "../../utils/trades";
 import { formatInr } from "../../utils/format";
 import { useAsyncEffect } from "../../hooks/useAsyncEffect";
 import { useMinuteClock } from "../../hooks/useMinuteClock";
@@ -26,8 +27,12 @@ type SideFilter = "ALL" | "BUY" | "SELL";
 function toCsv(rows: TransactionRecord[]) {
   const cell = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
   const lines = [
-    ["Date", "Symbol", "Side", "Quantity", "Price", "Total"].map(cell).join(","),
-    ...rows.map((t) => [new Date(t.createdAt).toISOString(), t.symbol, t.side, t.quantity, Number(t.price), Number(t.total)].map(cell).join(",")),
+    ["Date", "Symbol", "Side", "Quantity", "Price", "Total", "Charges", "Net cash"].map(cell).join(","),
+    ...rows.map((t) =>
+      [new Date(t.createdAt).toISOString(), t.symbol, t.side, t.quantity, Number(t.price), Number(t.total), Number(t.charges ?? 0), netCashFlow(t).toFixed(2)]
+        .map(cell)
+        .join(",")
+    ),
   ];
   return lines.join("\n");
 }
@@ -106,8 +111,9 @@ function Wallet() {
     if (now == null) return null;
     const start = seasonStart(new Date(now)).getTime();
     const inSeason = transactions.filter((t) => new Date(t.createdAt).getTime() >= start);
-    const spent = inSeason.filter((t) => t.side === "BUY").reduce((s, t) => s + Number(t.total), 0);
-    const received = inSeason.filter((t) => t.side === "SELL").reduce((s, t) => s + Number(t.total), 0);
+    const spent = inSeason.filter((t) => t.side === "BUY").reduce((s, t) => s + cashMoved(t), 0);
+    const received = inSeason.filter((t) => t.side === "SELL").reduce((s, t) => s + cashMoved(t), 0);
+    const charges = inSeason.reduce((s, t) => s + Number(t.charges ?? 0), 0);
     const days: DayFlow[] = Array.from({ length: 7 }, (_, i) => {
       const dayStart = start + i * DAY_MS;
       const inDay = inSeason.filter((t) => {
@@ -117,13 +123,13 @@ function Wallet() {
       return {
         key: String(dayStart),
         label: new Date(dayStart + DAY_MS / 2).toLocaleDateString("en-IN", { weekday: "short" }),
-        inflow: inDay.filter((t) => t.side === "SELL").reduce((s, t) => s + Number(t.total), 0),
-        outflow: inDay.filter((t) => t.side === "BUY").reduce((s, t) => s + Number(t.total), 0),
+        inflow: inDay.filter((t) => t.side === "SELL").reduce((s, t) => s + cashMoved(t), 0),
+        outflow: inDay.filter((t) => t.side === "BUY").reduce((s, t) => s + cashMoved(t), 0),
         isToday: now >= dayStart && now < dayStart + DAY_MS,
         isFuture: dayStart > now,
       };
     });
-    return { spent, received, trades: inSeason.length, days, resetIn: formatCountdown(nextReset(new Date(now)).getTime() - now) };
+    return { spent, received, charges, trades: inSeason.length, days, resetIn: formatCountdown(nextReset(new Date(now)).getTime() - now) };
   }, [transactions, now]);
 
   // Newest first, so the preview is the latest activity.
@@ -196,12 +202,11 @@ function Wallet() {
                 </div>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{cashShare.toFixed(0)}% of your starting cash is uninvested</p>
               </div>
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <StatTile label="Spent on buys">{season ? formatInr(season.spent) : "—"}</StatTile>
                 <StatTile label="From sells">{season ? formatInr(season.received) : "—"}</StatTile>
-                <div className="col-span-2 sm:col-span-1">
-                  <StatTile label="Trades">{season ? season.trades : "—"}</StatTile>
-                </div>
+                <StatTile label="Charges paid">{season ? formatInr(season.charges) : "—"}</StatTile>
+                <StatTile label="Trades">{season ? season.trades : "—"}</StatTile>
               </div>
             </Card>
           </div>

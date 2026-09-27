@@ -6,14 +6,26 @@ import { formatInr, timeAgo } from "../../utils/format";
 import { Card } from "../ui/Panel";
 
 const STATUS_LABEL: Record<QueuedOrder["status"], string> = {
-  PENDING: "Waiting for open",
+  PENDING: "Open",
   FILLED: "Placed",
   CANCELLED: "Cancelled",
   FAILED: "Not placed",
 };
 
-// Orders placed while the market was closed: pending ones (cancellable) plus
-// recent outcomes (see recentQueuedOrders), so a failed or cancelled order doesn't just vanish.
+const TYPE_LABEL: Record<QueuedOrder["orderType"], string> = { MARKET: "Market", LIMIT: "Limit", STOP: "Stop-loss" };
+
+// What an open order is waiting for.
+export function pendingDetail(o: Pick<QueuedOrder, "orderType" | "side" | "triggerPrice" | "quotedPrice">): string {
+  const at = formatInr(o.triggerPrice);
+  if (o.orderType === "LIMIT") return `Fills at ${at} or ${o.side === "BUY" ? "lower" : "higher"}`;
+  if (o.orderType === "STOP") return `Triggers if the price ${o.side === "SELL" ? "falls" : "rises"} to ${at}`;
+  return `Waiting for the open · last price ${formatInr(o.quotedPrice)}`;
+}
+
+// Orders that haven't filled yet (market orders placed while the market was
+// closed, limit and stop-loss orders waiting for their price), cancellable,
+// plus recent outcomes (see recentQueuedOrders) so a failed or cancelled order
+// doesn't just vanish.
 function QueuedOrders({ orders, onChanged }: { orders: QueuedOrder[]; onChanged: () => void }) {
   const [cancelling, setCancelling] = useState<string | null>(null);
 
@@ -33,7 +45,7 @@ function QueuedOrders({ orders, onChanged }: { orders: QueuedOrder[]; onChanged:
   };
 
   return (
-    <Card title="Queued orders" action={<span className="text-xs text-gray-500 dark:text-gray-400">Placed at the next market open</span>}>
+    <Card title="Open orders" action={<span className="text-xs text-gray-500 dark:text-gray-400">Checked every minute while the market is open</span>}>
       <ul className="divide-y divide-gray-100 dark:divide-gray-800">
         {orders.map((o) => {
           const buy = o.side === "BUY";
@@ -48,12 +60,17 @@ function QueuedOrders({ orders, onChanged }: { orders: QueuedOrder[]; onChanged:
                 {o.side}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium">
-                  {o.quantity} × {o.symbol.replace(/\.(NS|BO)$/, "")}
+                <span className="flex items-center gap-2">
+                  <span className="truncate text-sm font-medium">
+                    {o.quantity} × {o.symbol.replace(/\.(NS|BO)$/, "")}
+                  </span>
+                  <span className="shrink-0 rounded bg-gray-100 px-1.5 py-px text-[10px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                    {TYPE_LABEL[o.orderType]}
+                  </span>
                 </span>
                 <span className="block text-xs text-gray-500 dark:text-gray-400">
                   {pending
-                    ? `Last price ${formatInr(o.quotedPrice)} · queued ${timeAgo(o.createdAt)}`
+                    ? `${pendingDetail(o)} · ${timeAgo(o.createdAt)}`
                     : `${STATUS_LABEL[o.status]}${o.failureReason ? `: ${o.failureReason}` : ""}`}
                 </span>
               </span>

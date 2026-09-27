@@ -16,6 +16,29 @@ export const tradeSchema = z.object({
   quantity: z.coerce.number().int().positive("quantity must be a positive integer"),
 });
 
+// Main-wallet orders can also be limit or stop-loss orders (services/queuedOrders.ts).
+// Contests stay market-only and keep using tradeSchema.
+export const orderSchema = tradeSchema
+  .extend({
+    orderType: z.enum(["MARKET", "LIMIT", "STOP"]).default("MARKET"),
+    triggerPrice: z.coerce
+      .number()
+      .positive("price must be positive")
+      .max(10_000_000, "price is too high")
+      .refine((n) => new Prisma.Decimal(n).decimalPlaces() <= 2, "price can have at most 2 decimal places")
+      .optional(),
+  })
+  .superRefine((order, ctx) => {
+    if (order.orderType !== "MARKET" && order.triggerPrice === undefined) {
+      ctx.addIssue({ code: "custom", path: ["triggerPrice"], message: `a ${order.orderType === "LIMIT" ? "limit" : "trigger"} price is required` });
+    }
+    if (order.orderType === "MARKET" && order.triggerPrice !== undefined) {
+      ctx.addIssue({ code: "custom", path: ["triggerPrice"], message: "market orders don't take a price" });
+    }
+  });
+
+export type OrderInput = z.infer<typeof orderSchema>;
+
 export function computeWeightedAvgPrice(
   existingQuantity: number,
   existingAvgPrice: Prisma.Decimal,
