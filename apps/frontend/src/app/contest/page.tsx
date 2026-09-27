@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Contest from "@/components/contest/Contest";
 import NoHeaderFooterLayout from "@/components/layout/NoHeaderFooterLayout";
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <NoHeaderFooterLayout>
-      <Contest />
+      <Suspense>
+        <Contest />
+      </Suspense>
     </NoHeaderFooterLayout>
   );
 }

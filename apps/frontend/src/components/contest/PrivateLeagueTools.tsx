@@ -1,7 +1,7 @@
 "use client";
 import React, { useMemo, useState } from "react";
 import { PiCheck, PiX } from "react-icons/pi";
-import { STOCK_LIST as rawStockList } from "@tradexcel/shared";
+import { STOCK_LIST as rawStockList, SECTORS, SECTOR_BY_SYMBOL } from "@tradexcel/shared";
 import Modal from "../ui/Modal";
 
 const DEFAULT_FORM = {
@@ -10,6 +10,8 @@ const DEFAULT_FORM = {
   endAt: "",
   startingBalance: "100000",
   prize: "",
+  maxHoldings: "",
+  maxPositionPercent: "",
 };
 
 const MAX_SYMBOLS = 50;
@@ -48,8 +50,8 @@ interface JoinPrivateContestModalProps {
   onClose: () => void;
 }
 
-export function JoinPrivateContestModal({ isJoining, onJoin, onClose }: JoinPrivateContestModalProps) {
-  const [inviteCode, setInviteCode] = useState("");
+export function JoinPrivateContestModal({ isJoining, onJoin, onClose, initialCode = "" }: JoinPrivateContestModalProps & { initialCode?: string }) {
+  const [inviteCode, setInviteCode] = useState(initialCode);
 
   return (
     <Modal onClose={onClose} label="Join a private league" className="rounded-2xl bg-white p-6 dark:bg-gray-900">
@@ -94,6 +96,8 @@ interface CreatePrivateContestModalProps {
     startingBalance?: number;
     symbols: string[];
     prize?: string;
+    maxHoldings?: number;
+    maxPositionPercent?: number;
   }) => Promise<void>;
   onClose: () => void;
 }
@@ -119,6 +123,12 @@ export function CreatePrivateContestModal({ isCreating, onCreate, onClose }: Cre
     });
   };
 
+  // Adds every stock in a sector (up to the limit) - a quick way to run a sector-only league.
+  const addSector = (sector: string) => {
+    const inSector = STOCK_UNIVERSE.filter((s) => SECTOR_BY_SYMBOL[s.symbol] === sector).map((s) => s.symbol);
+    setSelectedSymbols((current) => [...current, ...inSector.filter((s) => !current.includes(s))].slice(0, MAX_SYMBOLS));
+  };
+
   const set = (key: keyof typeof DEFAULT_FORM) => (event: React.ChangeEvent<HTMLInputElement>) =>
     setForm((current) => ({ ...current, [key]: event.target.value }));
 
@@ -139,6 +149,8 @@ export function CreatePrivateContestModal({ isCreating, onCreate, onClose }: Cre
             startingBalance: form.startingBalance ? Number(form.startingBalance) : undefined,
             symbols: selectedSymbols,
             prize: form.prize.trim() || undefined,
+            maxHoldings: form.maxHoldings ? Number(form.maxHoldings) : undefined,
+            maxPositionPercent: form.maxPositionPercent ? Number(form.maxPositionPercent) : undefined,
           });
         }}
       >
@@ -189,6 +201,18 @@ export function CreatePrivateContestModal({ isCreating, onCreate, onClose }: Cre
             </label>
             <input id="league-prize" value={form.prize} onChange={set("prize")} placeholder="Loser buys coffee" className={INPUT} />
           </div>
+          <div>
+            <label htmlFor="league-max-holdings" className={LABEL}>
+              Max stocks held at once <span className="font-normal text-gray-400">(optional)</span>
+            </label>
+            <input id="league-max-holdings" type="number" min={1} max={50} inputMode="numeric" value={form.maxHoldings} onChange={set("maxHoldings")} placeholder="No limit" className={INPUT} />
+          </div>
+          <div>
+            <label htmlFor="league-max-position" className={LABEL}>
+              Max % in one stock <span className="font-normal text-gray-400">(optional)</span>
+            </label>
+            <input id="league-max-position" type="number" min={5} max={100} inputMode="numeric" value={form.maxPositionPercent} onChange={set("maxPositionPercent")} placeholder="No limit" className={INPUT} />
+          </div>
         </div>
 
         <div className="mt-5">
@@ -200,7 +224,22 @@ export function CreatePrivateContestModal({ isCreating, onCreate, onClose }: Cre
               {selectedSymbols.length}/{MAX_SYMBOLS}
             </span>
           </div>
-          <input id="league-stock-search" value={symbolSearch} onChange={(event) => setSymbolSearch(event.target.value)} placeholder="Search stocks" className={INPUT} />
+          <div className="flex gap-2">
+            <input id="league-stock-search" value={symbolSearch} onChange={(event) => setSymbolSearch(event.target.value)} placeholder="Search stocks" className={INPUT} />
+            <select
+              aria-label="Add a whole sector"
+              value=""
+              onChange={(event) => event.target.value && addSector(event.target.value)}
+              className="shrink-0 rounded-xl bg-gray-100 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
+            >
+              <option value="">Add a sector…</option>
+              {SECTORS.map((sector) => (
+                <option key={sector} value={sector}>
+                  {sector}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {selectedSymbols.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5">

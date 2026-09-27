@@ -209,6 +209,22 @@ function ContestDetail({
             </p>
           )}
 
+          {(contest.maxHoldings || contest.maxPositionPercent || contest.isDuel) && (
+            <ul aria-label="Contest rules" className="mt-4 flex flex-wrap gap-2 text-xs">
+              {contest.isDuel && <li className="rounded-full bg-purple-50 px-2.5 py-1 font-medium text-purple-700 dark:bg-purple-500/15 dark:text-purple-300">⚔️ 1v1 duel</li>}
+              {contest.maxHoldings && (
+                <li className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                  Up to {contest.maxHoldings} stock{contest.maxHoldings === 1 ? "" : "s"} at a time
+                </li>
+              )}
+              {contest.maxPositionPercent && (
+                <li className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                  Max {contest.maxPositionPercent}% in one stock
+                </li>
+              )}
+            </ul>
+          )}
+
           {contest.visibility === "PRIVATE" && contest.inviteCode && (
             <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 dark:bg-gray-800">
               <div>

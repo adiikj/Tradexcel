@@ -15,6 +15,7 @@ import {
 } from "../services/tradeMath.js";
 import { deriveStatus } from "./contest.controller.js";
 import { lockContestEntry } from "../services/ledgerLock.js";
+import { contestRuleViolation } from "../services/contestRules.js";
 
 interface AuthRequest {
   user?: { id: string };
@@ -64,6 +65,12 @@ const buyContestStock = asyncHandler(async (req: AuthRequest, res: Response) => 
 
   const price = await resolveContestPrice(contest, symbol);
   const total = price.mul(quantity);
+  const hasRules = contest.maxHoldings != null || contest.maxPositionPercent != null;
+  // Prices for the position-size rule, fetched before taking the lock.
+  const heldSymbols = hasRules
+    ? (await prisma.contestHolding.findMany({ where: { contestEntryId: entry.id }, select: { symbol: true } })).map((h) => h.symbol)
+    : [];
+  const quotes = contest.maxPositionPercent != null ? await resolveContestQuotes(contest, heldSymbols) : {};
 
   const result = await prisma.$transaction(async (tx) => {
     await lockContestEntry(tx, entry.id);
@@ -74,6 +81,14 @@ const buyContestStock = asyncHandler(async (req: AuthRequest, res: Response) => 
     }
     if (!canAfford(total, currentEntry.balance)) {
       throw new ApiError(400, "Insufficient funds for this trade");
+    }
+    if (hasRules) {
+      const holdings = await tx.contestHolding.findMany({
+        where: { contestEntryId: entry.id },
+        select: { symbol: true, quantity: true, avgBuyPrice: true },
+      });
+      const violation = contestRuleViolation(contest, holdings, quotes, currentEntry.balance, symbol, quantity, price);
+      if (violation) throw new ApiError(400, violation);
     }
 
     const updatedEntry = await tx.contestEntry.update({

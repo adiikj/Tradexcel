@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createPrivateContest,
+  createDuel,
   getContests,
   getContest,
   joinContest,
@@ -18,6 +19,7 @@ const router = Router();
 // code, trade within joined contests, and view standings they have access to.
 router.get("/contests", verifyJWT, getContests);
 router.post("/contests/private", verifyJWT, mutationLimiter, createPrivateContest);
+router.post("/duels", verifyJWT, mutationLimiter, createDuel);
 router.post("/contests/private/join", verifyJWT, mutationLimiter, joinPrivateContest);
 router.get("/contests/:id", verifyJWT, getContest);
 router.post("/contests/:id/join", verifyJWT, mutationLimiter, joinContest);

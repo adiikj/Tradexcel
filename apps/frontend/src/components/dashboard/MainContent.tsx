@@ -14,6 +14,7 @@ import MarketClosedBanner from "../layout/MarketClosedBanner";
 import { Card } from "../ui/Panel";
 import { STOCK_LIST as stockList } from "@tradexcel/shared";
 import type { StockListing } from "../../types/market";
+import DailyCall from "./DailyCall";
 import MarketMovers from "./MarketMovers";
 import QuickTrade from "../trade/QuickTrade";
 import AllocationDonut, { colorSlices, type Slice } from "../portfolio/AllocationDonut";
@@ -300,6 +301,8 @@ function MainContent() {
           <MarketMovers limit={topHoldings.length >= 4 ? 8 : 6} />
         </Card>
       </div>
+
+      <DailyCall />
     </main>
   );
 }

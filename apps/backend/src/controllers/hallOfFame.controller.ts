@@ -16,7 +16,7 @@ const getHallOfFame = asyncHandler(async (_req: AuthRequest, res: Response) => {
   const [rankings, championEntries, recentWeeks] = await Promise.all([
     getRankings(),
     prisma.contestEntry.findMany({
-      where: { finalRank: 1, contest: { status: "ENDED" } },
+      where: { finalRank: 1, contest: { status: "ENDED", isDuel: false } },
       orderBy: { contest: { endAt: "desc" } },
       take: RECENT_CHAMPIONS,
       include: {

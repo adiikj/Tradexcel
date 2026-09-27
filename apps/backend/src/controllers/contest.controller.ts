@@ -61,6 +61,10 @@ function buildContestSelectForUser(userId: string) {
     ownerId: true,
     historicalStartDate: true,
     historicalDates: true,
+    maxHoldings: true,
+    maxPositionPercent: true,
+    maxEntries: true,
+    isDuel: true,
     createdAt: true,
     _count: { select: { entries: true } },
     entries: {
@@ -98,7 +102,7 @@ function makeInviteCode() {
   return code;
 }
 
-async function generateUniqueInviteCode() {
+export async function generateUniqueInviteCode() {
   for (let attempt = 0; attempt < 10; attempt += 1) {
     const inviteCode = makeInviteCode();
     const existing = await prisma.contest.findUnique({ where: { inviteCode }, select: { id: true } });
@@ -131,6 +135,8 @@ const contestInputSchema = z
       .transform((symbols) => [...new Set(symbols.map((s) => s.toUpperCase()))]),
     prize: z.string().trim().max(200).optional(),
     historicalStartDate: z.coerce.date().optional(),
+    maxHoldings: z.coerce.number().int().min(1).max(50).optional(),
+    maxPositionPercent: z.coerce.number().int().min(5).max(100).optional(),
   })
   .refine((data) => data.endAt > data.startAt, {
     message: "endAt must be after startAt",
@@ -169,7 +175,7 @@ const createContest = asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!parsed.success) {
     throw validationError(parsed.error);
   }
-  const { name, startAt, endAt, startingBalance, symbols, prize, historicalStartDate } = parsed.data;
+  const { name, startAt, endAt, startingBalance, symbols, prize, historicalStartDate, maxHoldings, maxPositionPercent } = parsed.data;
 
   const historicalDates = await resolveHistoricalDates(symbols, startAt, endAt, historicalStartDate);
 
@@ -183,6 +189,8 @@ const createContest = asyncHandler(async (req: AuthRequest, res: Response) => {
       prize,
       historicalStartDate: historicalStartDate ?? null,
       historicalDates,
+      maxHoldings: maxHoldings ?? null,
+      maxPositionPercent: maxPositionPercent ?? null,
       visibility: "PUBLIC",
     },
   });
@@ -197,7 +205,7 @@ const createPrivateContest = asyncHandler(async (req: AuthRequest, res: Response
   }
 
   const userId = req.user!.id;
-  const { name, startAt, endAt, startingBalance, symbols, prize, historicalStartDate } = parsed.data;
+  const { name, startAt, endAt, startingBalance, symbols, prize, historicalStartDate, maxHoldings, maxPositionPercent } = parsed.data;
   const historicalDates = await resolveHistoricalDates(symbols, startAt, endAt, historicalStartDate);
   const inviteCode = await generateUniqueInviteCode();
 
@@ -212,6 +220,8 @@ const createPrivateContest = asyncHandler(async (req: AuthRequest, res: Response
         prize,
         historicalStartDate: historicalStartDate ?? null,
         historicalDates,
+        maxHoldings: maxHoldings ?? null,
+        maxPositionPercent: maxPositionPercent ?? null,
         visibility: "PRIVATE",
         ownerId: userId,
         inviteCode,
@@ -370,6 +380,74 @@ const getContest = asyncHandler(async (req: AuthRequest, res: Response) => {
   );
 });
 
+// 1v1 duels (see createDuel): a private contest for two on a fixed list of
+// large caps, at live prices, for 1-5 days from now.
+export const DUEL_SYMBOLS = [
+  "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", "BHARTIARTL.NS", "SBIN.NS", "ITC.NS", "LT.NS",
+  "HINDUNILVR.NS", "KOTAKBANK.NS", "AXISBANK.NS", "BAJFINANCE.NS", "MARUTI.NS", "SUNPHARMA.NS", "HCLTECH.NS",
+  "TITAN.NS", "ASIANPAINT.NS", "ULTRACEMCO.NS", "NTPC.NS", "POWERGRID.NS", "M&M.NS", "WIPRO.NS", "NESTLEIND.NS",
+  "TATASTEEL.NS", "JSWSTEEL.NS", "ONGC.NS", "COALINDIA.NS", "ADANIPORTS.NS", "ADANIENT.NS", "BAJAJFINSV.NS",
+  "TECHM.NS", "GRASIM.NS", "HINDALCO.NS", "INDUSINDBK.NS", "CIPLA.NS", "DRREDDY.NS", "EICHERMOT.NS", "HEROMOTOCO.NS",
+  "BRITANNIA.NS", "APOLLOHOSP.NS", "DIVISLAB.NS", "SBILIFE.NS", "HDFCLIFE.NS", "BPCL.NS", "TATACONSUM.NS",
+  "SHRIRAMFIN.NS", "TRENT.NS", "BEL.NS", "INDIGO.NS",
+];
+
+const duelSchema = z.object({
+  username: z.string().trim().min(1).max(30),
+  days: z.coerce.number().int().min(1).max(5).default(3),
+});
+
+const createDuel = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const parsed = duelSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw validationError(parsed.error);
+  }
+  const userId = req.user!.id;
+  const [me, opponent] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { username: true } }),
+    prisma.user.findFirst({ where: { username: { equals: parsed.data.username, mode: "insensitive" }, otpVerified: true }, select: { id: true, username: true } }),
+  ]);
+  if (!me || !opponent) {
+    throw new ApiError(404, "We couldn't find that trader");
+  }
+  if (opponent.id === userId) {
+    throw new ApiError(400, "You can't challenge yourself");
+  }
+
+  const startAt = new Date();
+  const endAt = new Date(startAt.getTime() + parsed.data.days * MS_PER_DAY);
+  const inviteCode = await generateUniqueInviteCode();
+
+  const contest = await prisma.$transaction(async (tx) => {
+    const created = await tx.contest.create({
+      data: {
+        name: `@${me.username} vs @${opponent.username}`,
+        startAt,
+        endAt,
+        symbols: DUEL_SYMBOLS,
+        visibility: "PRIVATE",
+        ownerId: userId,
+        inviteCode,
+        maxEntries: 2,
+        isDuel: true,
+      },
+    });
+    await tx.contestEntry.create({ data: { contestId: created.id, userId, balance: created.startingBalance } });
+    await tx.notification.create({
+      data: {
+        userId: opponent.id,
+        actorId: userId,
+        type: "CONTEST",
+        message: `⚔️ @${me.username} challenged you to a ${parsed.data.days}-day duel. Tap to accept.`,
+        link: `/contest?invite=${inviteCode}`,
+      },
+    });
+    return tx.contest.findUnique({ where: { id: created.id }, select: buildContestSelectForUser(userId) });
+  });
+
+  return res.status(200).json(new ApiResponse(200, `Challenge sent to @${opponent.username}`, serializeContestForUser(contest, userId)));
+});
+
 const joinContest = asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
   const contest = await prisma.contest.findUnique({ where: { id: req.params.id } });
@@ -421,6 +499,15 @@ const joinPrivateContest = asyncHandler(async (req: AuthRequest, res: Response) 
   }
 
   const result = await prisma.$transaction(async (tx) => {
+    // Lock the contest so two players can't both take the last seat.
+    if (contest.maxEntries != null) {
+      await tx.$queryRaw`SELECT "id" FROM "Contest" WHERE "id" = ${contest.id} FOR UPDATE`;
+      const taken = await tx.contestEntry.count({ where: { contestId: contest.id } });
+      if (taken >= contest.maxEntries) {
+        throw new ApiError(400, contest.isDuel ? "This duel already has two players" : "This league is full");
+      }
+    }
+
     const entry = await tx.contestEntry.create({
       data: { contestId: contest.id, userId, balance: contest.startingBalance },
     });
@@ -519,6 +606,7 @@ const getAdminContests = asyncHandler(async (_req: AuthRequest, res: Response) =
 });
 
 export {
+  createDuel,
   createContest,
   getAdminContests,
   createPrivateContest,

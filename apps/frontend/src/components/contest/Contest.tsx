@@ -1,5 +1,6 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PiKey, PiPlus } from "react-icons/pi";
 import toast from "react-hot-toast";
 import Header from "../dashboard/Header";
@@ -28,6 +29,9 @@ const SCOPES: { key: ContestScope; label: string }[] = [
 ];
 
 function Contest() {
+  const router = useRouter();
+  // A duel challenge links here with ?invite=CODE: open the join dialog with it filled in.
+  const inviteFromUrl = useSearchParams().get("invite")?.toUpperCase() ?? "";
   const [scope, setScope] = useState<ContestScope>("public");
   const [contests, setContests] = useState<ContestData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +49,7 @@ function Contest() {
   const [sellTarget, setSellTarget] = useState<ContestPortfolioData["holdings"][number] | null>(null);
   const [isJoiningPrivate, setIsJoiningPrivate] = useState(false);
   const [isCreatingPrivate, setIsCreatingPrivate] = useState(false);
-  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(Boolean(inviteFromUrl));
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // State is only set after the first await, so effects can call this directly.
@@ -156,9 +160,10 @@ function Contest() {
       setIsJoiningPrivate(true);
       const response = await joinPrivateContest(inviteCode);
       const joinedContest = response?.data?.contest;
-      toast.success("Joined private league!");
+      toast.success(joinedContest?.isDuel ? "Challenge accepted!" : "Joined private league!");
       changeScope("private");
       setShowJoinModal(false);
+      if (inviteFromUrl) router.replace("/contest");
       await fetchContests("private");
       if (joinedContest?.id) {
         selectContest(joinedContest.id);
@@ -177,6 +182,8 @@ function Contest() {
     startingBalance?: number;
     symbols: string[];
     prize?: string;
+    maxHoldings?: number;
+    maxPositionPercent?: number;
   }) => {
     if (isCreatingPrivate) return;
     if (!payload.name || !payload.startAt || !payload.endAt || payload.symbols.length === 0) {
@@ -344,6 +351,7 @@ function Contest() {
           isJoining={isJoiningPrivate}
           onJoin={handleJoinPrivate}
           onClose={() => setShowJoinModal(false)}
+          initialCode={inviteFromUrl}
         />
       )}
       {showCreateModal && (

@@ -6,6 +6,7 @@ import { useBrowserValue } from "../../hooks/useBrowserValue";
 import Header from "../dashboard/Header";
 import Vheader from "../dashboard/Vheader";
 import FollowButton from "./FollowButton";
+import ChallengeButton from "./ChallengeButton";
 import ShareButton from "./ShareButton";
 import UserList from "./UserList";
 import { getPublicProfile, getFollowers, getFollowing } from "../../api/api";
@@ -227,6 +228,7 @@ function PublicProfile({ username, viewerLoggedIn }: PublicProfileProps) {
                           }
                         />
                       )}
+                      {isAuthenticated && !profile.isSelf && <ChallengeButton username={profile.username} />}
                       {!isAuthenticated && (
                         <Link
                           href="/signup"
