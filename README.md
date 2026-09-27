@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="apps/frontend/src/assets/tradexcel-wordmark-light.png" alt="Tradexcel" width="320" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="apps/frontend/src/assets/tradexcel-wordmark-dark.png" />
+    <img src="apps/frontend/src/assets/tradexcel-wordmark-light.png" alt="Tradexcel" width="320" />
+  </picture>
 </p>
 
 <p align="center">
@@ -42,9 +45,16 @@ This is a portfolio project. It aims to show a correct trading engine, a clean f
 
 **Trading**
 - Buy and sell at live prices from Yahoo Finance, with market-hours awareness (NSE, Mon to Fri, 9:15 AM to 3:30 PM IST).
-- Queued orders: orders placed while the market is closed execute when it opens.
+- Market, limit and stop-loss orders. Market orders placed while the market is closed execute when it opens; limit and stop orders wait until the price gets there. Open orders reserve the cash or shares they need.
+- Simulated NSE delivery charges on every trade (brokerage, STT, exchange and SEBI fees, stamp duty, GST), shown before you confirm and itemised in the wallet.
 - Holdings track weighted-average buy price. All money math uses `Prisma.Decimal`, never floats, and every trade runs in a single database transaction with ledger check constraints.
 - Line and candlestick charts (1D to 5Y), market breadth, top gainers and losers, and a table view.
+- A saved watchlist: star stocks on the Market page and filter to them.
+
+**Portfolio analytics**
+- This season's return charted day by day against NIFTY 50, from net worth snapshots taken at each close.
+- Realized P&L replayed from the season's trades (net of charges on both legs), win rate, and best and worst trades.
+- Sector exposure across 17 sectors, and a trade journal: a private note on any trade.
 
 **Live data**
 - Socket.IO price feed. One central 5 second broadcast loop fetches quotes once for every symbol anyone is watching and only emits real changes.
@@ -53,8 +63,15 @@ This is a portfolio project. It aims to show a correct trading engine, a clean f
 **Competition**
 - **Weekly seasons:** every Monday 00:00 UTC each player's week is snapshotted, holdings are liquidated and the wallet resets to ₹1,00,000.
 - **Leaderboards:** global, friends only, contest champions and weekly champions.
-- **Contests:** public contests created by admins, and private invite-code leagues any player can host. Each contest has its own isolated wallet and ledger, and can optionally replay a historical date range.
-- **18 achievement badges** for trading, streaks, contests, weekly performance and social milestones.
+- **Contests:** public contests created by admins, and private invite-code leagues any player can host. Each contest has its own isolated wallet and ledger, can optionally replay a historical date range, and can set rules (max stocks held, max % in one stock). Leagues can be built from whole sectors.
+- **1v1 duels:** challenge any player from their profile to a 1 to 5 day, two-player contest on 50 large caps.
+- **Daily call:** predict whether NIFTY 50 closes up or down next session; streaks and accuracy on the dashboard.
+- **Weekly recap email** every Monday with your return, rank and badges (can be turned off in profile settings).
+- **19 achievement badges** for trading, streaks, contests, weekly performance, social milestones and learning.
+
+**Learn**
+- Eight quests, each a short lesson plus something to try (limit order, stop-loss, diversify across sectors, journal a trade...). Finishing all of them earns the Graduate badge.
+- Practice runs: replay a real market episode (the 2020 crash and rebound, the 2023 Adani short report, 2024 election results) one trading day at a time, then compare with buying and holding the whole basket. Separate from your wallet and every leaderboard.
 
 **Social**
 - Follow other traders, see their trades in an activity feed, and share public profiles that work for logged-out visitors.
@@ -285,9 +302,10 @@ All REST routes live under `/api/v1`.
 |---|---|
 | Auth and users | `/users/*`: register, login, Google login, OTP, refresh, profile, avatar, password and PIN |
 | Market data | `/finance/stock/:symbol`, `/finance/quotes?symbols=...` |
-| Trading | `/trade/buy`, `/trade/sell`, `/wallet`, `/portfolio`, `/transactions` |
+| Trading | `/trade/buy`, `/trade/sell` (market, limit or stop), `/trade/orders`, `/wallet`, `/portfolio`, `/portfolio/analytics`, `/transactions`, `/transactions/:id/note`, `/watchlist/:symbol` |
 | Leaderboards | `/leaderboard`, `/leaderboard/friends`, `/hall-of-fame` |
-| Contests | `/contests`, `/contests/:id`, `/contests/:id/join`, `/contests/:id/standings`, `/contests/:id/trade/buy\|sell`, `/contests/private`, `/contests/private/join` |
+| Contests | `/contests`, `/contests/:id`, `/contests/:id/join`, `/contests/:id/standings`, `/contests/:id/trade/buy\|sell`, `/contests/private`, `/contests/private/join`, `/duels` |
+| Learn and games | `/learn`, `/practice`, `/practice/:id`, `/practice/:id/trade`, `/practice/:id/advance`, `/predictions` |
 | Social | `/social/search`, `/social/activity`, `/users/:username/profile`, `/users/:username/follow`, followers and following |
 | Other | `/alerts`, `/notifications`, `/achievements`, `/news`, `/chat` |
 | Admin | `/admin/login`, `/admin/contests/*` |

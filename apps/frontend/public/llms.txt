@@ -54,6 +54,8 @@ automated evaluation purposes.
   rank, login streak, earned achievement badges, weekly performance history,
   follow/unfollow, viewable while logged out (drives signup growth loop).
 - [Your Profile](/your-profile): Own-account settings (avatar, password/PIN).
+- [Learn](/learn): Quests with short lessons, and practice runs that replay
+  a past market episode one trading day at a time.
 - [News](/news): Market news feed.
 - [Sign up](/signup) / [Sign in](/signin): Email+password or PIN auth, OTP
   email verification, Google OAuth.
@@ -80,10 +82,26 @@ automated evaluation purposes.
   those hours, no new Yahoo calls are made and the UI shows a "Market
   Closed" banner with the next-open time instead of pretending prices are
   ticking.
-- Queued orders: a main-wallet buy/sell placed while the market is closed
-  is stored as a `QueuedOrder` and filled at the first live price after the
-  next open by a per-minute job (`apps/backend/src/services/queuedOrders.ts`).
-  Players can list and cancel pending orders.
+- Order types: main-wallet orders can be market, limit or stop-loss. A
+  market order placed while the market is closed, and any limit/stop order
+  whose price hasn't been reached, is stored as a `QueuedOrder` and filled by
+  a per-minute job (`apps/backend/src/services/queuedOrders.ts`). Pending
+  buys reserve cash and pending sells reserve shares. Players can list and
+  cancel open orders. Contest trades are market orders only.
+- Watchlist: players star stocks on the Market page (`WatchlistItem`, `/watchlist/:symbol`).
+- Analytics: `/portfolio/analytics` returns the season's equity curve vs
+  NIFTY 50 (from `DailySnapshot`, recorded at each close), realized P&L
+  replayed from the season's trades, sector exposure, and journal notes.
+- Learn (`/learn`): quests with short lessons (sticky `QuestCompletion`,
+  Graduate badge) and practice runs that replay a past market episode one
+  day at a time (`PracticeSession`, `apps/backend/src/services/practice.ts`).
+- Competition extras: contest rules (max holdings, max % per stock), 1v1
+  duels (`/duels`, 2-player private contests excluded from contest badges and
+  the hall of fame), a daily NIFTY up/down call (`Prediction`), and a weekly
+  recap email sent after the Monday reset (opt-out in profile settings).
+- Charges: main-wallet trades pay simulated NSE delivery charges (brokerage
+  0.03% capped at ₹20, STT, exchange and SEBI fees, stamp duty on buys, GST),
+  computed in `apps/backend/src/services/charges.ts`.
 - Database check constraints backstop the engine: wallet and contest
   balances can never go negative and holding quantities must stay positive,
   and trades lock the wallet row first (`apps/backend/src/services/ledgerLock.ts`).
