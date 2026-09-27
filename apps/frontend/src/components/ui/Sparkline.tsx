@@ -1,5 +1,17 @@
 // Small trend line. Decorative (aria-hidden) - callers show the numbers.
-export default function Sparkline({ values, width = 56, height = 24 }: { values: number[]; width?: number; height?: number }) {
+// Colour follows the line's own first-to-last move unless `trend` is given,
+// for lists ranked on a different window (e.g. today's movers over 30 days).
+export default function Sparkline({
+  values,
+  width = 56,
+  height = 24,
+  trend,
+}: {
+  values: number[];
+  width?: number;
+  height?: number;
+  trend?: number;
+}) {
   // Yahoo leaves null for bars still forming; plotting them as 0 draws a cliff.
   const points = values.filter((v) => Number.isFinite(v));
   if (points.length < 2) return <span className="inline-block" style={{ width }} />;
@@ -9,7 +21,7 @@ export default function Sparkline({ values, width = 56, height = 24 }: { values:
   const path = points
     .map((v, i) => `${(i / (points.length - 1)) * width},${height - 2 - ((v - min) / span) * (height - 4)}`)
     .join(" ");
-  const up = points[points.length - 1] >= points[0];
+  const up = trend !== undefined ? trend >= 0 : points[points.length - 1] >= points[0];
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true" className="shrink-0">
       <polyline

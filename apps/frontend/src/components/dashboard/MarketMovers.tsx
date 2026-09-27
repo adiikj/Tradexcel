@@ -98,7 +98,7 @@ function MarketMovers({ limit = 5 }: { limit?: number }) {
                     <span className="block truncate text-sm font-semibold">{stock.shortName}</span>
                     <span className="block truncate text-xs text-gray-500 dark:text-gray-400">{stock.fullName}</span>
                   </span>
-                  <Sparkline values={stock.stockPrices} />
+                  <Sparkline values={stock.stockPrices} trend={stock.signedChange} />
                   <span className="w-24 shrink-0 text-right">
                     <span className="block text-sm font-medium tabular-nums">{price != null ? formatInr(price) : "—"}</span>
                     <span className={`block text-xs tabular-nums ${changeTextClass(stock.signedChange)}`}>
