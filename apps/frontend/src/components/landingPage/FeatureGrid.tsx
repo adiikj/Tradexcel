@@ -3,7 +3,8 @@ import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { reveal } from "./marketing";
-import marketShot from "../../assets/tradexcel/dash-market.png";
+import marketShot from "../../assets/tradexcel/dash-market-live.png";
+import learnShot from "../../assets/tradexcel/dash-learn.png";
 import competeArt from "../../assets/card2.png";
 
 // A feature tile: title and one line, plus either a cropped product screenshot
@@ -43,7 +44,7 @@ function Shot({ src, alt }: { src: typeof marketShot; alt: string }) {
 function FeatureGrid() {
   return (
     <div className="mx-auto mt-12 grid max-w-6xl gap-5 lg:grid-cols-3">
-      <Feature side className="lg:col-span-2" title="Live NSE prices" desc="Every trade fills at the real market price. Study any of 250+ stocks with charts from one day to five years.">
+      <Feature side className="lg:col-span-2" title="Live NSE prices" desc="Trade 250+ stocks at the real market price with market, limit and stop-loss orders. Chart anything from one day to five years and star the ones you watch.">
         <Shot src={marketShot} alt="The Market page with a live stock chart" />
       </Feature>
       <Feature title="Weekly seasons" desc="Every Monday your cash resets to ₹1,00,000 and your result is saved. A bad week never follows you.">
@@ -81,6 +82,35 @@ function FeatureGrid() {
       <Feature side className="lg:col-span-2" title="Leaderboards and achievements" desc="Climb the weekly leaderboard, follow other traders and unlock 19 badges, from your first trade to King of the Hill.">
         <Art src={competeArt} />
       </Feature>
+      <Feature side className="lg:col-span-2" title="Learn by doing" desc="Eight short quests, each ending with something to try. Then replay real market moments, like the 2020 crash, one trading day at a time.">
+        <Shot src={learnShot} alt="The Learn page with quests and practice runs" />
+      </Feature>
+      <Feature title="1v1 duels and daily calls" desc="Challenge a friend to a duel of 1 to 5 days, and call whether NIFTY 50 closes up or down each day.">
+        <div className="space-y-3">
+          <div className="rounded-2xl bg-grey p-5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-pop font-semibold">You vs @rahul</span>
+              <span className="text-xs text-gray-500">Day 2 of 3</span>
+            </div>
+            <div className="mt-3 space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="w-10 text-gray-500">You</span>
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white"><div className="h-full w-[72%] rounded-full bg-blue-500" /></div>
+                <span className="w-14 text-right text-xs font-semibold tabular-nums text-green-700">+2.4%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-10 text-gray-500">Rahul</span>
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white"><div className="h-full w-[48%] rounded-full bg-amber-500" /></div>
+                <span className="w-14 text-right text-xs font-semibold tabular-nums text-green-700">+0.9%</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between rounded-2xl bg-grey px-4 py-3 text-sm">
+            <span className="font-semibold">NIFTY 50 tomorrow</span>
+            <span className="text-xs font-medium text-amber-700">▲ Up · 4 in a row</span>
+          </div>
+        </div>
+      </Feature>
       <Feature title="Price alerts" desc="Set a target and get notified the moment a stock crosses it.">
         <div className="space-y-2">
           <div className="flex items-center justify-between rounded-2xl bg-grey px-4 py-3 text-sm">
@@ -97,7 +127,7 @@ function FeatureGrid() {
         side
         className="lg:col-span-2"
         title="Clear feedback"
-        desc="See how your money is split, what each stock returned and every weekly result, so you know what worked and why."
+        desc="Your season charted against NIFTY 50, realized P&L after charges, sector exposure and a note on every trade, so you know what worked and why."
       >
         {/* A small version of the portfolio allocation view */}
         <div className="rounded-2xl bg-grey p-5">
