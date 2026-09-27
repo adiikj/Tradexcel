@@ -15,7 +15,7 @@
   <a href="ml/README.md">ML pipeline</a>
 </p>
 
-![Market page with watchlist stars](apps/frontend/src/assets/tradexcel/dash-market-live.png)
+![Home dashboard](apps/frontend/src/assets/tradexcel/dash-home-live.png)
 
 ## Contents
 
@@ -87,17 +87,21 @@ This is a portfolio project. It aims to show a correct trading engine, a clean f
 
 ## Screenshots
 
-| Learn: quests and practice runs | Season analytics |
+| Market and watchlist | Learn: quests and practice runs |
 |---|---|
-| ![Learn: quests and practice runs](apps/frontend/src/assets/tradexcel/dash-learn.png) | ![Season analytics](apps/frontend/src/assets/tradexcel/dash-analytics.png) |
+| ![Market and watchlist](apps/frontend/src/assets/tradexcel/dash-market-live.png) | ![Learn: quests and practice runs](apps/frontend/src/assets/tradexcel/dash-learn.png) |
 
-| Dashboard and daily call | Portfolio |
+| Season analytics | Daily call |
 |---|---|
-| ![Dashboard and daily call](apps/frontend/src/assets/tradexcel/dash-daily-call.png) | ![Portfolio](apps/frontend/src/assets/tradexcel/dash-portfolio.png) |
+| ![Season analytics](apps/frontend/src/assets/tradexcel/dash-analytics.png) | ![Daily call](apps/frontend/src/assets/tradexcel/dash-daily-call.png) |
 
-| Wallet | Contests |
+| Portfolio | Wallet |
 |---|---|
-| ![Wallet](apps/frontend/src/assets/tradexcel/dash-wallet.png) | ![Contests](apps/frontend/src/assets/tradexcel/dash-contests.png) |
+| ![Portfolio](apps/frontend/src/assets/tradexcel/dash-portfolio.png) | ![Wallet](apps/frontend/src/assets/tradexcel/dash-wallet.png) |
+
+| Contests | Private league setup |
+|---|---|
+| ![Contests](apps/frontend/src/assets/tradexcel/dash-contests.png) | ![Create a private contest](apps/frontend/src/assets/tradexcel/dash-contests-create.png) |
 
 | Leaderboard | Achievements |
 |---|---|
@@ -106,10 +110,6 @@ This is a portfolio project. It aims to show a correct trading engine, a clean f
 | Profile | News |
 |---|---|
 | ![Profile](apps/frontend/src/assets/tradexcel/dash-profile.png) | ![News](apps/frontend/src/assets/tradexcel/dash-news.png) |
-
-| Private league setup |
-|---|
-| ![Create a private contest](apps/frontend/src/assets/tradexcel/dash-contests-create.png) |
 
 ## Tex, the in-app assistant
 
