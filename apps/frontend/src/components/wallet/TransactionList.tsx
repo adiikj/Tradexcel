@@ -3,6 +3,8 @@ import Link from "next/link";
 import { PiArrowDownLeft, PiArrowUpRight } from "react-icons/pi";
 import type { TransactionRecord } from "@tradexcel/shared";
 import { formatInr } from "../../utils/format";
+import { cashMoved, netCashFlow } from "../../utils/trades";
+import NoteEditor from "../portfolio/NoteEditor";
 import { STOCK_LIST as stockList } from "@tradexcel/shared";
 import type { StockListing } from "../../types/market";
 
@@ -16,8 +18,8 @@ function dayLabel(date: Date, now: Date) {
   return date.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: date.getFullYear() === now.getFullYear() ? undefined : "numeric" });
 }
 
-// Trades grouped by day, newest first. Amounts are cash movement: buys
-// spend (−), sells bring cash in (+).
+// Trades grouped by day, newest first. Amounts are cash movement, charges
+// included: buys spend (−), sells bring cash in (+).
 function TransactionList({ transactions }: { transactions: TransactionRecord[] }) {
   const now = new Date();
   const groups: { label: string; items: TransactionRecord[] }[] = [];
@@ -33,7 +35,7 @@ function TransactionList({ transactions }: { transactions: TransactionRecord[] }
   return (
     <div className="space-y-5">
       {groups.map((group) => {
-        const net = group.items.reduce((sum, t) => sum + (t.side === "SELL" ? 1 : -1) * Number(t.total), 0);
+        const net = group.items.reduce((sum, t) => sum + netCashFlow(t), 0);
         return (
           <section key={group.label} aria-label={group.label}>
             <div className="mb-1 flex items-center justify-between px-1 text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -73,10 +75,16 @@ function TransactionList({ transactions }: { transactions: TransactionRecord[] }
                         {t.quantity} × {formatInr(t.price)} ·{" "}
                         <time dateTime={t.createdAt}>{new Date(t.createdAt).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })}</time>
                       </span>
+                      <NoteEditor transactionId={t.id} note={t.note ?? null} />
                     </span>
-                    <span className="shrink-0 text-right text-sm font-semibold tabular-nums">
-                      {buy ? "−" : "+"}
-                      {formatInr(t.total)}
+                    <span className="shrink-0 text-right tabular-nums">
+                      <span className="block text-sm font-semibold">
+                        {buy ? "−" : "+"}
+                        {formatInr(cashMoved(t))}
+                      </span>
+                      {Number(t.charges) > 0 && (
+                        <span className="block text-[11px] text-gray-500 dark:text-gray-400">{buy ? "incl." : "after"} {formatInr(t.charges)} charges</span>
+                      )}
                     </span>
                   </li>
                 );

@@ -7,10 +7,13 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import prisma from "../db/prisma.js";
 import { getQuotes } from "../services/pricing.js";
+import { getPortfolioAnalytics } from "../services/analytics.js";
 
 interface AuthRequest {
   user?: { id: string };
   query: any;
+  params?: any;
+  body?: any;
 }
 
 const getWallet = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -127,4 +130,30 @@ const getTransactions = asyncHandler(async (req: AuthRequest, res: Response) => 
   );
 });
 
-export { getWallet, getPortfolio, getTransactions };
+const getAnalytics = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const analytics = await getPortfolioAnalytics(req.user!.id);
+  return res.status(200).json(new ApiResponse(200, "Analytics fetched successfully", analytics));
+});
+
+const noteSchema = z.object({
+  // Empty clears the note.
+  note: z.string().trim().max(500, "notes can be up to 500 characters").transform((n) => n || null).nullable(),
+});
+
+// The trade journal: a short note on why you made a trade, editable any time.
+const updateTransactionNote = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const parsed = noteSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw validationError(parsed.error);
+  }
+  const { count } = await prisma.transaction.updateMany({
+    where: { id: String(req.params.id), userId: req.user!.id },
+    data: { note: parsed.data.note },
+  });
+  if (count === 0) {
+    throw new ApiError(404, "Transaction not found");
+  }
+  return res.status(200).json(new ApiResponse(200, "Note saved", { note: parsed.data.note }));
+});
+
+export { getWallet, getPortfolio, getTransactions, getAnalytics, updateTransactionNote };

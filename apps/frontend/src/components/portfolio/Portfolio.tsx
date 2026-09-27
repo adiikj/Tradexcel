@@ -23,6 +23,7 @@ import AllocationDonut, { type Slice } from "./AllocationDonut";
 import WeeklyResults, { type WeekResult } from "./WeeklyResults";
 import RecentTrades from "./RecentTrades";
 import QueuedOrders, { recentQueuedOrders } from "./QueuedOrders";
+import SeasonAnalytics from "./SeasonAnalytics";
 import { Card, StatTile } from "../ui/Panel";
 
 // Every wallet starts each weekly season with this much (backend tradeMath.ts).
@@ -109,8 +110,11 @@ function Portfolio() {
   }, []);
 
   // For buttons/handlers: show the loading state, then load.
+  // Bumped on every refresh so the analytics section reloads after a trade.
+  const [refreshKey, setRefreshKey] = useState(0);
   const fetchPortfolio = useCallback(() => {
     setIsLoading(true);
+    setRefreshKey((k) => k + 1);
     return loadPortfolio();
   }, [loadPortfolio]);
 
@@ -295,6 +299,8 @@ function Portfolio() {
                     <AllocationDonut slices={slices} total={netWorth} />
                   </Card>
                 </div>
+
+                <SeasonAnalytics refreshKey={refreshKey} />
 
                 {/* Seasons + recent trades */}
                 <div className="grid gap-4 lg:grid-cols-3">
