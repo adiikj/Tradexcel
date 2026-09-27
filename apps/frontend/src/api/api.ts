@@ -18,9 +18,14 @@ import type {
   NotificationsData,
   OwnProfile,
   PortfolioData,
+  PortfolioAnalytics,
+  LearnData,
+  PredictionData,
+  PracticeState,
   PriceAlert,
   PublicProfile,
   QueuedOrder,
+  OrderType,
   ChatReply,
   TransactionsData,
   UserSummary,
@@ -276,11 +281,14 @@ export const getTransactions = async (page = 1, limit = 20) => {
   }
 };
 
-export const buyStock = async (symbol: string, quantity: number) => {
+// Omit `order` for a market order.
+export type OrderOptions = { orderType: Exclude<OrderType, "MARKET">; triggerPrice: number };
+
+export const buyStock = async (symbol: string, quantity: number, order?: OrderOptions) => {
   try {
     const response = await axios.post(
       `${BASE_TRADE_URL}/trade/buy`,
-      { symbol, quantity }
+      { symbol, quantity, ...order }
     );
     return response.data;
   } catch (error) {
@@ -288,15 +296,37 @@ export const buyStock = async (symbol: string, quantity: number) => {
   }
 };
 
-export const sellStock = async (symbol: string, quantity: number) => {
+export const sellStock = async (symbol: string, quantity: number, order?: OrderOptions) => {
   try {
     const response = await axios.post(
       `${BASE_TRADE_URL}/trade/sell`,
-      { symbol, quantity }
+      { symbol, quantity, ...order }
     );
     return response.data;
   } catch (error) {
     throw new Error(apiErrorMessage(error, "We couldn't complete that sale. Please try again."));
+  }
+};
+
+export const getPortfolioAnalytics = async () => {
+  try {
+    const response = await axios.get<ApiResponse<PortfolioAnalytics>>(`${BASE_TRADE_URL}/portfolio/analytics`);
+    return response.data.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't load your season analytics. Please try again."));
+  }
+};
+
+// Trade journal. An empty note clears it.
+export const updateTransactionNote = async (transactionId: string, note: string) => {
+  try {
+    const response = await axios.patch<ApiResponse<{ note: string | null }>>(
+      `${BASE_TRADE_URL}/transactions/${encodeURIComponent(transactionId)}/note`,
+      { note }
+    );
+    return response.data.data.note;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't save that note. Please try again."));
   }
 };
 
@@ -305,7 +335,7 @@ export const getQueuedOrders = async () => {
     const response = await axios.get<ApiResponse<QueuedOrder[]>>(`${BASE_TRADE_URL}/trade/orders`);
     return response.data;
   } catch (error) {
-    throw new Error(apiErrorMessage(error, "We couldn't load your queued orders. Please try again."));
+    throw new Error(apiErrorMessage(error, "We couldn't load your open orders. Please try again."));
   }
 };
 
@@ -356,6 +386,8 @@ export const createPrivateContest = async (payload: {
   startingBalance?: number;
   symbols: string[];
   prize?: string;
+  maxHoldings?: number;
+  maxPositionPercent?: number;
 }) => {
   try {
     const response = await axios.post<ApiResponse<Contest>>(`${BASE_TRADE_URL}/contests/private`, payload);
@@ -434,6 +466,107 @@ export const sellContestStock = async (contestId: string, symbol: string, quanti
     return response.data;
   } catch (error) {
     throw new Error(apiErrorMessage(error, "We couldn't complete that sale. Please try again."));
+  }
+};
+
+// The signed-in player's starred symbols, oldest first. Add/remove return the updated list.
+export const getWatchlist = async () => {
+  try {
+    const response = await axios.get<ApiResponse<string[]>>(`${BASE_TRADE_URL}/watchlist`);
+    return response.data.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't load your watchlist. Please try again."));
+  }
+};
+
+export const addToWatchlist = async (symbol: string) => {
+  try {
+    const response = await axios.put<ApiResponse<string[]>>(`${BASE_TRADE_URL}/watchlist/${encodeURIComponent(symbol)}`);
+    return response.data.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't add that to your watchlist. Please try again."));
+  }
+};
+
+export const removeFromWatchlist = async (symbol: string) => {
+  try {
+    const response = await axios.delete<ApiResponse<string[]>>(`${BASE_TRADE_URL}/watchlist/${encodeURIComponent(symbol)}`);
+    return response.data.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't remove that from your watchlist. Please try again."));
+  }
+};
+
+export const getLearn = async () => {
+  try {
+    const response = await axios.get<ApiResponse<LearnData>>(`${BASE_TRADE_URL}/learn`);
+    return response.data.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't load your quests. Please try again."));
+  }
+};
+
+export const startPractice = async (scenarioId: string) => {
+  try {
+    const response = await axios.post<ApiResponse<PracticeState>>(`${BASE_TRADE_URL}/practice`, { scenarioId });
+    return response.data.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't start that practice run. Please try again."));
+  }
+};
+
+export const getPractice = async (id: string) => {
+  try {
+    const response = await axios.get<ApiResponse<PracticeState>>(`${BASE_TRADE_URL}/practice/${encodeURIComponent(id)}`);
+    return response.data.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't load your practice run. Please try again."));
+  }
+};
+
+export const practiceTrade = async (id: string, side: "BUY" | "SELL", symbol: string, quantity: number) => {
+  try {
+    const response = await axios.post<ApiResponse<PracticeState>>(`${BASE_TRADE_URL}/practice/${encodeURIComponent(id)}/trade`, { side, symbol, quantity });
+    return response.data.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "That trade didn't go through. Please try again."));
+  }
+};
+
+export const advancePractice = async (id: string) => {
+  try {
+    const response = await axios.post<ApiResponse<PracticeState>>(`${BASE_TRADE_URL}/practice/${encodeURIComponent(id)}/advance`);
+    return response.data.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't move to the next day. Please try again."));
+  }
+};
+
+// Challenge another player to a 1v1 duel (a 2-player private contest).
+export const createDuel = async (username: string, days: number) => {
+  try {
+    const response = await axios.post<ApiResponse<Contest>>(`${BASE_TRADE_URL}/duels`, { username, days });
+    return response.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't send that challenge. Please try again."));
+  }
+};
+
+export const getPrediction = async () => {
+  try {
+    const response = await axios.get<ApiResponse<PredictionData>>(`${BASE_TRADE_URL}/predictions`);
+    return response.data.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't load the daily call. Please try again."));
+  }
+};
+
+export const makePrediction = async (direction: "UP" | "DOWN") => {
+  try {
+    const response = await axios.post<ApiResponse<PredictionData>>(`${BASE_TRADE_URL}/predictions`, { direction });
+    return response.data.data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error, "We couldn't save your call. Please try again."));
   }
 };
 
