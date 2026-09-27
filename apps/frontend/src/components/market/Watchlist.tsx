@@ -1,11 +1,12 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import type { MarketStock } from "../../types/market";
 import { changeGlyph, changeTextClass } from "./marketColors";
 import { formatInr } from "../../utils/format";
 import Sparkline from "../ui/Sparkline";
+import StarButton from "./StarButton";
 
-export type WatchFilter = "all" | "gainers" | "losers" | "holdings";
+export type WatchFilter = "all" | "watchlist" | "gainers" | "losers" | "holdings";
 type SortKey = "name" | "price" | "change";
 
 type WatchlistProps = {
@@ -14,18 +15,47 @@ type WatchlistProps = {
   selectedSymbol: string | null;
   onSelect: (symbol: string) => void;
   holdings: Record<string, number>;
+  watchlist: string[];
+  onToggleWatch: (symbol: string) => void;
 };
 
 const FILTERS: { key: WatchFilter; label: string }[] = [
   { key: "all", label: "All" },
+  { key: "watchlist", label: "Watchlist" },
   { key: "gainers", label: "Gainers" },
   { key: "losers", label: "Losers" },
   { key: "holdings", label: "Holdings" },
 ];
 
-function Watchlist({ stocks, isLoading, selectedSymbol, onSelect, holdings }: WatchlistProps) {
+const FILTER_KEY = "tx_market_filter";
+
+function savedFilter(): WatchFilter {
+  try {
+    const value = localStorage.getItem(FILTER_KEY);
+    return FILTERS.some((f) => f.key === value) ? (value as WatchFilter) : "all";
+  } catch {
+    return "all";
+  }
+}
+
+const noSubscribe = () => () => {};
+
+function Watchlist({ stocks, isLoading, selectedSymbol, onSelect, holdings, watchlist, onToggleWatch }: WatchlistProps) {
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<WatchFilter>("all");
+  // The last filter you used is remembered on this device. The server renders
+  // "all"; the stored choice applies on the client without a hydration mismatch.
+  const stored = useSyncExternalStore(noSubscribe, savedFilter, () => "all" as const);
+  const [picked, setPicked] = useState<WatchFilter | null>(null);
+  const filter = picked ?? stored;
+  const setFilter = (next: WatchFilter) => {
+    setPicked(next);
+    try {
+      localStorage.setItem(FILTER_KEY, next);
+    } catch {
+      // Storage blocked; the filter just won't be remembered.
+    }
+  };
+  const watched = useMemo(() => new Set(watchlist), [watchlist]);
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "change", dir: -1 });
 
   const rows = useMemo(() => {
@@ -35,6 +65,7 @@ function Watchlist({ stocks, isLoading, selectedSymbol, onSelect, holdings }: Wa
       if (filter === "gainers") return (s.changePct ?? 0) > 0;
       if (filter === "losers") return (s.changePct ?? 0) < 0;
       if (filter === "holdings") return Boolean(holdings[s.symbol]);
+      if (filter === "watchlist") return watched.has(s.symbol);
       return true;
     });
     const value = (s: MarketStock) => (sort.key === "name" ? s.shortName : sort.key === "price" ? (s.price ?? -Infinity) : (s.changePct ?? -Infinity));
@@ -43,7 +74,7 @@ function Watchlist({ stocks, isLoading, selectedSymbol, onSelect, holdings }: Wa
       const vb = value(b);
       return (typeof va === "string" ? va.localeCompare(vb as string) : (va as number) - (vb as number)) * sort.dir;
     });
-  }, [stocks, query, filter, sort, holdings]);
+  }, [stocks, query, filter, sort, holdings, watched]);
 
   const toggleSort = (key: SortKey) =>
     setSort((prev) => (prev.key === key ? { key, dir: prev.dir === 1 ? -1 : 1 } : { key, dir: key === "name" ? 1 : -1 }));
@@ -119,22 +150,25 @@ function Watchlist({ stocks, isLoading, selectedSymbol, onSelect, holdings }: Wa
                         selected ? "bg-blue-50 dark:bg-blue-500/10" : "hover:bg-gray-50 dark:hover:bg-gray-800/60"
                       }`}
                     >
-                      <td className="pl-4 pr-2 py-2">
-                        <button
-                          type="button"
-                          aria-current={selected ? "true" : undefined}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelect(s.symbol);
-                          }}
-                          className="block w-full min-w-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
-                        >
-                          <span className="block font-medium truncate">{s.shortName}</span>
-                          <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">{s.fullName}</span>
-                        </button>
+                      <td className="pl-2 pr-2 py-2">
+                        <span className="flex items-center gap-1">
+                          <StarButton watched={watched.has(s.symbol)} name={s.shortName} onToggle={() => onToggleWatch(s.symbol)} />
+                          <button
+                            type="button"
+                            aria-current={selected ? "true" : undefined}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelect(s.symbol);
+                            }}
+                            className="block w-full min-w-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+                          >
+                            <span className="block font-medium truncate">{s.shortName}</span>
+                            <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">{s.fullName}</span>
+                          </button>
+                        </span>
                       </td>
                       <td className="py-2">
-                        <Sparkline values={s.closes} />
+                        <Sparkline values={s.closes} trend={s.changePct ?? undefined} />
                       </td>
                       <td className="px-2 py-2 text-right tabular-nums whitespace-nowrap">{s.price != null ? formatInr(s.price) : "—"}</td>
                       <td className={`pl-1 pr-4 py-2 text-right text-xs tabular-nums whitespace-nowrap ${changeTextClass(s.changePct)}`}>
@@ -154,7 +188,7 @@ function Watchlist({ stocks, isLoading, selectedSymbol, onSelect, holdings }: Wa
             {!isLoading && rows.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-500">
-                  No stocks match.
+                  {filter === "watchlist" && watchlist.length === 0 ? "Star a stock to add it to your watchlist." : "No stocks match."}
                 </td>
               </tr>
             )}

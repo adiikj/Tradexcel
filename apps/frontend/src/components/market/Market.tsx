@@ -20,6 +20,7 @@ import MarketOverview from "./MarketOverview";
 import StockPanel from "./StockPanel";
 import Watchlist from "./Watchlist";
 import Heatmap from "./Heatmap";
+import { useWatchlist } from "../../hooks/useWatchlist";
 
 // The stock list has a few duplicate symbols; keep the first of each.
 const LISTINGS: StockListing[] = (stockList as StockListing[]).filter(
@@ -106,6 +107,7 @@ function Market() {
 
   const { quotes: liveQuotes, connected: liveConnected } = useLiveQuotes(LISTINGS.map((stock) => stock.symbol));
   const marketStatus = useMarketStatus();
+  const watchlist = useWatchlist();
 
   // Live ticks overlay the batch snapshot.
   const stocks = useMemo(
@@ -226,6 +228,8 @@ function Market() {
                   range={range}
                   onRangeChange={setRange}
                   ownedQuantity={ownedQuantity}
+                  watched={watchlist.symbols.includes(selectedStock.symbol)}
+                  onToggleWatch={() => watchlist.toggle(selectedStock.symbol)}
                   onBuy={() => setTradeSide("BUY")}
                   onSell={() => setTradeSide("SELL")}
                 />
@@ -241,6 +245,8 @@ function Market() {
                     selectedSymbol={selectedSymbol}
                     onSelect={selectStock}
                     holdings={holdings}
+                    watchlist={watchlist.symbols}
+                    onToggleWatch={watchlist.toggle}
                   />
                 </div>
               </div>

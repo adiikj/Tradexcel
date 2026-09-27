@@ -5,6 +5,7 @@ import PriceChart, { type ChartMode } from "./PriceChart";
 import { changeGlyph, changeTextClass } from "./marketColors";
 import { formatInr } from "../../utils/format";
 import type { MarketStock } from "../../types/market";
+import StarButton from "./StarButton";
 
 export const RANGES: ChartRange[] = ["1D", "5D", "1M", "6M", "1Y", "5Y"];
 
@@ -18,6 +19,8 @@ type StockPanelProps = {
   range: ChartRange;
   onRangeChange: (range: ChartRange) => void;
   ownedQuantity: number;
+  watched: boolean;
+  onToggleWatch: () => void;
   onBuy: () => void;
   onSell: () => void;
 };
@@ -100,6 +103,8 @@ function StockPanel({
   range,
   onRangeChange,
   ownedQuantity,
+  watched,
+  onToggleWatch,
   onBuy,
   onSell,
 }: StockPanelProps) {
@@ -125,9 +130,12 @@ function StockPanel({
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {stock.symbol.replace(/\.NS$/, "")} · {chart?.exchange === "NSI" ? "NSE" : (chart?.exchange ?? "NSE")}
           </p>
-          <h2 id="stock-heading" className="text-lg md:text-xl font-semibold truncate">
-            {stock.fullName}
-          </h2>
+          <div className="flex items-center gap-1 min-w-0">
+            <h2 id="stock-heading" className="text-lg md:text-xl font-semibold truncate">
+              {stock.fullName}
+            </h2>
+            <StarButton watched={watched} name={stock.shortName} onToggle={onToggleWatch} size="md" />
+          </div>
           <p className="mt-1 flex flex-wrap items-baseline gap-x-3">
             <span className="text-3xl md:text-4xl font-semibold">{fmtPrice(stock.price)}</span>
             <span className={`text-sm md:text-base font-medium tabular-nums ${changeTextClass(stock.change)}`}>
