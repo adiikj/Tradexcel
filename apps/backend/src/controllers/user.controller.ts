@@ -184,16 +184,25 @@ const registerUser = asyncHandler(async (req: any, res: any) => {
   }
   const { name, username, email, password, pin, dob } = parsed.data;
 
-  const existingUser = await prisma.user.findFirst({
+  // Email and username can match two different accounts, so check each one.
+  const existingUsers = await prisma.user.findMany({
     where: { OR: [{ email }, { username }] },
   });
 
-  if (existingUser) {
-    if (existingUser.otpVerified) {
+  if (existingUsers.some((u) => u.otpVerified)) {
+    throw new ApiError(400, "Email or username is already registered.");
+  }
+  for (const u of existingUsers) {
+    // Retrying your own unverified signup (same email) replaces it. Someone
+    // else's unverified signup only holds its username until its code expires,
+    // so reusing a username can't wipe another person's signup in progress.
+    const abandoned = !u.otpExpiry || Date.now() > u.otpExpiry.getTime();
+    if (u.email !== email && !abandoned) {
       throw new ApiError(400, "Email or username is already registered.");
     }
-    // Abandoned/unverified signup with the same identity - clear it and retry fresh.
-    await prisma.user.delete({ where: { id: existingUser.id } });
+  }
+  if (existingUsers.length) {
+    await prisma.user.deleteMany({ where: { id: { in: existingUsers.map((u) => u.id) } } });
   }
 
   const [hashedPassword, hashedPin] = await Promise.all([
