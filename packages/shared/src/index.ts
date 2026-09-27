@@ -161,14 +161,110 @@ export type TransactionRecord = {
   side: Side;
   quantity: number;
   price: Decimal;
-  total: Decimal;
+  total: Decimal; // price x quantity, before charges
+  charges: Decimal; // added to a buy's cost, taken from a sale's proceeds
+  note: string | null; // trade-journal entry
   createdAt: string;
+};
+
+// GET /portfolio/analytics - the current season. Plain numbers, not Decimals.
+export type ClosedTrade = {
+  transactionId: string;
+  symbol: string;
+  quantity: number;
+  avgBuyPrice: number;
+  sellPrice: number;
+  pnl: number; // net of buy and sell charges
+  pnlPercent: number;
+  closedAt: string;
+  note: string | null;
+};
+
+export type PortfolioAnalytics = {
+  seasonStart: string;
+  startBalance: number;
+  netWorth: number;
+  returnPct: number;
+  benchmark: { name: string; returnPct: number } | null;
+  // Season start, each weekday's close, then now. Dates are IST (YYYY-MM-DD).
+  equityCurve: { date: string; netWorth: number; returnPct: number; benchmarkPct: number | null }[];
+  allocation: { sector: string; value: number }[];
+  trades: {
+    realizedPnl: number;
+    chargesPaid: number;
+    closedTrades: number;
+    wins: number;
+    winRate: number | null;
+    best: ClosedTrade | null;
+    worst: ClosedTrade | null;
+    recent: ClosedTrade[];
+  };
+};
+
+// GET /learn/quests
+export type Quest = {
+  id: string;
+  title: string;
+  lesson: string;
+  cta: { label: string; href: string };
+  texQuestion: string | null; // a question to ask Tex to learn more
+  completedAt: string | null;
+};
+
+// Practice runs (backend services/practice.ts)
+export type PracticeScenario = {
+  id: string;
+  title: string;
+  period: string;
+  blurb: string;
+  lesson: string;
+  days: number;
+  symbols: string[];
+};
+
+export type PracticeState = {
+  id: string;
+  scenario: PracticeScenario;
+  status: "ACTIVE" | "FINISHED";
+  day: number; // 1-based
+  totalDays: number;
+  date: string; // YYYY-MM-DD, the historical trading day
+  cash: number;
+  netWorth: number;
+  returnPct: number;
+  // Equal-weight buy-and-hold of the whole basket since day 1.
+  basketReturnPct: number | null;
+  stocks: { symbol: string; price: number | null; changePct: number | null }[];
+  holdings: { symbol: string; quantity: number; avgBuyPrice: number; price: number; value: number; pnl: number }[];
+  trades: { id: string; symbol: string; side: Side; quantity: number; price: number; charges: number; day: number }[];
+};
+
+export type PracticeHistoryItem = { id: string; scenarioId: string; title: string; returnPct: number; finishedAt: string };
+
+export type LearnData = {
+  quests: Quest[];
+  scenarios: PracticeScenario[];
+  activePracticeId: string | null;
+  history: PracticeHistoryItem[];
+};
+
+// GET/POST /predictions - the daily NIFTY 50 call.
+export type PredictionData = {
+  date: string; // YYYY-MM-DD, the IST trading day the call is about
+  pick: "UP" | "DOWN" | null;
+  crowd: { up: number; down: number };
+  stats: { calls: number; correct: number; currentStreak: number; bestStreak: number };
+  recent: { date: string; direction: "UP" | "DOWN"; correct: boolean | null }[];
 };
 
 export type TransactionsData = { transactions: TransactionRecord[]; pagination: Pagination };
 
-// A main-wallet order placed while the market was closed (backend services/queuedOrders.ts).
+// A main-wallet order waiting to fill (backend services/queuedOrders.ts): a
+// market order placed while the market was closed, or a limit / stop-loss order
+// waiting for its price.
 export type QueuedOrderStatus = "PENDING" | "FILLED" | "CANCELLED" | "FAILED";
+
+export type OrderType = "MARKET" | "LIMIT" | "STOP";
 
 export type QueuedOrder = {
   id: string;
@@ -176,13 +272,17 @@ export type QueuedOrder = {
   side: Side;
   quantity: number;
   quotedPrice: Decimal;
+  orderType: OrderType;
+  // LIMIT: the worst price you'll accept. STOP: the price that triggers a market order.
+  triggerPrice: Decimal | null;
   status: QueuedOrderStatus;
   failureReason: string | null;
   resolvedAt: string | null;
   createdAt: string;
 };
 
-// POST /trade/buy|sell outside market hours answers 202 with this.
+// POST /trade/buy|sell answers 202 with this when the order didn't fill right
+// away (market closed, or a limit / stop-loss order waiting for its price).
 export type QueuedTradeData = { queued: true; order: QueuedOrder };
 
 export type OwnProfile = UserSummary & {
@@ -194,6 +294,7 @@ export type OwnProfile = UserSummary & {
   hasGoogleLogin: boolean;
   hasPassword: boolean;
   hasPin: boolean;
+  weeklyRecapEmails: boolean;
 };
 
 // Login-type endpoints: a session (user) or, for new accounts, the email that
@@ -242,6 +343,11 @@ export type Contest = {
   createdAt: string;
   _count: { entries: number };
   todaysPrices?: Record<string, number>;
+  // Optional rules (backend services/contestRules.ts)
+  maxHoldings?: number | null;
+  maxPositionPercent?: number | null;
+  maxEntries?: number | null;
+  isDuel?: boolean;
 };
 
 export type ContestStanding = {
@@ -326,3 +432,5 @@ export type ChatReply = {
 };
 
 export * from "./stocks.js";
+export * from "./charges.js";
+export * from "./sectors.js";
