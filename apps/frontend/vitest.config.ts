@@ -11,6 +11,11 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // Node 25+ ships its own global localStorage, which shadows jsdom's.
+    // Older Node rejects the flag, so only pass it where it exists.
+    execArgv: process.allowedNodeEnvironmentFlags.has("--no-experimental-webstorage")
+      ? ["--no-experimental-webstorage"]
+      : [],
     include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["./vitest.setup.ts"],
     env: {
