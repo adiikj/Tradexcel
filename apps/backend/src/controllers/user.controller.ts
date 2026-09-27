@@ -344,11 +344,24 @@ const googleLogin = asyncHandler(async (req: any, res: any) => {
     throw new ApiError(401, "Google account email is not verified");
   }
 
+  // Signed up before but never finished verifying (no wallet yet): re-send
+  // the code instead of signing them in.
+  const resendOtp = async (user: { id: string; email: string }) => {
+    const { otp, otpExpiry } = generateOtp();
+    await prisma.user.update({ where: { id: user.id }, data: { otp, otpExpiry } });
+    await sendOtpEmail(user.email, otp);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, "Verify the code we emailed you to finish signing in.", { email: user.email }));
+  };
+
   const existingByGoogleId = await prisma.user.findUnique({
     where: { googleId: payload.sub },
   });
   if (existingByGoogleId) {
-    return issueSession(existingByGoogleId.id, res, "User logged in successfully");
+    return existingByGoogleId.otpVerified
+      ? issueSession(existingByGoogleId.id, res, "User logged in successfully")
+      : resendOtp(existingByGoogleId);
   }
 
   const existingByEmail = await prisma.user.findUnique({ where: { email: payload.email } });
@@ -357,16 +370,7 @@ const googleLogin = asyncHandler(async (req: any, res: any) => {
       where: { id: existingByEmail.id },
       data: { googleId: payload.sub },
     });
-    if (linked.otpVerified) {
-      return issueSession(linked.id, res, "User logged in successfully");
-    }
-    // Had signed up before but never finished verifying - re-send the code.
-    const { otp, otpExpiry } = generateOtp();
-    await prisma.user.update({ where: { id: linked.id }, data: { otp, otpExpiry } });
-    await sendOtpEmail(linked.email, otp);
-    return res
-      .status(200)
-      .json(new ApiResponse(200, "Verify the code we emailed you to finish signing in.", { email: linked.email }));
+    return linked.otpVerified ? issueSession(linked.id, res, "User logged in successfully") : resendOtp(linked);
   }
 
   const username = await generateUniqueUsername(payload.email.split("@")[0]);
