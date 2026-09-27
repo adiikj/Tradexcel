@@ -5,7 +5,9 @@ import { clearSession, hasSession } from "../utils/sessionFlag";
 // every request just needs withCredentials. When the access token expires the
 // backend answers 401; we then refresh once via the refresh-token cookie and
 // replay the original request.
-const http = axios.create({ withCredentials: true });
+// The timeout turns an unreachable backend into an error message instead of
+// a request that spins forever.
+const http = axios.create({ withCredentials: true, timeout: 20_000 });
 
 const REFRESH_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/refresh-token`;
 const NO_REFRESH = ["/login", "/register", "/google", "/verify-otp", "/refresh-token", "/logout"];

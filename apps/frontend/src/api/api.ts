@@ -176,7 +176,8 @@ export const getAvatar = async () => {
 
 export const updateAvatar = async (formData: FormData) => {
   try {
-    const response = await axios.patch(`${BASE_URL}/updateavatar`, formData);
+    // Image uploads on a slow connection can outlast the default timeout.
+    const response = await axios.patch(`${BASE_URL}/updateavatar`, formData, { timeout: 60_000 });
     return response.data;
   } catch (error) {
     throw new Error(apiErrorMessage(error, "We couldn't update your photo. Please try again."));
