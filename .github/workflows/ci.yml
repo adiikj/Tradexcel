@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      # Tests never connect; Prisma just needs a well-formed URL to load.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version comes from "packageManager" in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Shared - typecheck
+        run: pnpm --filter ./packages/shared exec tsc --noEmit
+
+      - name: Backend - typecheck
+        run: pnpm --filter @tradexcel/backend exec tsc --noEmit
+      - name: Backend - test
+        run: pnpm --filter @tradexcel/backend test
+
+      - name: Frontend - typecheck
+        run: pnpm --filter @tradexcel/frontend typecheck
+      - name: Frontend - lint
+        run: pnpm --filter @tradexcel/frontend lint
+      - name: Frontend - test
+        run: pnpm --filter @tradexcel/frontend test
