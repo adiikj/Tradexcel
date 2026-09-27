@@ -9,6 +9,7 @@ export const APP_PATHS = [
   "/contest",
   "/alerts",
   "/achievements",
+  "/learn",
   "/activity",
   "/news",
   "/support",

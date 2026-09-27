@@ -53,7 +53,7 @@ const tabs = [
     label: "Achievements",
     img: achievements,
     heading: "Unlock badges as you trade",
-    desc: "18 achievements track everything from your first trade to reaching the top of the leaderboard.",
+    desc: "19 achievements track everything from your first trade to reaching the top of the leaderboard.",
   },
   {
     key: "news",

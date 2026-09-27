@@ -88,7 +88,7 @@ function SignUp() {
       title="Create your account"
       subtitle="Free forever. No card, no deposits."
       panelTitle="Start with ₹1,00,000 and trade the real market."
-      points={["₹1,00,000 in virtual cash, reset every week", "250+ NSE stocks at live prices", "Contests, leaderboards and 18 badges to earn"]}
+      points={["₹1,00,000 in virtual cash, reset every week", "250+ NSE stocks at live prices", "Contests, leaderboards and 19 badges to earn"]}
     >
       <GoogleAuthButton onError={setError} />
       <div className="my-6">

@@ -34,6 +34,7 @@ export const BADGE_CATALOG: BadgeDefinition[] = [
   { id: "steady_grower", name: "Steady Grower", description: "Closed your last 3 weeks all in the green.", icon: "🛡️" },
   { id: "team_player", name: "Team Player", description: "Joined your first contest.", icon: "🧑‍🤝‍🧑" },
   { id: "networker", name: "Networker", description: "Followed 5 or more traders.", icon: "🤜🤛" },
+  { id: "graduate", name: "Graduate", description: "Finished every quest on the Learn page.", icon: "🎓" },
 ];
 
 const BADGE_MAP = new Map(BADGE_CATALOG.map((b) => [b.id, b]));
@@ -41,7 +42,7 @@ const BADGE_MAP = new Map(BADGE_CATALOG.map((b) => [b.id, b]));
 // Creates the UserBadge + a notification, but only the first time - relies
 // on the (userId, badgeId) unique constraint rather than a pre-check, so
 // concurrent callers can't double-award.
-async function awardBadge(userId: string, badgeId: string): Promise<boolean> {
+export async function awardBadge(userId: string, badgeId: string): Promise<boolean> {
   const badge = BADGE_MAP.get(badgeId);
   if (!badge) return false;
 
@@ -77,9 +78,10 @@ export async function checkAndAwardAchievements(userId: string): Promise<string[
       prisma.holding.findMany({ where: { userId }, select: { symbol: true, quantity: true, avgBuyPrice: true } }),
       prisma.follow.count({ where: { followingId: userId } }),
       prisma.follow.count({ where: { followerId: userId } }),
-      prisma.contestEntry.findMany({ where: { userId, finalRank: { not: null } }, select: { finalRank: true } }),
+      // Duels (2-player contests) don't count toward contest placings or hosting.
+      prisma.contestEntry.findMany({ where: { userId, finalRank: { not: null }, contest: { isDuel: false } }, select: { finalRank: true } }),
       prisma.contestEntry.count({ where: { userId } }),
-      prisma.contest.count({ where: { ownerId: userId } }),
+      prisma.contest.count({ where: { ownerId: userId, isDuel: false } }),
       prisma.weeklySnapshot.findMany({ where: { userId }, orderBy: { weekStart: "desc" }, select: { pnlPercent: true } }),
     ]);
 

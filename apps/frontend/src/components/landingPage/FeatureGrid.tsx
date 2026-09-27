@@ -78,7 +78,7 @@ function FeatureGrid() {
           </div>
         </div>
       </Feature>
-      <Feature side className="lg:col-span-2" title="Leaderboards and achievements" desc="Climb the weekly leaderboard, follow other traders and unlock 18 badges, from your first trade to King of the Hill.">
+      <Feature side className="lg:col-span-2" title="Leaderboards and achievements" desc="Climb the weekly leaderboard, follow other traders and unlock 19 badges, from your first trade to King of the Hill.">
         <Art src={competeArt} />
       </Feature>
       <Feature title="Price alerts" desc="Set a target and get notified the moment a stock crosses it.">
