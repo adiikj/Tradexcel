@@ -6,13 +6,14 @@ import { motion } from "framer-motion";
 import { reveal, SectionHeading } from "./marketing";
 import analyticsArt from "../../assets/banner2.png";
 
-// Answers match the product (weeklyReset.ts, marketHours.ts) and the Privacy Policy.
+// Answers match the product (weeklyReset.ts, marketHours.ts, shared/charges.ts) and the Privacy Policy.
 const faqs = [
   { q: "Is Tradexcel really free?", a: "Yes. It's free to play, and no real money is involved at any point. There's nothing to deposit and no card to add." },
-  { q: "Do I need to know how to trade?", a: "No. Tradexcel is built for beginners. Start with a single stock, see what happens, and learn as you go with nothing at stake." },
+  { q: "Do I need to know how to trade?", a: "No. Tradexcel is built for beginners. Start with a single stock, see what happens, and learn as you go with nothing at stake. The Learn page has short quests and replays of real market moments to practise on." },
   { q: "Are the prices real?", a: "Yes. Trades use live NSE prices during market hours (Monday to Friday, 9:15 AM to 3:30 PM IST) and the last traded price when the market is closed." },
-  { q: "What happens every Monday?", a: "At 5:30 AM IST your holdings are sold at market price, your result for the week is saved to your profile, and your cash resets to ₹1,00,000." },
-  { q: "Can I compete with friends?", a: "Yes. Create a private league with your own stocks and schedule, then share the invite code. Everyone starts with the same cash." },
+  { q: "What happens every Monday?", a: "At 5:30 AM IST your holdings are sold at market price, your result for the week is saved to your profile, and your cash resets to ₹1,00,000. You also get a short recap email, which you can turn off." },
+  { q: "Are there brokerage charges?", a: "Yes, simulated ones. Every trade pays realistic NSE delivery charges (brokerage capped at ₹20 an order, STT, exchange and SEBI fees, stamp duty and GST), shown before you confirm, so your results reflect what real trades would cost." },
+  { q: "Can I compete with friends?", a: "Yes. Create a private league with your own stocks and schedule, then share the invite code. Everyone starts with the same cash. You can also challenge any player to a 1v1 duel from their profile." },
   { q: "What do you do with my data?", a: "We use it to run your account, the game and the leaderboards. We don't sell your personal data." },
 ];
 
