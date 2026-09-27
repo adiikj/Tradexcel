@@ -50,7 +50,7 @@ const PUBLIC_USER_FIELDS = {
 
 async function sendOtpEmail(email: string, otp: string) {
   try {
-    const { html, text } = otpEmailTemplate(otp);
+    const { html, text } = otpEmailTemplate(otp, email);
     await sendEmail({
       to: email,
       subject: "Your Tradexcel verification code",
@@ -525,7 +525,7 @@ const forgotPassword = asyncHandler(async (req: any, res: any) => {
       },
     });
     try {
-      const { html, text } = passwordResetEmailTemplate(code);
+      const { html, text } = passwordResetEmailTemplate(code, email);
       await sendEmail({ to: email, subject: "Your Tradexcel password reset code", html, text });
     } catch (error: any) {
       logger.error({ err: error }, "Error sending password reset email");
