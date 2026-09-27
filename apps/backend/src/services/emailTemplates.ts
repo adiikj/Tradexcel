@@ -201,3 +201,90 @@ export function supportRequestEmailTemplate(
 
   return { html, text };
 }
+
+export type WeeklyRecap = {
+  name: string;
+  pnlPercent: number;
+  endNetWorth: number;
+  rank: number;
+  players: number;
+  trades: number;
+  badges: string[]; // "🎉 First Trade"
+  siteUrl: string;
+};
+
+// Monday's "your week" email (services/weeklyRecap.ts).
+export function weeklyRecapEmailTemplate(r: WeeklyRecap): { subject: string; html: string; text: string } {
+  const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const inr = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(r.endNetWorth);
+  const pct = `${r.pnlPercent >= 0 ? "+" : ""}${r.pnlPercent.toFixed(2)}%`;
+  const color = r.pnlPercent > 0 ? "#16a34a" : r.pnlPercent < 0 ? "#dc2626" : "#1e293b";
+  const subject = `Your week on Tradexcel: ${pct}, #${r.rank} of ${r.players}`;
+  const badgeLine = r.badges.length ? `Badges earned: ${r.badges.join(", ")}` : "";
+  const row = (label: string, value: string, valueColor = "#1e293b") =>
+    `<tr><td style="padding:6px 0;font-size:14px;color:#64748b;">${label}</td><td style="padding:6px 0;font-size:14px;font-weight:600;color:${valueColor};text-align:right;">${value}</td></tr>`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+  <body style="margin:0;padding:0;background-color:#F0F3F5;font-family:'Poppins',Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F0F3F5;padding:40px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background-color:#ffffff;border-radius:16px;border:1px solid #e2e8f0;">
+            <tr>
+              <td style="padding:32px 32px 12px 32px;text-align:center;">
+                <span style="font-size:22px;font-weight:700;color:#1e293b;">Trad<span style="color:#2196F3;">excel</span></span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 32px 4px 32px;text-align:center;">
+                <p style="margin:0;font-size:16px;font-weight:600;color:#1e293b;">Hi ${escape(r.name)}, here's your week</p>
+                <p style="margin:12px 0 0 0;font-size:36px;font-weight:700;color:${color};">${pct}</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 32px 8px 32px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  ${row("Final net worth", inr)}
+                  ${row("Rank", `#${r.rank} of ${r.players}`)}
+                  ${row("Trades", String(r.trades))}
+                </table>
+                ${badgeLine ? `<p style="margin:12px 0 0 0;font-size:14px;color:#1e293b;">${escape(badgeLine)}</p>` : ""}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 32px 28px 32px;text-align:center;">
+                <p style="margin:0 0 16px 0;font-size:14px;color:#64748b;">Your wallet has reset to ₹1,00,000 for the new season.</p>
+                <a href="${r.siteUrl}/dashboard" style="display:inline-block;background-color:#2196F3;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;padding:10px 24px;border-radius:10px;">Start this week</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 32px;background-color:#F8FAFC;border-top:1px solid #e2e8f0;border-radius:0 0 16px 16px;">
+                <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">
+                  You get this every Monday. <a href="${r.siteUrl}/your-profile" style="color:#94a3b8;">Turn it off in your profile settings</a>.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  const text = [
+    `Hi ${r.name}, here's your week on Tradexcel: ${pct}`,
+    "",
+    `Final net worth: ${inr}`,
+    `Rank: #${r.rank} of ${r.players}`,
+    `Trades: ${r.trades}`,
+    ...(badgeLine ? [badgeLine] : []),
+    "",
+    "Your wallet has reset to ₹1,00,000 for the new season.",
+    `${r.siteUrl}/dashboard`,
+    "",
+    `You get this every Monday. Turn it off in your profile settings: ${r.siteUrl}/your-profile`,
+  ].join("\n");
+
+  return { subject, html, text };
+}

@@ -93,6 +93,8 @@ function YourProfile() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [flags, setFlags] = useState({ hasGoogleLogin: false, hasPassword: false, hasPin: false });
   const [streak, setStreak] = useState({ current: 0, longest: 0 });
+  const [recapEmails, setRecapEmails] = useState(true);
+  const [savingRecap, setSavingRecap] = useState(false);
   const [savingDetails, setSavingDetails] = useState(false);
   const [savingAvatar, setSavingAvatar] = useState(false);
 
@@ -105,6 +107,21 @@ function YourProfile() {
   // One object URL per picked file, released when it changes or on unmount.
   const previewUrl = useMemo(() => (avatarFile ? URL.createObjectURL(avatarFile) : null), [avatarFile]);
   useEffect(() => () => void (previewUrl && URL.revokeObjectURL(previewUrl)), [previewUrl]);
+
+  const toggleRecapEmails = async () => {
+    const next = !recapEmails;
+    try {
+      setSavingRecap(true);
+      setRecapEmails(next);
+      await updateUserProfile({ weeklyRecapEmails: next });
+      toast.success(next ? "Weekly recap emails are on" : "Weekly recap emails are off");
+    } catch (err) {
+      setRecapEmails(!next);
+      toast.error(apiErrorMessage(err, "Couldn't save that setting."));
+    } finally {
+      setSavingRecap(false);
+    }
+  };
 
   const loadProfile = async (isActive: () => boolean = () => true) => {
     try {
@@ -122,6 +139,7 @@ function YourProfile() {
       setAvatarUrl(p.avatar || null);
       setFlags({ hasGoogleLogin: !!p.hasGoogleLogin, hasPassword: !!p.hasPassword, hasPin: !!p.hasPin });
       setStreak({ current: p.currentStreak || 0, longest: p.longestStreak || 0 });
+      setRecapEmails(p.weeklyRecapEmails !== false);
     } catch (err) {
       if (isActive()) toast.error(apiErrorMessage(err, "Couldn't load your profile."));
     } finally {
@@ -460,6 +478,27 @@ function YourProfile() {
                   </div>
                 </form>
               </div>
+            </Section>
+
+            {/* Emails */}
+            <Section title="Emails" description="Account emails (sign-in codes, password resets and price alerts) always come through. This one is optional.">
+              <label className="flex items-start justify-between gap-4">
+                <span>
+                  <span className="block text-sm font-medium">Weekly recap</span>
+                  <span className="block text-sm text-gray-500 dark:text-gray-400">Every Monday: your return, rank and badges from the week that just ended.</span>
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={recapEmails}
+                  aria-label="Weekly recap emails"
+                  disabled={!loaded || savingRecap}
+                  onClick={toggleRecapEmails}
+                  className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-60 ${recapEmails ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"}`}
+                >
+                  <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left] ${recapEmails ? "left-[22px]" : "left-0.5"}`} />
+                </button>
+              </label>
             </Section>
           </div>
         </main>

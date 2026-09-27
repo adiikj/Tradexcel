@@ -4,10 +4,11 @@ import { getQuotes } from "./pricing.js";
 import { calculateHoldingsValue, STARTING_BALANCE } from "./tradeMath.js";
 import { awardWeeklyChampion } from "./achievements.js";
 import logger from "../utils/logger.js";
+import { sendWeeklyRecaps } from "./weeklyRecap.js";
 
 // Weeks are aligned to Monday 00:00 UTC regardless of when the job actually
 // ticks, so the boundary is stable even if the server was briefly down.
-function getMostRecentMonday(date: Date): Date {
+export function getMostRecentMonday(date: Date): Date {
   const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
   const daysSinceMonday = (d.getUTCDay() + 6) % 7;
   d.setUTCDate(d.getUTCDate() - daysSinceMonday);
@@ -47,6 +48,7 @@ export async function runWeeklyReset(): Promise<number> {
   const quotes = allSymbols.length > 0 ? await getQuotes(allSymbols) : {};
 
   let resetCount = 0;
+  const recaps: { userId: string; pnlPercent: number; endNetWorth: number }[] = [];
 
   for (const user of users) {
     const holdingsValue = calculateHoldingsValue(user.holdings, quotes);
@@ -66,8 +68,9 @@ export async function runWeeklyReset(): Promise<number> {
           },
         }),
         prisma.holding.deleteMany({ where: { userId: user.id } }),
-        // Last week's queued sells have nothing left to sell; queued buys
-        // carry into the new season and fill from the fresh wallet.
+        // Last week's pending sells (market, limit or stop-loss) have nothing
+        // left to sell; pending buys carry into the new season and fill from
+        // the fresh wallet.
         prisma.queuedOrder.updateMany({
           where: { userId: user.id, side: "SELL", status: "PENDING", createdAt: { lt: weekEnd } },
           data: { status: "CANCELLED", failureReason: "The weekly reset sold all holdings", resolvedAt: new Date() },
@@ -75,6 +78,7 @@ export async function runWeeklyReset(): Promise<number> {
         prisma.wallet.update({ where: { userId: user.id }, data: { balance: STARTING_BALANCE } }),
       ]);
       resetCount += 1;
+      recaps.push({ userId: user.id, pnlPercent: pnlPercent.toDecimalPlaces(2).toNumber(), endNetWorth: endNetWorth.toNumber() });
     } catch (error: any) {
       if (error?.code !== "P2002") {
         logger.error({ err: error }, `Weekly reset failed for user ${user.id}`);
@@ -85,6 +89,11 @@ export async function runWeeklyReset(): Promise<number> {
   // Idempotent (awardBadge no-ops on an already-earned badge), so it's safe
   // to call this every run rather than only when resetCount > 0.
   await awardWeeklyChampion(weekStart).catch((error) => logger.error({ err: error }, "Error awarding weekly champion"));
+
+  // Slow on purpose (rate-limited), so it runs in the background.
+  sendWeeklyRecaps(weekStart, weekEnd, recaps)
+    .then((sent) => sent && logger.info({ sent }, "Sent weekly recap emails"))
+    .catch((error) => logger.error({ err: error }, "Weekly recap emails failed"));
 
   return resetCount;
 }

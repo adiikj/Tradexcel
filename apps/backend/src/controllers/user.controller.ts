@@ -45,6 +45,7 @@ const PUBLIC_USER_FIELDS = {
   createdAt: true,
   currentStreak: true,
   longestStreak: true,
+  weeklyRecapEmails: true,
 } as const;
 
 async function sendOtpEmail(email: string, otp: string) {
@@ -597,6 +598,7 @@ const updateUserSchema = z.object({
     .optional(),
   email: z.string().trim().toLowerCase().email().optional(),
   dob: z.coerce.date().optional(),
+  weeklyRecapEmails: z.boolean().optional(),
 });
 
 const updateUser = asyncHandler(async (req: any, res: any) => {
