@@ -8,6 +8,8 @@ import { startContestSettlementJob } from './jobs/contestSettlement.js';
 import { startAlertCheckerJob } from './jobs/alertChecker.js';
 import { startWeeklyResetJob } from './jobs/weeklyReset.js';
 import { startQueuedOrdersJob } from './jobs/queuedOrders.js';
+import { startDailySnapshotJob } from './jobs/dailySnapshot.js';
+import { startPredictionsJob } from './jobs/predictions.js';
 import { initPriceSocket } from './realtime/priceSocket.js';
 import { chatEnabled } from './chat/runtime/config.js';
 import { warmChatEngine } from './chat/runtime/engine.js';
@@ -28,6 +30,8 @@ connectDB()
     startAlertCheckerJob();
     startWeeklyResetJob();
     startQueuedOrdersJob();
+    startDailySnapshotJob();
+    startPredictionsJob();
     initPriceSocket(server);
     // Loads the assistant's model in the background; the server is already serving.
     if (chatEnabled()) warmChatEngine();

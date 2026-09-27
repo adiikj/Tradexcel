@@ -71,6 +71,18 @@ import alertRouter from './routes/alert.routes.js';
 
 app.use('/api/v1', alertRouter);
 
+import watchlistRouter from './routes/watchlist.routes.js';
+
+app.use('/api/v1', watchlistRouter);
+
+import learnRouter from './routes/learn.routes.js';
+
+app.use('/api/v1', learnRouter);
+
+import predictionRouter from './routes/prediction.routes.js';
+
+app.use('/api/v1', predictionRouter);
+
 import adminRouter from './routes/admin.routes.js';
 
 app.use('/api/v1', adminRouter);
