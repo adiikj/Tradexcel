@@ -47,7 +47,7 @@ function FeatureGrid() {
       <Feature side className="lg:col-span-2" title="Live NSE prices" desc="Trade 250+ stocks at the real market price with market, limit and stop-loss orders. Chart anything from one day to five years and star the ones you watch.">
         <Shot src={marketShot} alt="The Market page with a live stock chart" />
       </Feature>
-      <Feature title="Weekly seasons" desc="Every Monday your cash resets to ₹1,00,000 and your result is saved. A bad week never follows you.">
+      <Feature title="Weekly seasons" desc="Every Monday your cash resets to ₹1,00,000, your result is saved and a recap lands in your inbox. A bad week never follows you.">
         <div className="rounded-2xl bg-grey p-5">
           <p className="text-xs text-gray-500">Season resets in</p>
           <p className="font-pop text-3xl font-semibold tabular-nums">3d 14h</p>
@@ -63,7 +63,7 @@ function FeatureGrid() {
           </div>
         </div>
       </Feature>
-      <Feature title="Contests and private leagues" desc="Join timed public contests, or create a league with its own stocks and invite your friends with a code.">
+      <Feature title="Contests and private leagues" desc="Join timed public contests, or create a league from whole sectors with your own rules, and invite friends with a code.">
         <div className="rounded-2xl bg-grey p-5">
           <div className="flex items-start justify-between gap-3">
             <p className="font-pop font-semibold">Friday Night League</p>
