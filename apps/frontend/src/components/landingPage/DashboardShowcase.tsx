@@ -8,7 +8,7 @@ import wallet from "../../assets/tradexcel/dash-wallet.png";
 import market from "../../assets/tradexcel/dash-market-live.png";
 import analytics from "../../assets/tradexcel/dash-analytics.png";
 import learn from "../../assets/tradexcel/dash-learn.png";
-import home from "../../assets/tradexcel/dash-daily-call.png";
+import home from "../../assets/tradexcel/dash-home-live.png";
 import contests from "../../assets/tradexcel/dash-contests.png";
 import leaderboard from "../../assets/tradexcel/dash-leaderboard.png";
 import achievements from "../../assets/tradexcel/dash-achievements.png";
