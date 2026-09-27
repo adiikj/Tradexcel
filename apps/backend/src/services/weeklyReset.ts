@@ -5,6 +5,7 @@ import { calculateHoldingsValue, STARTING_BALANCE } from "./tradeMath.js";
 import { awardWeeklyChampion } from "./achievements.js";
 import logger from "../utils/logger.js";
 import { sendWeeklyRecaps } from "./weeklyRecap.js";
+import { lockWallet } from "./ledgerLock.js";
 
 // Weeks are aligned to Monday 00:00 UTC regardless of when the job actually
 // ticks, so the boundary is stable even if the server was briefly down.
@@ -33,13 +34,12 @@ export async function runWeeklyReset(): Promise<number> {
   const weekStart = new Date(weekEnd);
   weekStart.setUTCDate(weekStart.getUTCDate() - 7);
 
+  // Only wallets that already existed when the week ended. A player who
+  // verified after this Monday's boundary started on a fresh wallet this
+  // week; the startup catch-up run must not close out a week they never played.
   const users = await prisma.user.findMany({
-    where: { otpVerified: true, wallet: { isNot: null } },
-    select: {
-      id: true,
-      wallet: { select: { balance: true } },
-      holdings: { select: { symbol: true, quantity: true, avgBuyPrice: true } },
-    },
+    where: { otpVerified: true, wallet: { is: { createdAt: { lt: weekEnd } } } },
+    select: { id: true, holdings: { select: { symbol: true } } },
   });
 
   if (users.length === 0) return 0;
@@ -51,13 +51,20 @@ export async function runWeeklyReset(): Promise<number> {
   const recaps: { userId: string; pnlPercent: number; endNetWorth: number }[] = [];
 
   for (const user of users) {
-    const holdingsValue = calculateHoldingsValue(user.holdings, quotes);
-    const endNetWorth = user.wallet!.balance.add(holdingsValue);
-    const pnlPercent = endNetWorth.sub(STARTING_BALANCE).div(STARTING_BALANCE).mul(100);
-
     try {
-      await prisma.$transaction([
-        prisma.weeklySnapshot.create({
+      const result = await prisma.$transaction(async (tx) => {
+        // Same lock as a trade, so an order placed right at the boundary
+        // can't interleave with the snapshot and the reset.
+        await lockWallet(tx, user.id);
+        const [wallet, holdings] = await Promise.all([
+          tx.wallet.findUniqueOrThrow({ where: { userId: user.id }, select: { balance: true } }),
+          tx.holding.findMany({ where: { userId: user.id }, select: { symbol: true, quantity: true, avgBuyPrice: true } }),
+        ]);
+        const endNetWorth = wallet.balance.add(calculateHoldingsValue(holdings, quotes));
+        const pnlPercent = endNetWorth.sub(STARTING_BALANCE).div(STARTING_BALANCE).mul(100);
+
+        // Throws P2002 if this week is already closed out, rolling back the rest.
+        await tx.weeklySnapshot.create({
           data: {
             userId: user.id,
             weekStart,
@@ -66,19 +73,24 @@ export async function runWeeklyReset(): Promise<number> {
             endNetWorth,
             pnlPercent,
           },
-        }),
-        prisma.holding.deleteMany({ where: { userId: user.id } }),
+        });
+        await tx.holding.deleteMany({ where: { userId: user.id } });
         // Last week's pending sells (market, limit or stop-loss) have nothing
         // left to sell; pending buys carry into the new season and fill from
         // the fresh wallet.
-        prisma.queuedOrder.updateMany({
+        await tx.queuedOrder.updateMany({
           where: { userId: user.id, side: "SELL", status: "PENDING", createdAt: { lt: weekEnd } },
           data: { status: "CANCELLED", failureReason: "The weekly reset sold all holdings", resolvedAt: new Date() },
-        }),
-        prisma.wallet.update({ where: { userId: user.id }, data: { balance: STARTING_BALANCE } }),
-      ]);
+        });
+        await tx.wallet.update({ where: { userId: user.id }, data: { balance: STARTING_BALANCE } });
+        return { endNetWorth, pnlPercent };
+      });
       resetCount += 1;
-      recaps.push({ userId: user.id, pnlPercent: pnlPercent.toDecimalPlaces(2).toNumber(), endNetWorth: endNetWorth.toNumber() });
+      recaps.push({
+        userId: user.id,
+        pnlPercent: result.pnlPercent.toDecimalPlaces(2).toNumber(),
+        endNetWorth: result.endNetWorth.toNumber(),
+      });
     } catch (error: any) {
       if (error?.code !== "P2002") {
         logger.error({ err: error }, `Weekly reset failed for user ${user.id}`);
