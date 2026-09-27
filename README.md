@@ -91,25 +91,25 @@ This is a portfolio project. It aims to show a correct trading engine, a clean f
 |---|---|
 | ![Market and watchlist](apps/frontend/src/assets/tradexcel/dash-market-live.png) | ![Learn: quests and practice runs](apps/frontend/src/assets/tradexcel/dash-learn.png) |
 
-| Season analytics | Daily call |
+| Season analytics | Portfolio |
 |---|---|
-| ![Season analytics](apps/frontend/src/assets/tradexcel/dash-analytics.png) | ![Daily call](apps/frontend/src/assets/tradexcel/dash-daily-call.png) |
+| ![Season analytics](apps/frontend/src/assets/tradexcel/dash-analytics.png) | ![Portfolio](apps/frontend/src/assets/tradexcel/dash-portfolio.png) |
 
-| Portfolio | Wallet |
+| Wallet | Contests |
 |---|---|
-| ![Portfolio](apps/frontend/src/assets/tradexcel/dash-portfolio.png) | ![Wallet](apps/frontend/src/assets/tradexcel/dash-wallet.png) |
+| ![Wallet](apps/frontend/src/assets/tradexcel/dash-wallet.png) | ![Contests](apps/frontend/src/assets/tradexcel/dash-contests.png) |
 
-| Contests | Private league setup |
+| Private league setup | Leaderboard |
 |---|---|
-| ![Contests](apps/frontend/src/assets/tradexcel/dash-contests.png) | ![Create a private contest](apps/frontend/src/assets/tradexcel/dash-contests-create.png) |
+| ![Create a private contest](apps/frontend/src/assets/tradexcel/dash-contests-create.png) | ![Leaderboard](apps/frontend/src/assets/tradexcel/dash-leaderboard.png) |
 
-| Leaderboard | Achievements |
+| Achievements | Profile |
 |---|---|
-| ![Leaderboard](apps/frontend/src/assets/tradexcel/dash-leaderboard.png) | ![Achievements](apps/frontend/src/assets/tradexcel/dash-achievements.png) |
+| ![Achievements](apps/frontend/src/assets/tradexcel/dash-achievements.png) | ![Profile](apps/frontend/src/assets/tradexcel/dash-profile.png) |
 
-| Profile | News |
-|---|---|
-| ![Profile](apps/frontend/src/assets/tradexcel/dash-profile.png) | ![News](apps/frontend/src/assets/tradexcel/dash-news.png) |
+| News |
+|---|
+| ![News](apps/frontend/src/assets/tradexcel/dash-news.png) |
 
 ## Tex, the in-app assistant
 
