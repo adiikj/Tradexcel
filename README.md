@@ -15,7 +15,7 @@
   <a href="ml/README.md">ML pipeline</a>
 </p>
 
-![Market page](apps/frontend/src/assets/tradexcel/dash-market.png)
+![Market page with watchlist stars](apps/frontend/src/assets/tradexcel/dash-market-live.png)
 
 ## Contents
 
@@ -87,21 +87,29 @@ This is a portfolio project. It aims to show a correct trading engine, a clean f
 
 ## Screenshots
 
-| Portfolio | Wallet |
+| Learn: quests and practice runs | Season analytics |
 |---|---|
-| ![Portfolio](apps/frontend/src/assets/tradexcel/dash-portfolio.png) | ![Wallet](apps/frontend/src/assets/tradexcel/dash-wallet.png) |
+| ![Learn: quests and practice runs](apps/frontend/src/assets/tradexcel/dash-learn.png) | ![Season analytics](apps/frontend/src/assets/tradexcel/dash-analytics.png) |
 
-| Contests | Leaderboard |
+| Dashboard and daily call | Portfolio |
 |---|---|
-| ![Contests](apps/frontend/src/assets/tradexcel/dash-contests.png) | ![Leaderboard](apps/frontend/src/assets/tradexcel/dash-leaderboard.png) |
+| ![Dashboard and daily call](apps/frontend/src/assets/tradexcel/dash-daily-call.png) | ![Portfolio](apps/frontend/src/assets/tradexcel/dash-portfolio.png) |
 
-| Achievements | Profile |
+| Wallet | Contests |
 |---|---|
-| ![Achievements](apps/frontend/src/assets/tradexcel/dash-achievements.png) | ![Profile](apps/frontend/src/assets/tradexcel/dash-profile.png) |
+| ![Wallet](apps/frontend/src/assets/tradexcel/dash-wallet.png) | ![Contests](apps/frontend/src/assets/tradexcel/dash-contests.png) |
 
-| News | Private league setup |
+| Leaderboard | Achievements |
 |---|---|
-| ![News](apps/frontend/src/assets/tradexcel/dash-news.png) | ![Create a private contest](apps/frontend/src/assets/tradexcel/dash-contests-create.png) |
+| ![Leaderboard](apps/frontend/src/assets/tradexcel/dash-leaderboard.png) | ![Achievements](apps/frontend/src/assets/tradexcel/dash-achievements.png) |
+
+| Profile | News |
+|---|---|
+| ![Profile](apps/frontend/src/assets/tradexcel/dash-profile.png) | ![News](apps/frontend/src/assets/tradexcel/dash-news.png) |
+
+| Private league setup |
+|---|
+| ![Create a private contest](apps/frontend/src/assets/tradexcel/dash-contests-create.png) |
 
 ## Tex, the in-app assistant
 
