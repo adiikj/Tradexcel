@@ -152,8 +152,8 @@ Tradexcel/
 │       ├── chat/kb/        assistant knowledge base (YAML cards, intents, stock aliases, eval sets)
 │       └── src/
 │           ├── controllers/, routes/, middlewares/
-│           ├── services/   trading math, pricing, contests, achievements, weekly reset
-│           ├── jobs/       cron jobs (settlement, alerts, weekly reset, queued orders)
+│           ├── services/   trading math, charges, pricing, contests, analytics, quests, achievements, weekly reset
+│           ├── jobs/       cron jobs (settlement, alerts, weekly reset, queued orders, snapshots, daily call)
 │           ├── realtime/   Socket.IO price feed
 │           └── chat/       assistant runtime (encoder, router, handlers, linker)
 ├── packages/
@@ -269,12 +269,14 @@ ML commands (training, baselines, evaluation, ONNX export) are documented in [ml
 ## Testing
 
 ```bash
-pnpm --filter @tradexcel/backend test     # trade math, queued orders, charts, contest clock, chat runtime, KB
-pnpm --filter @tradexcel/frontend test    # auth session, HTTP client, theme, chat widget
+pnpm --filter @tradexcel/backend test     # trade math, charges, open orders, analytics, contest rules, quests, charts, chat runtime, KB
+pnpm --filter @tradexcel/frontend test    # auth session, HTTP client, trade modal, watchlist, theme, chat widget
 cd ml && .venv/bin/python -m pytest       # data splits, metrics, linker, router, guard rules
 ```
 
 The backend chat tests include a parity fixture that checks the Node runtime produces the same embeddings and routing decisions as the Python pipeline.
+
+GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs typechecks, lint and both test suites on every push to `main` and on pull requests. None of the tests need a database.
 
 ## Architecture notes
 
@@ -287,9 +289,11 @@ The backend chat tests include a parity fixture that checks the Node runtime pro
   | Contest settlement (final ranks, badges) | every minute |
   | Queued order execution | every minute |
   | Price alert checker (skipped when the market is closed) | every 2 minutes |
-  | Weekly reset | Monday 00:00 UTC |
+  | Net worth snapshots (for the season chart) | weekdays 3:35 PM IST |
+  | Daily call resolution | weekdays 3:45 PM IST |
+  | Weekly reset, then recap emails | Monday 00:00 UTC |
 
-  Settlement, alerts and the weekly reset also run once at startup, so nothing is missed across restarts.
+  Settlement, alerts, the weekly reset and daily call resolution also run once at startup, so nothing is missed across restarts.
 - **Price caching.** Quotes are cached for 12 seconds while the market is open and 30 minutes when it's closed, which keeps Yahoo Finance traffic low.
 - **Security.** Helmet headers, CORS locked to the frontend origin, JWT access and refresh tokens in httpOnly cookies, tiered rate limits (global, auth, public, mutation, trade and chat) and a separate credential path for admins.
 - **Shared types.** `packages/shared` holds the wire types and stock universe used by both apps.
