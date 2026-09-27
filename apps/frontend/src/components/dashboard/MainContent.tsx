@@ -147,7 +147,7 @@ function MainContent() {
 
       <MarketClosedBanner />
 
-      {/* Left: portfolio (net worth, then holdings). Right: today's market. */}
+      {/* Left: portfolio (net worth, then holdings). Right: daily call and today's market. */}
       <div className="grid gap-4 lg:grid-cols-3">
         <section className="rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 dark:bg-gray-900 dark:shadow-none dark:ring-gray-800 lg:col-span-2">
           <div data-tour="networth" className="p-5 md:p-6">
@@ -288,21 +288,24 @@ function MainContent() {
           </div>
         </section>
 
-        <Card
-          title="Today's market"
-          tour="movers"
-          action={
-            <Link href="/market" className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400">
-              All stocks
-            </Link>
-          }
-        >
-          {/* Longer list when the holdings list is long, so both columns end together. */}
-          <MarketMovers limit={topHoldings.length >= 4 ? 8 : 6} />
-        </Card>
+        {/* Right: the daily call up top, where it's seen without scrolling, then today's market. */}
+        <div className="flex min-w-0 flex-col gap-4">
+          <DailyCall />
+          <Card
+            title="Today's market"
+            tour="movers"
+            className="flex-1"
+            action={
+              <Link href="/market" className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400">
+                All stocks
+              </Link>
+            }
+          >
+            {/* Longer list when the holdings list is long, so both columns end together. */}
+            <MarketMovers limit={topHoldings.length >= 4 ? 6 : 5} />
+          </Card>
+        </div>
       </div>
-
-      <DailyCall />
     </main>
   );
 }
