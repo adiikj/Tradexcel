@@ -28,7 +28,7 @@ const tabs = [
     label: "Portfolio",
     img: portfolio,
     heading: "Track every holding, live",
-    desc: "Net worth, invested amount, cash on hand, and a full allocation breakdown across every position you hold.",
+    desc: "Net worth, cash on hand, open orders and a full allocation breakdown, with this season's analytics right below.",
   },
   {
     key: "wallet",
