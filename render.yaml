@@ -1,0 +1,54 @@
+services:
+  - type: web
+    name: tradexcel-api
+    runtime: node
+    plan: starter
+    region: singapore
+    branch: main
+    # Only redeploy when the backend or what it depends on changes.
+    buildFilter:
+      paths:
+        - apps/backend/**
+        - packages/shared/**
+        - pnpm-lock.yaml
+        - package.json
+    # --prod=false: NODE_ENV=production would otherwise skip typescript/prisma.
+    # The "..." filter builds @tradexcel/shared first (its dist/ isn't committed).
+    buildCommand: corepack enable && pnpm install --frozen-lockfile --prod=false && pnpm --filter "@tradexcel/backend..." build
+    preDeployCommand: pnpm --filter @tradexcel/backend db:deploy
+    startCommand: pnpm --filter @tradexcel/backend start
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: ACCESS_TOKEN_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRY
+        value: 1d
+      - key: REFRESH_TOKEN_EXPIRY
+        value: 10d
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      - key: CLOUDINARY_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_TOKEN_SECRET
+        generateValue: true
+      - key: ADMIN_TOKEN_EXPIRY
+        value: 2h
