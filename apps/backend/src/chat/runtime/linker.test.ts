@@ -31,11 +31,11 @@ describe("parity with the Python pipeline", () => {
       .map(({ c, got }) => `${c.text}: expected ${JSON.stringify(c.symbols)}/${JSON.stringify(c.ambiguous)}, got ${JSON.stringify(got)}`);
     expect(mismatches).toEqual([]);
     expect(fixture.cases.length).toBeGreaterThan(1000);
-  });
+  }, 60_000); // 1000+ fuzzy matches; slow under coverage instrumentation
 
   it("applies the guard patterns exactly like ml/tradexcel_ml/guard_rules.py", () => {
     const guards = compileGuards(fixture.guard_patterns);
     const mismatches = fixture.cases.filter((c) => guardMatch(guards, c.text) !== c.guard).map((c) => c.text);
     expect(mismatches).toEqual([]);
-  });
+  }, 60_000);
 });

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { Request, Response } from "express";
-import { ApiError } from "../utils/ApiError.js";
 import { validationError } from "../utils/validation.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";

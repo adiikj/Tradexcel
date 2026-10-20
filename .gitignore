@@ -13,6 +13,7 @@ dist-ssr/
 .next/
 out/
 build/
+coverage/
 
 # typescript / next auto-generated
 *.tsbuildinfo

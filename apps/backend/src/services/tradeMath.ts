@@ -19,7 +19,7 @@ export const tradeSchema = z.object({
     .max(15, "symbol is too long")
     // The shape is checked before the uppercase transform below, so the
     // pattern has to allow either case.
-    .regex(/^[A-Za-z0-9&.\-]+$/, "symbol contains invalid characters")
+    .regex(/^[A-Za-z0-9&.-]+$/, "symbol contains invalid characters")
     .transform((s) => s.toUpperCase())
     .refine((s) => LISTED_SYMBOLS.has(s), "that stock isn't listed"),
   quantity: z.coerce.number().int().positive("quantity must be a positive integer"),

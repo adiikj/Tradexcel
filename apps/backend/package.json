@@ -6,6 +6,8 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --max-warnings 0",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "build": "prisma generate && tsc",
@@ -48,6 +50,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
@@ -56,10 +59,13 @@
     "@types/multer": "^2.1.0",
     "@types/node": "^25.5.0",
     "@types/node-cron": "^3.0.11",
+    "@vitest/coverage-v8": "^4.1.9",
+    "eslint": "^9.39.4",
     "nodemon": "^3.1.7",
     "prisma": "^6.0.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
+    "typescript-eslint": "^8.70.1",
     "vitest": "^4.1.9"
   },
   "engines": {

@@ -28,7 +28,7 @@ const INVITE_CODE_LENGTH = 8;
 function toContestResponse<T extends { startAt: Date; endAt: Date; historicalDates: Date[] }>(
   contest: T
 ): Omit<T, "historicalDates"> & { status: "UPCOMING" | "LIVE" | "ENDED"; simulatedDate: Date | null } {
-  const { historicalDates, ...rest } = contest;
+  const { historicalDates: _historicalDates, ...rest } = contest;
   return {
     ...rest,
     status: deriveStatus(contest),
