@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { SITE_URL } from "@tradexcel/shared";
 import "../index.css";
 import Providers from "./Providers";
 import React from "react";
@@ -8,7 +9,9 @@ const description =
   "Tradexcel is a gamified stock-trading simulator. Trade real-time stock prices with virtual money, build your portfolio, and climb the leaderboard.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://tradexcel.app"),
+  // The site's own origin - every canonical tag, OpenGraph URL and social card
+  // is built from this, so it must never point at another host.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || SITE_URL),
   title: { default: "Tradexcel", template: "%s · Tradexcel" },
   description,
   openGraph: { siteName: "Tradexcel", type: "website", description },

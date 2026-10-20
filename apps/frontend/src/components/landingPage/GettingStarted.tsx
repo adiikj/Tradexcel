@@ -2,8 +2,12 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, animate, motion, useReducedMotion } from "framer-motion";
+import { SITE_URL } from "@tradexcel/shared";
 
 const STEP_MS = 4500;
+
+// The host as a browser would show it in the address bar, e.g. "tradexcel.site".
+const SITE_HOST = new URL(SITE_URL).host;
 
 const STEPS = [
   { title: "Sign up free", desc: "Create an account in under a minute. No payment details, ever.", path: "signup" },
@@ -263,7 +267,7 @@ function GettingStarted({ showHeading = true }: { showHeading?: boolean }) {
                 <span className="h-2.5 w-2.5 rounded-full bg-gray-200" />
                 <span className="h-2.5 w-2.5 rounded-full bg-gray-200" />
               </span>
-              <span className="flex-1 truncate rounded-lg bg-grey px-3 py-1 text-center text-xs text-gray-500">tradexcel.app/{STEPS[active].path}</span>
+              <span className="flex-1 truncate rounded-lg bg-grey px-3 py-1 text-center text-xs text-gray-500">{SITE_HOST}/{STEPS[active].path}</span>
             </div>
             <div className="flex min-h-[300px] items-center justify-center p-6">
               <AnimatePresence mode="wait">

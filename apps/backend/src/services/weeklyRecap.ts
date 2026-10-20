@@ -3,6 +3,7 @@ import logger from "../utils/logger.js";
 import { sendEmail } from "./mailer.js";
 import { weeklyRecapEmailTemplate } from "./emailTemplates.js";
 import { BADGE_CATALOG } from "./achievements.js";
+import { SITE_URL } from "@tradexcel/shared";
 
 // Resend's default rate limit is 2 emails a second; stay under it.
 const SEND_GAP_MS = 600;
@@ -34,7 +35,11 @@ export async function sendWeeklyRecaps(weekStart: Date, weekEnd: Date, results: 
     select: { id: true, name: true, email: true },
   });
   const byId = new Map(results.map((r) => [r.userId, r]));
-  const siteUrl = (process.env.CORS_ORIGIN || "https://tradexcel.app").split(",")[0].replace(/\/$/, "");
+  // The links in the email point at the site's own pages. This used to be
+  // derived from CORS_ORIGIN, which is a different thing entirely (the
+  // origins allowed to call the API) and meant a CORS change could silently
+  // rewrite every link in the email.
+  const siteBase = (process.env.SITE_URL || SITE_URL).replace(/\/+$/, "");
   let sent = 0;
 
   for (const user of users) {
@@ -55,7 +60,7 @@ export async function sendWeeklyRecaps(weekStart: Date, weekEnd: Date, results: 
           const def = BADGE_CATALOG.find((d) => d.id === b.badgeId);
           return def ? [`${def.icon} ${def.name}`] : [];
         }),
-        siteUrl,
+        siteUrl: siteBase,
       });
       await sendEmail({ to: user.email, subject, html, text });
       sent += 1;

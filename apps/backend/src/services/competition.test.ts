@@ -59,13 +59,13 @@ describe("weeklyRecapEmailTemplate", () => {
       players: 40,
       trades: 7,
       badges: ["🎉 First Trade"],
-      siteUrl: "https://tradexcel.app",
+      siteUrl: "https://www.tradexcel.site",
     });
     expect(subject).toBe("Your week on Tradexcel: +3.46%, #2 of 40");
     expect(html).toContain("Asha &lt;script&gt;");
     expect(html).not.toContain("<script>");
     expect(text).toContain("Badges earned: 🎉 First Trade");
-    expect(text).toContain("https://tradexcel.app/your-profile");
+    expect(text).toContain("https://www.tradexcel.site/your-profile");
   });
 });
 

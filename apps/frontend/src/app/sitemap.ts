@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@tradexcel/shared";
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://tradexcel.app";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || SITE_URL;
 const PAGES = ["", "/how-it-works", "/why-us", "/about", "/blog", "/contactus", "/signup", "/signin", "/terms", "/privacy"];
 
 export default function sitemap(): MetadataRoute.Sitemap {

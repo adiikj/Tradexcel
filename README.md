@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://tradexcel.app">Live site</a> ·
+  <a href="https://www.tradexcel.site">Live site</a> ·
   <a href="https://huggingface.co/adiikj/tradexcel-assistant-encoder">Assistant model on Hugging Face</a> ·
   <a href="ml/README.md">ML pipeline</a>
 </p>

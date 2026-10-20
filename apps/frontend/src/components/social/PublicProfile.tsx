@@ -1,6 +1,7 @@
 "use client";
 import React, { useCallback, useState } from "react";
 import Link from "next/link";
+import { siteUrl } from "@tradexcel/shared";
 import { hasSession } from "../../utils/sessionFlag";
 import { useBrowserValue } from "../../hooks/useBrowserValue";
 import Header from "../dashboard/Header";
@@ -135,7 +136,7 @@ function PublicProfile({ username, viewerLoggedIn }: PublicProfileProps) {
     }
   };
 
-  const shareUrl = typeof window !== "undefined" ? window.location.href : `https://tradexcel.app/u/${username}`;
+  const shareUrl = typeof window !== "undefined" ? window.location.href : siteUrl(`/u/${username}`);
 
   const countButton = (kind: "followers" | "following", count: number) => {
     const label = kind === "followers" ? "Followers" : "Following";

@@ -52,7 +52,7 @@ cards:
     category: platform
     title: Your public profile
     answer: |
-      Every player has a public profile at **tradexcel.app/u/your-username**. It shows your name, photo, net worth, rank, title, streak, badges and weekly results. Use the **share** button to send the link to anyone.
+      Every player has a public profile at **tradexcel.site/u/your-username**. It shows your name, photo, net worth, rank, title, streak, badges and weekly results. Use the **share** button to send the link to anyone.
       Your individual trades appear in your followers' Activity feeds.
     questions:
       - what can other players see about me
