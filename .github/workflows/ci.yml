@@ -6,15 +6,30 @@ on:
   pull_request:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   check:
     runs-on: ubuntu-latest
     env:
-      # Tests never connect; Prisma just needs a well-formed URL to load.
+      # Points at the Postgres service container below. The tests never use it
+      # themselves, but the migration and drift checks do.
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -37,8 +52,31 @@ jobs:
 
       - name: Backend - typecheck
         run: pnpm --filter @tradexcel/backend exec tsc --noEmit
+      # The build the VM actually runs (prisma generate && tsc), so a build
+      # error that the typecheck misses can't reach production.
+      - name: Backend - build
+        run: pnpm --filter @tradexcel/backend build
+      - name: Backend - lint
+        run: pnpm --filter @tradexcel/backend lint
       - name: Backend - test
         run: pnpm --filter @tradexcel/backend test
+      - name: Backend - coverage
+        run: pnpm --filter @tradexcel/backend test:coverage
+
+      # The schema and the migrations have to agree, or the VM ends up running
+      # new code against an old database.
+      - name: Database - validate
+        run: pnpm --filter @tradexcel/backend exec prisma validate
+      - name: Database - format check
+        run: pnpm --filter @tradexcel/backend exec prisma format --check
+      - name: Database - migrate
+        run: pnpm --filter @tradexcel/backend exec prisma migrate deploy
+      # The shadow database is where the migrations are replayed to compare
+      # the result with schema.prisma.
+      - name: Database - create shadow
+        run: docker exec ${{ job.services.postgres.id }} psql -U ci -c "CREATE DATABASE ci_shadow;"
+      - name: Database - drift check
+        run: pnpm --filter @tradexcel/backend exec prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url postgresql://ci:ci@localhost:5432/ci_shadow --exit-code
 
       - name: Frontend - typecheck
         run: pnpm --filter @tradexcel/frontend typecheck
