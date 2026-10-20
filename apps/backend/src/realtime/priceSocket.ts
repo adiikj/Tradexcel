@@ -4,6 +4,7 @@ import { corsOptions } from "../config/cors.js";
 import { getQuotes } from "../services/pricing.js";
 import { isMarketOpen, getNextOpenLabel } from "../services/marketHours.js";
 import { MAX_BATCH_SYMBOLS } from "../controllers/finance.controller.js";
+import logger from "../utils/logger.js";
 
 function buildMarketStatusPayload() {
   const open = isMarketOpen();
@@ -18,6 +19,9 @@ const subscriptions = new Map<string, Set<string>>();
 const socketSymbols = new Map<string, Set<string>>();
 const connectionsByIp = new Map<string, number>();
 const lastBroadcast = new Map<string, { price: number; changePercent: number | null }>();
+// Whether the market was open at the last tick, so the status change is
+// broadcast once rather than on every tick.
+let marketWasOpen = isMarketOpen();
 
 function normalizeSymbols(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
@@ -64,45 +68,52 @@ function cleanupSocket(socket: Socket, ip: string) {
 // so ticking every 5s doesn't add Yahoo load beyond what a single viewer
 // already causes.
 function startBroadcastLoop(io: SocketIOServer) {
-  let marketWasOpen = isMarketOpen();
-
-  setInterval(async () => {
-    const marketOpen = isMarketOpen();
-    if (marketOpen !== marketWasOpen) {
-      marketWasOpen = marketOpen;
-      io.emit("marketStatus", buildMarketStatusPayload());
-    }
-
-    // NSE prices can't move outside trading hours - nothing to fetch or emit.
-    if (!marketOpen) return;
-
-    const activeSymbols = [...subscriptions.entries()]
-      .filter(([, sockets]) => sockets.size > 0)
-      .map(([symbol]) => symbol);
-
-    if (activeSymbols.length === 0) return;
-
-    const quotes = await getQuotes(activeSymbols);
-
-    for (const symbol of activeSymbols) {
-      const quote = quotes[symbol];
-      if (!quote) continue;
-
-      const prev = lastBroadcast.get(symbol);
-      if (prev && prev.price === quote.price && prev.changePercent === quote.changePercent) {
-        continue;
-      }
-
-      lastBroadcast.set(symbol, { price: quote.price, changePercent: quote.changePercent });
-      io.to(symbol).emit("price", {
-        symbol,
-        price: quote.price,
-        change: quote.change,
-        changePercent: quote.changePercent,
-        timestamp: quote.timestamp,
-      });
-    }
+  // The tick is async, so anything it throws would be an unhandled rejection -
+  // and an unhandled rejection inside a timer takes the process down. A failed
+  // tick just means the next one tries again.
+  setInterval(() => {
+    void broadcastTick(io).catch((error) => {
+      logger.error({ err: error }, "Price broadcast tick failed");
+    });
   }, BROADCAST_INTERVAL_MS);
+}
+
+async function broadcastTick(io: SocketIOServer) {
+  const marketOpen = isMarketOpen();
+  if (marketOpen !== marketWasOpen) {
+    marketWasOpen = marketOpen;
+    io.emit("marketStatus", buildMarketStatusPayload());
+  }
+
+  // NSE prices can't move outside trading hours - nothing to fetch or emit.
+  if (!marketOpen) return;
+
+  const activeSymbols = [...subscriptions.entries()]
+    .filter(([, sockets]) => sockets.size > 0)
+    .map(([symbol]) => symbol);
+
+  if (activeSymbols.length === 0) return;
+
+  const quotes = await getQuotes(activeSymbols);
+
+  for (const symbol of activeSymbols) {
+    const quote = quotes[symbol];
+    if (!quote) continue;
+
+    const prev = lastBroadcast.get(symbol);
+    if (prev && prev.price === quote.price && prev.changePercent === quote.changePercent) {
+      continue;
+    }
+
+    lastBroadcast.set(symbol, { price: quote.price, changePercent: quote.changePercent });
+    io.to(symbol).emit("price", {
+      symbol,
+      price: quote.price,
+      change: quote.change,
+      changePercent: quote.changePercent,
+      timestamp: quote.timestamp,
+    });
+  }
 }
 
 // Public market data only (same trust boundary as the unauthenticated

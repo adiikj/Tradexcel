@@ -116,6 +116,14 @@ import chatRouter from './routes/chat.routes.js';
 app.use('/api/v1', chatRouter);
 
 import { errorHandler } from './middlewares/error.middleware.js';
+import { ApiError } from './utils/ApiError.js';
+
+// A request that matched no route. Handed to the error middleware so it gets
+// the same JSON shape as every other error - a JSON API shouldn't answer an
+// unknown path with Express's default HTML page.
+app.use((_req, _res, next) => {
+  next(new ApiError(404, "That endpoint doesn't exist."));
+});
 
 app.use(errorHandler);
 
