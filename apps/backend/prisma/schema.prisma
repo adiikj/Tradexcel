@@ -8,51 +8,51 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  name         String
-  username     String    @unique
-  avatar       String
-  email        String    @unique
-  password     String?
-  googleId     String?   @unique
-  otp          String?
-  otpExpiry    DateTime?
-  otpVerified  Boolean   @default(false)
-  dob          DateTime?
-  pin          String?
-  refreshToken String?
+  id               String    @id @default(cuid())
+  name             String
+  username         String    @unique
+  avatar           String
+  email            String    @unique
+  password         String?
+  googleId         String?   @unique
+  otp              String?
+  otpExpiry        DateTime?
+  otpVerified      Boolean   @default(false)
+  dob              DateTime?
+  pin              String?
+  refreshToken     String?
   // Forgot-password flow: a bcrypt-hashed 6-digit code, cleared once used.
   resetCodeHash    String?
   resetCodeExpiry  DateTime?
   resetAttempts    Int       @default(0)
   resetRequestedAt DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   // Daily-login streak - advanced only on explicit logins (see recordLogin),
   // not on silent token refreshes.
-  currentStreak Int       @default(0)
-  longestStreak Int       @default(0)
-  lastLoginDate DateTime? @db.Date
+  currentStreak     Int       @default(0)
+  longestStreak     Int       @default(0)
+  lastLoginDate     DateTime? @db.Date
   // Monday's "your week" recap email (services/weeklyRecap.ts). On by default, off in profile settings.
-  weeklyRecapEmails Boolean @default(true)
+  weeklyRecapEmails Boolean   @default(true)
 
   wallet                Wallet?
   holdings              Holding[]
   transactions          Transaction[]
   queuedOrders          QueuedOrder[]
   contestEntries        ContestEntry[]
-  ownedContests         Contest[]        @relation("ContestOwner")
+  ownedContests         Contest[]         @relation("ContestOwner")
   priceAlerts           PriceAlert[]
   watchlist             WatchlistItem[]
   dailySnapshots        DailySnapshot[]
   questCompletions      QuestCompletion[]
   practiceSessions      PracticeSession[]
   predictions           Prediction[]
-  following             Follow[]         @relation("Following")
-  followers             Follow[]         @relation("Followers")
-  notificationsReceived Notification[]   @relation("NotificationRecipient")
-  notificationsCaused   Notification[]   @relation("NotificationActor")
+  following             Follow[]          @relation("Following")
+  followers             Follow[]          @relation("Followers")
+  notificationsReceived Notification[]    @relation("NotificationRecipient")
+  notificationsCaused   Notification[]    @relation("NotificationActor")
   weeklySnapshots       WeeklySnapshot[]
   badges                UserBadge[]
 }
