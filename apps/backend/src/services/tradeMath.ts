@@ -1,18 +1,27 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { LISTED_SYMBOLS } from "@tradexcel/shared";
 
 // The cash balance every wallet starts (and, with weekly resets, restarts) with.
 export const STARTING_BALANCE = 100000;
 
 // Shared by the global trade controller and the contest trade controller -
 // both trade a symbol/quantity pair, just against different ledgers.
+//
+// The symbol has to be one of the listed stocks: the app only supports the
+// universe in STOCK_LIST, and the symbol is interpolated into a price URL, so
+// an unchecked value could ask Yahoo for a ticker that isn't a stock at all.
 export const tradeSchema = z.object({
   symbol: z
     .string()
     .trim()
     .min(1, "symbol is required")
     .max(15, "symbol is too long")
-    .transform((s) => s.toUpperCase()),
+    // The shape is checked before the uppercase transform below, so the
+    // pattern has to allow either case.
+    .regex(/^[A-Za-z0-9&.\-]+$/, "symbol contains invalid characters")
+    .transform((s) => s.toUpperCase())
+    .refine((s) => LISTED_SYMBOLS.has(s), "that stock isn't listed"),
   quantity: z.coerce.number().int().positive("quantity must be a positive integer"),
 });
 
@@ -45,7 +54,14 @@ export function computeWeightedAvgPrice(
   buyQuantity: number,
   buyTotal: Prisma.Decimal
 ): Prisma.Decimal {
-  return existingAvgPrice.mul(existingQuantity).add(buyTotal).div(existingQuantity + buyQuantity);
+  // Rounded to the 4dp the Holding column stores, so the average we compute
+  // is the average we keep - otherwise the portfolio view and the analytics
+  // replay can disagree about the same position.
+  return existingAvgPrice
+    .mul(existingQuantity)
+    .add(buyTotal)
+    .div(existingQuantity + buyQuantity)
+    .toDecimalPlaces(4);
 }
 
 export function computeRemainingQuantity(heldQuantity: number, sellQuantity: number): number {

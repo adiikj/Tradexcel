@@ -25,7 +25,7 @@ interface StockChartResult {
 // history from Yahoo, then overlays the live price/change from the cached
 // pricing service (falling back to chart meta if that fails).
 async function fetchStockChartData(symbol: string): Promise<StockChartResult> {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=30d&interval=1d`;
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=30d&interval=1d`;
     const response = await fetch(url);
     if (!response.ok) {
         throw new ApiError(502, "Market data isn't available right now. Please try again in a moment.");

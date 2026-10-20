@@ -25,7 +25,7 @@ export async function fetchHistoricalCloses(
   period2: Date
 ): Promise<HistoricalClose[]> {
   const url =
-    `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}` +
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}` +
     `?period1=${Math.floor(period1.getTime() / 1000)}` +
     `&period2=${Math.floor(period2.getTime() / 1000)}` +
     `&interval=1d`;

@@ -264,3 +264,8 @@ export const STOCK_LIST: StockListing[] = [
   { symbol: "TCI.NS", shortName: "TCI", fullName: "Transport Corporation of India" },
   { symbol: "VRLLOG.NS", shortName: "VRLLOG", fullName: "VRL Logistics" },
 ];
+
+// The tradable universe as a set, for checking an incoming symbol against the
+// stocks the app actually supports. The backend uses it to reject orders for
+// anything outside the list before a price is ever fetched.
+export const LISTED_SYMBOLS: ReadonlySet<string> = new Set(STOCK_LIST.map((s) => s.symbol));

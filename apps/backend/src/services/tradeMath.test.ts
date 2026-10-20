@@ -6,9 +6,42 @@ import {
   canAfford,
   canSell,
   calculateHoldingsValue,
+  tradeSchema,
 } from "./tradeMath.js";
 
 const D = (value: string | number) => new Prisma.Decimal(value);
+
+describe("tradeSchema", () => {
+  it("accepts a listed symbol and uppercases it", () => {
+    const parsed = tradeSchema.parse({ symbol: "tcs.ns", quantity: 2 });
+    expect(parsed.symbol).toBe("TCS.NS");
+    expect(parsed.quantity).toBe(2);
+  });
+
+  it("trims surrounding whitespace", () => {
+    expect(tradeSchema.parse({ symbol: " TCS.NS ", quantity: 1 }).symbol).toBe("TCS.NS");
+  });
+
+  it("rejects a symbol that isn't in the listed universe", () => {
+    const result = tradeSchema.safeParse({ symbol: "AAPL", quantity: 1 });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.message).toBe("that stock isn't listed");
+  });
+
+  it("rejects a symbol with characters that don't belong in a ticker", () => {
+    // The symbol is interpolated into a price URL, so a path or query
+    // character in it would change the request that gets made.
+    for (const symbol of ["TCS.NS/../X", "TCS.NS?x=1", "TCS NS", "TCS.NS#frag", "../../etc"]) {
+      expect(tradeSchema.safeParse({ symbol, quantity: 1 }).success).toBe(false);
+    }
+  });
+
+  it("rejects a non-positive or fractional quantity", () => {
+    expect(tradeSchema.safeParse({ symbol: "TCS.NS", quantity: 0 }).success).toBe(false);
+    expect(tradeSchema.safeParse({ symbol: "TCS.NS", quantity: -1 }).success).toBe(false);
+    expect(tradeSchema.safeParse({ symbol: "TCS.NS", quantity: 1.5 }).success).toBe(false);
+  });
+});
 
 describe("computeWeightedAvgPrice", () => {
   it("keeps the same average when buying more at the identical price", () => {

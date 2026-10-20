@@ -11,7 +11,7 @@ const CLOSED_MARKET_CACHE_TTL_MS = 30 * 60 * 1000;
 const cache = new Map<string, { quote: Quote; expiresAt: number }>();
 
 async function fetchQuote(symbol: string): Promise<Quote> {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=1d&interval=1m`;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=1m`;
   const response = await fetch(url);
 
   if (!response.ok) {
