@@ -163,6 +163,10 @@ model Transaction {
   charges   Decimal  @default(0) @db.Decimal(18, 2) // services/charges.ts
   note      String?  @db.VarChar(500) // the player's trade-journal entry
   createdAt DateTime @default(now())
+
+  // The journal, the analytics replay and the activity feed all read one
+  // user's trades newest-first; this covers the filter and the sort.
+  @@index([userId, createdAt])
 }
 
 enum QueuedOrderStatus {
@@ -252,6 +256,8 @@ model Contest {
 
   @@index([visibility, startAt])
   @@index([ownerId])
+  // The settlement job looks for contests whose end time has passed.
+  @@index([endAt])
 }
 
 // A shared cache of historical daily closes, keyed by symbol+date rather
@@ -281,6 +287,10 @@ model ContestEntry {
   transactions ContestTransaction[]
 
   @@unique([contestId, userId])
+  // "Which contests have I entered?" (achievements, activity feed) and
+  // "who won?" (hall of fame, final standings).
+  @@index([userId])
+  @@index([finalRank])
 }
 
 model ContestHolding {
@@ -324,6 +334,12 @@ model PriceAlert {
   triggeredAt DateTime?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+
+  // The alert checker scans for untriggered alerts every two minutes, so this
+  // index keeps that from reading the whole table.
+  @@index([triggered])
+  // The alerts panel lists one user's alerts newest-first.
+  @@index([userId, createdAt])
 }
 
 // Stocks a player has starred on the Market page, in the order they added them.
