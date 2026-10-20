@@ -19,7 +19,9 @@ export async function executeBuy(
   price: Prisma.Decimal
 ) {
   await lockWallet(tx, userId);
-  const total = price.mul(quantity);
+  // Rounded to the same 2dp the Transaction row stores, so the cash taken from
+  // the wallet and the value in the journal are the same number.
+  const total = price.mul(quantity).toDecimalPlaces(2);
   const charges = computeCharges("BUY", total).total;
 
   const wallet = await tx.wallet.findUnique({ where: { userId } });
@@ -74,7 +76,7 @@ export async function executeSell(
     throw new ApiError(400, "Insufficient holdings to sell");
   }
 
-  const total = price.mul(quantity);
+  const total = price.mul(quantity).toDecimalPlaces(2);
   const charges = computeCharges("SELL", total).total;
   const wallet = await tx.wallet.update({
     where: { userId },
