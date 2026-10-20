@@ -84,7 +84,10 @@ export async function runWeeklyReset(): Promise<number> {
         });
         await tx.wallet.update({ where: { userId: user.id }, data: { balance: STARTING_BALANCE } });
         return { endNetWorth, pnlPercent };
-      });
+        // Long timeout: this transaction takes a row lock on the wallet, so it can
+        // sit behind an in-flight trade. Prisma's 5s default would abort it.
+      }, { timeout: 30_000 });
+
       resetCount += 1;
       recaps.push({
         userId: user.id,
