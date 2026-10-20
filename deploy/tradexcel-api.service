@@ -1,0 +1,52 @@
+[Unit]
+Description=Tradexcel API (Express + Socket.IO + cron jobs)
+Documentation=https://github.com/adiikj/Tradexcel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tradexcel
+Group=tradexcel
+WorkingDirectory=/srv/tradexcel/apps/backend
+
+# The app reads its configuration from here - see deploy/README.md.
+EnvironmentFile=/etc/tradexcel/api.env
+Environment=NODE_ENV=production
+# A 1 GB box: cap the heap so the kernel's OOM killer doesn't take the
+# whole VM down when the chat model's ONNX runtime and the API compete.
+Environment=NODE_OPTIONS=--max-old-space-size=512
+
+ExecStart=/usr/bin/node dist/index.js
+
+# The app shuts down gracefully on SIGTERM (finishes in-flight requests,
+# closes the database pool). Give it room to do that.
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# A crash should not stay a crash: the API, the WebSocket feed and all six
+# cron jobs run in this one process, so an unsupervised crash takes the whole
+# product down until someone notices.
+Restart=always
+RestartSec=5
+# Don't give up on a slow start.
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tradexcel-api
+
+# Hardening. ProtectSystem=full keeps /usr, /boot and /etc read-only; the
+# two paths below are the only ones the app writes to.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/srv/tradexcel/apps/backend/public/temp /srv/tradexcel/apps/backend/.cache
+
+[Install]
+WantedBy=multi-user.target
