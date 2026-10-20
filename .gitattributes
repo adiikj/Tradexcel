@@ -1,0 +1,10 @@
+# Prisma checksums the migration files and formats schema.prisma, so their
+# line endings have to be identical on every platform. A CRLF checkout (this
+# repo has core.autocrlf=true on Windows) would otherwise fail the checksum
+# comparison in `prisma migrate deploy` and make `prisma format --check`
+# report a file that is already formatted.
+*.prisma text eol=lf
+*.sql text eol=lf
+
+# Shell scripts have to keep LF: a CRLF shebang makes them unrunnable.
+*.sh text eol=lf
