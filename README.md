@@ -332,13 +332,19 @@ A fuller, machine-readable map of the product lives in [apps/frontend/public/llm
 - **Backend:** an always-on Azure VM (2 burstable vCPUs, 1 GB RAM). A long-running host was chosen over serverless because of the persistent WebSocket connections and cron jobs.
 - **Database:** PostgreSQL on Neon.
 
-When deploying new backend code, apply migrations before starting it:
+The backend runs as one Node process under systemd — the API, the Socket.IO price feed and all six cron jobs live in it, so it is supervised and restarted if it dies.
 
 ```bash
-pnpm --filter @tradexcel/backend db:deploy
-pnpm --filter @tradexcel/backend build
-pnpm --filter @tradexcel/backend start
+# on the VM
+cd /srv/tradexcel
+./deploy/deploy.sh
 ```
+
+That pulls, installs, applies the migrations, builds and restarts the service, in that order, so the schema is never behind the code talking to it. See **[deploy/README.md](deploy/README.md)** for the first-time setup, the nginx config and the environment variables.
+
+The frontend's `NEXT_PUBLIC_SITE_URL` and the backend's `SITE_URL` both point at `https://www.tradexcel.site` — the sitemap, the social cards, the share button and the weekly recap email are all built from it.
+
+CI runs the typechecks, the lints, the tests, a coverage gate, and the schema checks: it builds a database from the migrations and fails if the result disagrees with `schema.prisma`, so the migrations and the code can't drift apart.
 
 ---
 
