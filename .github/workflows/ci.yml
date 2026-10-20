@@ -28,8 +28,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Shared - typecheck
-        run: pnpm --filter ./packages/shared exec tsc --noEmit
+      # Builds (not just typechecks) the shared package: the backend resolves
+      # @tradexcel/shared through node_modules -> packages/shared/dist, so the
+      # dist/ has to exist before the backend typecheck runs. `tsc` here both
+      # typechecks and emits.
+      - name: Shared - build
+        run: pnpm --filter @tradexcel/shared build
 
       - name: Backend - typecheck
         run: pnpm --filter @tradexcel/backend exec tsc --noEmit
