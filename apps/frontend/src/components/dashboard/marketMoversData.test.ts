@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rankFromData } from "./marketMovers";
+import { rankFromData } from "./marketMoversData";
 
 const stock = (symbol: string) => ({ symbol, shortName: symbol, fullName: symbol });
 const data = (percentageChange: string, todayChange: string) => ({

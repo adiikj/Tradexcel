@@ -56,6 +56,8 @@ export default async function Image({ params }: { params: Promise<{ username: st
       >
         <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: 40 }}>
           {avatar ? (
+            // Satori (next/og) renders this itself - next/image isn't supported here.
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={avatar} alt="" width={140} height={140} style={{ borderRadius: "50%", border: "4px solid #3b82f6" }} />
           ) : (
             <div style={{ display: "flex", width: 140, height: 140, borderRadius: "50%", background: "#3b82f6" }} />
